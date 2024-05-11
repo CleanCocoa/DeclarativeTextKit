@@ -12,7 +12,21 @@ final class InsertTests: XCTestCase {
         textView = nil
     }
 
-    func testInsertLines() throws {
+
+    func testInsertString() throws {
+        let runner = Insert.Runner(textView: textView)
+
+        runner(Insert(0) {
+            "Hello,"
+            " "
+            "World"
+            "!"
+        })
+
+        XCTAssertEqual(textView.string, "Hello, World!")
+    }
+
+    func testInsertLines() {
         let runner = Insert.Runner(textView: textView)
 
         runner(Insert(0) {
