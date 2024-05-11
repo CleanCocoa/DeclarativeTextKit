@@ -11,18 +11,14 @@ extension Insert {
         }
 
         public func callAsFunction(_ command: Insert) {
-            for insertion in command.insertions.reversed() {
-                textView.apply(insertion)
-            }
+            command.insertions.reversed()
+                .forEach { $0.insert(in: textView) }
         }
     }
 }
 
-extension NSTextView {
-    func apply(_ textInsertion: TextInsertion) {
-        self.replaceCharacters(
-            in: textInsertion.range,
-            with: textInsertion.insertable.content
-        )
+extension TextInsertion {
+    func insert(in buffer: Buffer) {
+        insertable.insert(in: buffer, at: location)
     }
 }

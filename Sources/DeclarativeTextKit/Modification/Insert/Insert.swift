@@ -1,6 +1,6 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
-public struct Insert {
+public struct Insert: Modification {
     let insertions: SortedArray<TextInsertion>
 
     init(_ insertions: SortedArray<TextInsertion>) {
@@ -20,21 +20,14 @@ public struct Insert {
 
 struct TextInsertion {
     static func arePositionedInIncreasingOrder (lhs: TextInsertion, rhs: TextInsertion) -> Bool {
-        return lhs.range.location < rhs.range.location
+        return lhs.location < rhs.location
     }
 
-    let range: UTF16Range
+    let location: UTF16Offset
     let insertable: Insertable
 
-    init(range: UTF16Range, insertable: Insertable) {
-        self.range = range
-        self.insertable = insertable
-    }
-
     init(at location: UTF16Offset, insertable: Insertable) {
-        self.init(
-            range: UTF16Range(location: location, length: 0),
-            insertable: insertable
-        )
+        self.location = location
+        self.insertable = insertable
     }
 }

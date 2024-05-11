@@ -12,7 +12,6 @@ final class InsertTests: XCTestCase {
         textView = nil
     }
 
-
     func testInsertString() throws {
         let runner = Insert.Runner(textView: textView)
 
@@ -26,7 +25,7 @@ final class InsertTests: XCTestCase {
         XCTAssertEqual(textView.string, "Hello, World!")
     }
 
-    func testInsertLines() {
+    func testInsert_Lines_InEmptyDocument() {
         let runner = Insert.Runner(textView: textView)
 
         runner(Insert(0) {
@@ -37,6 +36,45 @@ final class InsertTests: XCTestCase {
         XCTAssertEqual(textView.string, 
             """
             Hello, World!
+            How are things lately?
+
+            """)
+    }
+
+    func testInsert_Lines_InsideParagraph() {
+        textView.string = "Test Paragraph"
+        let runner = Insert.Runner(textView: textView)
+
+        runner(Insert(4) {
+            Line("Hello")
+            Line("World!")
+        })
+
+        XCTAssertEqual(textView.string,
+            """
+            Test
+            Hello
+            World!
+             Paragraph
+            """)
+    }
+
+    func testInsertMixed() {
+        let runner = Insert.Runner(textView: textView)
+
+        runner(Insert(0) {                  // Reduce tuples
+            "So,"                           // String
+            Line("Hello, World!")           // (String, Line)
+            "I just wanted "                // ((String, Line), String)
+            "to ask:"                       // (((String, Line), String), String)
+            Line("How are things lately?")  // ((((String, Line), String), String), Line)
+        })
+
+        XCTAssertEqual(textView.string,
+            """
+            So,
+            Hello, World!
+            I just wanted to ask:
             How are things lately?
 
             """)
