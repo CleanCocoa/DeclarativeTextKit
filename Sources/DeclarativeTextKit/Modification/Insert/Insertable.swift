@@ -55,11 +55,25 @@ public struct InsertableBuilder {
         return .init(accumulated.content + .newline + next)
     }
 
+    public static func buildPartialBlock(
+        accumulated: Line.PostfixNewlineIfNeeded,
+        next: Line
+    ) -> Line.PostfixNewlineIfNeeded {
+        return .init(accumulated.content + .newline + next.content)
+    }
+
     /// Concatenating a string to a half-open line that ensures a newline will be needed to its left-hand-side can expand the half-open line itself.
     public static func buildPartialBlock(
         accumulated: Line.PrefixNewlineIfNeeded,
         next: String
     ) -> Line.PrefixNewlineIfNeeded {
         return .init(accumulated.content + next)
+    }
+
+    public static func buildPartialBlock(
+        accumulated: Line.PrefixNewlineIfNeeded,
+        next: Line
+    ) -> Line {
+        return .init(accumulated.content + .newline + next.content)
     }
 }
