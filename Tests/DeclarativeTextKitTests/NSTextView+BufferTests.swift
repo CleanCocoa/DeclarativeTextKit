@@ -36,12 +36,26 @@ final class NSTextView_BufferTests: XCTestCase {
     }
 
     func testSelect() {
-        let sut = textView("hello")
+        let buffer = textView("hello")
 
-        XCTAssertEqual(sut.selectedRange, .init(location: sut.range.upperBound, length: 0))
+        XCTAssertEqual(buffer.selectedRange, .init(location: buffer.range.upperBound, length: 0))
 
-        sut.select(.init(location: 2, length: 2))
+        buffer.select(.init(location: 2, length: 2))
 
-        XCTAssertEqual(sut.selectedRange, .init(location: 2, length: 2))
+        XCTAssertEqual(buffer.selectedRange, .init(location: 2, length: 2))
+    }
+
+    func testLineRange()  {
+        let buffer = textView("aa\nbb\ncc")
+
+        // Individual lines
+        XCTAssertEqual(buffer.lineRange(for: .init(location: 0, length: 0)), .init(location: 0, length: 3))
+        XCTAssertEqual(buffer.lineRange(for: .init(location: 3, length: 0)), .init(location: 3, length: 3))
+        XCTAssertEqual(buffer.lineRange(for: .init(location: 6, length: 0)), .init(location: 6, length: 2))
+
+        // Wrapping lines
+        XCTAssertEqual(buffer.lineRange(for: .init(location: 1, length: 3)), .init(location: 0, length: 6))
+        XCTAssertEqual(buffer.lineRange(for: .init(location: 4, length: 3)), .init(location: 3, length: 5))
+        XCTAssertEqual(buffer.lineRange(for: .init(location: 1, length: 7)), buffer.range)
     }
 }

@@ -12,6 +12,8 @@ public protocol Buffer: AnyObject {
     func select(_ range: Range)
     var selectedRange: Range { get }
 
+    func lineRange(for range: Range) -> Range
+
     func unsafeCharacter(at location: Location) -> Content
     func insert(_ content: Content, at location: Location)
 }
