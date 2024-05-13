@@ -13,4 +13,8 @@ extension NSMutableString: Buffer {
     public func select(_ range: Buffer.Range) {
         // no op
     }
+
+    public var selectedRange: Buffer.Range {
+        return .init(location: NSNotFound, length: 0)
+    }
 }

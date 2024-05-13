@@ -28,4 +28,16 @@ final class NSMutableString_BufferTests: XCTestCase {
 
         XCTAssertEqual(buffer, "h🐞 bugi")
     }
+
+    func testSelectedRange() {
+        let buffer = NSMutableString("hi")
+
+        // Precondition
+        XCTAssertEqual(buffer.selectedRange, .init(location: NSNotFound, length: 0))
+
+        buffer.select(.init(location: 1, length: 1))
+
+        // Postcondition
+        XCTAssertEqual(buffer.selectedRange, .init(location: NSNotFound, length: 0))
+    }
 }
