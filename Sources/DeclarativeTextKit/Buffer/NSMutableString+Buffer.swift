@@ -1,0 +1,12 @@
+//  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
+
+import Foundation
+
+extension NSMutableString: Buffer {
+    public var range: Buffer.Range { Buffer.Range(location: 0, length: self.length) }
+
+    /// Raises an `NSExceptionName` of name `.rangeException` if `location` is out of bounds.
+    public func character(at location: UTF16Offset) -> Buffer.Content {
+        return self.substring(with: NSRange(location: location, length: 1))
+    }
+}

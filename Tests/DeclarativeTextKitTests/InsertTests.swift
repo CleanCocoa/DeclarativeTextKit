@@ -2,15 +2,7 @@ import XCTest
 import DeclarativeTextKit
 
 final class InsertTests: XCTestCase {
-    var textView: NSTextView!
-
-    override func setUp() async throws {
-        textView = await NSTextView(usingTextLayoutManager: false)
-    }
-
-    override func tearDown() async throws {
-        textView = nil
-    }
+    var mutableString: NSMutableString = ""
 
     func testInsertString() throws {
         Insert(0) {
@@ -18,18 +10,18 @@ final class InsertTests: XCTestCase {
             " "
             "World"
             "!"
-        }(intoBuffer: textView)
+        }(intoBuffer: mutableString)
 
-        XCTAssertEqual(textView.string, "Hello, World!")
+        XCTAssertEqual(mutableString, "Hello, World!")
     }
 
     func testInsert_Lines_InEmptyDocument() {
         Insert(0) {
             Line("Hello, World!")
             Line("How are things lately?")
-        }(intoBuffer: textView)
+        }(intoBuffer: mutableString)
 
-        XCTAssertEqual(textView.string, 
+        XCTAssertEqual(mutableString,
             """
             Hello, World!
             How are things lately?
@@ -38,14 +30,14 @@ final class InsertTests: XCTestCase {
     }
 
     func testInsert_Lines_InsideParagraph() {
-        textView.string = "Test Paragraph"
+        mutableString = "Test Paragraph"
 
         Insert(4) {
             Line("Hello")
             Line("World!")
-        }(intoBuffer: textView)
+        }(intoBuffer: mutableString)
 
-        XCTAssertEqual(textView.string,
+        XCTAssertEqual(mutableString,
             """
             Test
             Hello
@@ -58,9 +50,9 @@ final class InsertTests: XCTestCase {
         Insert(0) {
             Line("Hello,")
             "World!"
-        }(intoBuffer: textView)
+        }(intoBuffer: mutableString)
 
-        XCTAssertEqual(textView.string,
+        XCTAssertEqual(mutableString,
             """
             Hello,
             World!
@@ -72,9 +64,9 @@ final class InsertTests: XCTestCase {
             Line("Hello,")
             "World!"
             Line("What's up?")
-        }(intoBuffer: textView)
+        }(intoBuffer: mutableString)
 
-        XCTAssertEqual(textView.string,
+        XCTAssertEqual(mutableString,
             """
             Hello,
             World!
@@ -88,9 +80,9 @@ final class InsertTests: XCTestCase {
             Line("Hello,")
             "World! "
             "What's Up?"
-        }(intoBuffer: textView)
+        }(intoBuffer: mutableString)
 
-        XCTAssertEqual(textView.string,
+        XCTAssertEqual(mutableString,
             """
             Hello,
             World! What's Up?
@@ -101,9 +93,9 @@ final class InsertTests: XCTestCase {
         Insert(0) {
             "Hello,"
             Line("World")
-        }(intoBuffer: textView)
+        }(intoBuffer: mutableString)
 
-        XCTAssertEqual(textView.string,
+        XCTAssertEqual(mutableString,
             """
             Hello,
             World
@@ -116,9 +108,9 @@ final class InsertTests: XCTestCase {
             "Hello,"
             Line("World!")
             Line("What's up?")
-        }(intoBuffer: textView)
+        }(intoBuffer: mutableString)
 
-        XCTAssertEqual(textView.string,
+        XCTAssertEqual(mutableString,
             """
             Hello,
             World!
@@ -132,9 +124,9 @@ final class InsertTests: XCTestCase {
             "Hello,"
             Line("World!")
             "What's up?"
-        }(intoBuffer: textView)
+        }(intoBuffer: mutableString)
 
-        XCTAssertEqual(textView.string,
+        XCTAssertEqual(mutableString,
             """
             Hello,
             World!
@@ -150,9 +142,9 @@ final class InsertTests: XCTestCase {
             "I just wanted "
             "to ask:"
             Line("How are things lately?")
-        }(intoBuffer: textView)
+        }(intoBuffer: mutableString)
 
-        XCTAssertEqual(textView.string,
+        XCTAssertEqual(mutableString,
             """
             So,
             Hello, World!
