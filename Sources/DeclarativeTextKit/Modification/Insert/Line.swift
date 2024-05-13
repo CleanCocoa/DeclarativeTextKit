@@ -97,6 +97,6 @@ extension String {
 extension Buffer {
     @usableFromInline
     func newline(at location: UTF16Offset) -> Bool {
-        return character(at: location) == .newline
+        return unsafeCharacter(at: location) == .newline
     }
 }

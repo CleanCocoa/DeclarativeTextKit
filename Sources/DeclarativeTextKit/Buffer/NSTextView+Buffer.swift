@@ -19,8 +19,8 @@ extension NSTextView: Buffer {
 
     /// Raises an `NSExceptionName` of name `.rangeException` if `location` is out of bounds.
     @inlinable
-    public func character(at location: UTF16Offset) -> Buffer.Content {
-        return self.nsMutableString.character(at: location)
+    public func unsafeCharacter(at location: UTF16Offset) -> Buffer.Content {
+        return self.nsMutableString.unsafeCharacter(at: location)
     }
 
     public func insert(_ content: Content, at location: Location) {
