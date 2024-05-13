@@ -34,4 +34,12 @@ final class NSTextView_BufferTests: XCTestCase {
 
         XCTAssertEqual(buffer.string, "h🐞 bugi")
     }
+
+    func testSelect() {
+        let sut = textView("hello")
+
+        sut.select(.init(location: 2, length: 2))
+
+        XCTAssertEqual(sut.selectedRange, .init(location: 2, length: 2))
+    }
 }

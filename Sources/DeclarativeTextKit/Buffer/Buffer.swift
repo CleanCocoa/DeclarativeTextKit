@@ -9,6 +9,8 @@ public protocol Buffer {
 
     var range: Range { get }
 
+    func select(_ range: Range)
+
     func unsafeCharacter(at location: Location) -> Content
     func insert(_ content: Content, at location: Location)
 }

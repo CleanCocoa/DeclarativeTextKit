@@ -26,4 +26,8 @@ extension NSTextView: Buffer {
     public func insert(_ content: Content, at location: Location) {
         self.nsMutableString.insert(content, at: location)
     }
+
+    public func select(_ range: Buffer.Range) {
+        self.setSelectedRange(range)
+    }
 }

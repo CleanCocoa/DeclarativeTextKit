@@ -9,4 +9,8 @@ extension NSMutableString: Buffer {
     public func unsafeCharacter(at location: UTF16Offset) -> Buffer.Content {
         return self.substring(with: rangeOfComposedCharacterSequence(at: location))
     }
+
+    public func select(_ range: Buffer.Range) {
+        // no op
+    }
 }
