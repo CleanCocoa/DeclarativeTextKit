@@ -34,7 +34,9 @@ public struct Line: Insertable {
 
 extension Line {
     /// Ensures its ``content`` is prepended by newline characters (left).
-    public struct PrefixNewlineIfNeeded: Insertable {
+    ///
+    /// At the ``Buffer``'s zero location or start position, does not prepend a newline.
+    public struct StartsWithNewlineIfNeeded: Insertable {
         public let content: Buffer.Content
 
         @usableFromInline
@@ -57,8 +59,15 @@ extension Line {
     }
 
     /// Ensures its ``content`` is appended by a newline characters (right).
-    public struct PostfixNewlineIfNeeded: Insertable {
+    ///
+    /// At the ``Buffer``'s end position, appends a newline if ``insertFinalNewline`` is `true` so that documents end with a line break.
+    public struct EndsWithNewlineIfNeeded: Insertable {
         public let content: Buffer.Content
+
+        /// Whether to insert a newline at the end of a ``Buffer``.
+        ///
+        /// For whole text documents, this will ensure that the document's last character is a newline.
+        public let insertFinalNewline: Bool = true
 
         @usableFromInline
         internal init(_ content: Buffer.Content) {
@@ -69,7 +78,7 @@ extension Line {
         public func insert(in buffer: Buffer, at location: UTF16Offset) {
             let newlineAfter = location < buffer.range.upperBound
                 ? buffer.newline(at: location)
-                : false  // Favor ending with newline at EOF
+                : !insertFinalNewline
 
             if !newlineAfter {
                 buffer.insert(.newline, at: location)
