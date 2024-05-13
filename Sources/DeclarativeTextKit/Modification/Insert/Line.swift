@@ -6,6 +6,11 @@ import Foundation
 public struct Line: Insertable {
     public let content: Buffer.Content
 
+    /// Whether to insert a newline at the end of a ``Buffer``.
+    ///
+    /// For whole text documents, this will ensure that the document's last character is a newline.
+    public let insertFinalNewline: Bool = true
+
     public init(_ content: Buffer.Content) {
         self.content = content
     }
@@ -16,7 +21,7 @@ public struct Line: Insertable {
             : true  // Favor not adding a newline at the start of a file
         let newlineAfter = location < buffer.range.upperBound
             ? buffer.newline(at: location)
-            : false  // Favor ending with newline at EOF
+            : !insertFinalNewline
 
         if !newlineAfter {
             buffer.insert(.newline, at: location)
