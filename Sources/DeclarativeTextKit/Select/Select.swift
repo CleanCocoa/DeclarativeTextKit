@@ -3,7 +3,7 @@
 public struct Select<Range>: Command
 where Range: BufferRangeExpression {
     let range: Range
-    let body: (_ selectedRange: inout Buffer.Range) -> CommandSequence
+    let body: (_ selectedRange: SelectedRange) -> CommandSequence
 }
 
 // MARK: - DSL
@@ -11,7 +11,7 @@ where Range: BufferRangeExpression {
 extension Select {
     public init(
         _ range: Range,
-        @CommandSequenceBuilder _ body: @escaping (_ selectedRange: inout Buffer.Range) -> CommandSequence
+        @CommandSequenceBuilder _ body: @escaping (_ selectedRange: SelectedRange) -> CommandSequence
     ) {
         self.range = range
         self.body = body
