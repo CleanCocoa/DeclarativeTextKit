@@ -4,6 +4,11 @@ import XCTest
 import DeclarativeTextKit
 
 final class NSMutableString_BufferTests: XCTestCase {
+    func testContent() {
+        let string = "Test ⭐️ string 🚞 here"
+        XCTAssertEqual(NSMutableString(string: string).content, string)
+    }
+
     func testRange() {
         XCTAssertEqual((NSMutableString("") as Buffer).range,
                        .init(location: 0, length: 0))

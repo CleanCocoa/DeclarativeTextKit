@@ -5,3 +5,8 @@ import AppKit
 public typealias UTF16Range = NSRange
 public typealias UTF16Offset = Int
 public typealias UTF16Length = Int
+
+extension UTF16Range {
+    @inlinable
+    public var endLocation: UTF16Offset { upperBound }
+}

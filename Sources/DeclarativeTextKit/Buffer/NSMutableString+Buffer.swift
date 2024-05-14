@@ -5,6 +5,8 @@ import Foundation
 extension NSMutableString: Buffer {
     public var range: Buffer.Range { Buffer.Range(location: 0, length: self.length) }
 
+    public var content: Content { self as Buffer.Content }
+
     /// Raises an `NSExceptionName` of name `.rangeException` if `location` is out of bounds.
     public func unsafeCharacter(at location: UTF16Offset) -> Buffer.Content {
         return self.substring(with: rangeOfComposedCharacterSequence(at: location))

@@ -10,6 +10,11 @@ final class NSTextView_BufferTests: XCTestCase {
         return textView
     }
 
+    func testContent() {
+        let string = "Test ⭐️ string 🚞 here"
+        XCTAssertEqual(textView(string).content, string)
+    }
+
     func testRange() {
         XCTAssertEqual(textView("").range,
                        .init(location: 0, length: 0))

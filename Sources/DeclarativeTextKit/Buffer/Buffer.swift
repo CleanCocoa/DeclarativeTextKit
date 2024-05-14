@@ -9,6 +9,8 @@ public protocol Buffer: AnyObject {
 
     var range: Range { get }
 
+    var content: Content { get }
+
     func select(_ range: Range)
     var selectedRange: Range { get }
 

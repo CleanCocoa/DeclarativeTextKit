@@ -18,6 +18,9 @@ extension NSTextView: Buffer {
     public var range: Buffer.Range { self.nsMutableString.range }
 
     @inlinable
+    public var content: Content { self.nsMutableString as Buffer.Content }
+
+    @inlinable
     public func lineRange(for range: Buffer.Range) -> Buffer.Range {
         return self.nsMutableString.lineRange(for: range)
     }
