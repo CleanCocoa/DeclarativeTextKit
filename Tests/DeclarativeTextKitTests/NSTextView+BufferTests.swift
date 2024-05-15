@@ -50,7 +50,7 @@ final class NSTextView_BufferTests: XCTestCase {
         XCTAssertEqual(buffer.selectedRange, .init(location: 2, length: 2))
     }
 
-    func testLineRange()  {
+    func testLineRange() {
         let buffer = textView("aa\nbb\ncc")
 
         // Individual lines
@@ -62,5 +62,14 @@ final class NSTextView_BufferTests: XCTestCase {
         XCTAssertEqual(buffer.lineRange(for: .init(location: 1, length: 3)), .init(location: 0, length: 6))
         XCTAssertEqual(buffer.lineRange(for: .init(location: 4, length: 3)), .init(location: 3, length: 5))
         XCTAssertEqual(buffer.lineRange(for: .init(location: 1, length: 7)), buffer.range)
+    }
+
+    func testDelete() {
+        let buffer = textView("Lorem ipsum")
+
+        buffer.delete(in: .init(location: 0, length: 3))
+        buffer.delete(in: .init(location: 0, length: 3))
+
+        XCTAssertEqual(buffer.content, "ipsum")
     }
 }

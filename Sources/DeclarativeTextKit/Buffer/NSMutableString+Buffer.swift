@@ -19,4 +19,9 @@ extension NSMutableString: Buffer {
     public var selectedRange: Buffer.Range {
         return .init(location: NSNotFound, length: 0)
     }
+
+    /// Raises an `NSExceptionName` of name `.rangeException` if any part of `range` lies beyond the end of the buffer.
+    public func delete(in range: Buffer.Range) {
+        self.deleteCharacters(in: range)
+    }
 }

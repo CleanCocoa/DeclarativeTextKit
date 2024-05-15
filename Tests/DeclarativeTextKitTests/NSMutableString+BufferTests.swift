@@ -46,7 +46,7 @@ final class NSMutableString_BufferTests: XCTestCase {
         XCTAssertEqual(buffer.selectedRange, .init(location: NSNotFound, length: 0))
     }
 
-    func testLineRange()  {
+    func testLineRange() {
         let buffer = NSMutableString("aa\nbb\ncc")
 
         // Individual lines
@@ -58,5 +58,14 @@ final class NSMutableString_BufferTests: XCTestCase {
         XCTAssertEqual(buffer.lineRange(for: .init(location: 1, length: 3)), .init(location: 0, length: 6))
         XCTAssertEqual(buffer.lineRange(for: .init(location: 4, length: 3)), .init(location: 3, length: 5))
         XCTAssertEqual(buffer.lineRange(for: .init(location: 1, length: 7)), buffer.range)
+    }
+
+    func testDelete() {
+        let buffer = NSMutableString("Hello: world!")
+
+        buffer.delete(in: .init(location: 0, length: 4))
+        buffer.delete(in: .init(location: 0, length: 4))
+
+        XCTAssertEqual(buffer, "orld!")
     }
 }

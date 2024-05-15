@@ -40,4 +40,9 @@ extension NSTextView: Buffer {
     public func select(_ range: Buffer.Range) {
         self.setSelectedRange(range)
     }
+
+    /// Raises an `NSExceptionName` of name `.rangeException` if any part of `range` lies beyond the end of the buffer.
+    public func delete(in range: Buffer.Range) {
+        self.nsMutableString.deleteCharacters(in: range)
+    }
 }
