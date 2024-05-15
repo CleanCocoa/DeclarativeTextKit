@@ -14,14 +14,17 @@ public struct SelectedRange {
 
     private let boxedValue: Box
 
-    public private(set) var value: Buffer.Range {
+    public internal(set) var value: Buffer.Range {
         get { boxedValue.value }
-        set { boxedValue.value = newValue }
+        nonmutating set { boxedValue.value = newValue }
     }
 
     public var location: Buffer.Location { value.location }
     public var endLocation: Buffer.Location { value.endLocation }
-    public var length: Buffer.Length { value.length }
+    public var length: Buffer.Length {
+        get { value.length }
+        nonmutating set { value.length = newValue }
+    }
 
     public init(_ range: Buffer.Range) {
         self.boxedValue = Box(range)

@@ -15,7 +15,10 @@ public struct Line: Insertable {
         self.content = content
     }
 
-    public func insert(in buffer: Buffer, at location: UTF16Offset) {
+    public func insert(
+        in buffer: Buffer,
+        at location: UTF16Offset
+    ) -> ChangeInLength {
         let newlineBefore = location > buffer.range.lowerBound
             ? buffer.newline(at: location - 1)
             : true  // Favor not adding a newline at the start of a file
@@ -23,15 +26,21 @@ public struct Line: Insertable {
             ? buffer.newline(at: location)
             : !insertFinalNewline
 
+        var changeInLength = ChangeInLength()
+
         if !newlineAfter {
             buffer.insert(.newline, at: location)
+            changeInLength += ChangeInLength(.newline)
         }
 
-        content.insert(in: buffer, at: location)
+        changeInLength += content.insert(in: buffer, at: location)
 
         if !newlineBefore {
             buffer.insert(.newline, at: location)
+            changeInLength += ChangeInLength(.newline)
         }
+
+        return changeInLength
     }
 }
 
@@ -50,16 +59,24 @@ extension Line {
         }
 
         @inlinable
-        public func insert(in buffer: Buffer, at location: UTF16Offset) {
+        public func insert(
+            in buffer: Buffer,
+            at location: UTF16Offset
+        ) -> ChangeInLength {
             let newlineBefore = location > buffer.range.lowerBound
                 ? buffer.newline(at: location - 1)
                 : true  // Favor not adding a newline at the start of a file
 
-            content.insert(in: buffer, at: location)
+            var changeInLength = ChangeInLength()
+
+            changeInLength += content.insert(in: buffer, at: location)
 
             if !newlineBefore {
                 buffer.insert(.newline, at: location)
+                changeInLength += ChangeInLength(.newline)
             }
+
+            return changeInLength
         }
     }
 
@@ -80,16 +97,23 @@ extension Line {
         }
 
         @inlinable
-        public func insert(in buffer: Buffer, at location: UTF16Offset) {
+        public func insert(
+            in buffer: Buffer,
+            at location: UTF16Offset
+        ) -> ChangeInLength {
             let newlineAfter = location < buffer.range.upperBound
                 ? buffer.newline(at: location)
                 : !insertFinalNewline
 
+            var changeInLength = ChangeInLength()
+
             if !newlineAfter {
                 buffer.insert(.newline, at: location)
+                changeInLength += ChangeInLength(.newline)
             }
+            changeInLength += content.insert(in: buffer, at: location)
 
-            content.insert(in: buffer, at: location)
+            return changeInLength
         }
     }
 }

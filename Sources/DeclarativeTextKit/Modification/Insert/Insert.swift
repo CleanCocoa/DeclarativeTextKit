@@ -1,6 +1,6 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
-public struct Insert: Modification {
+public struct Insert {
     let insertions: SortedArray<TextInsertion>
 
     init(_ insertions: SortedArray<TextInsertion>) {

@@ -1,7 +1,10 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
 public protocol Insertable {
-    func insert(in buffer: Buffer, at location: Buffer.Location)
+    func insert(
+        in buffer: Buffer,
+        at location: Buffer.Location
+    ) -> ChangeInLength
 }
 
 @resultBuilder
