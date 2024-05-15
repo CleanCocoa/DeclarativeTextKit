@@ -3,9 +3,14 @@
 import AppKit
 
 extension Insert {
-    public func callAsFunction(intoBuffer buffer: Buffer) {
+    public func apply(to buffer: Buffer) {
         self.insertions.reversed()
             .forEach { $0.insert(in: buffer) }
+    }
+
+    @inlinable
+    public func callAsFunction(intoBuffer buffer: Buffer) {
+        apply(to: buffer)
     }
 }
 
