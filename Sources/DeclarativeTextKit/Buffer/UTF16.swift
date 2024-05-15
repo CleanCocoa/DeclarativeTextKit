@@ -10,3 +10,12 @@ extension UTF16Range {
     @inlinable
     public var endLocation: UTF16Offset { upperBound }
 }
+
+public func length(of string: NSString) -> UTF16Length {
+    return string.length
+}
+
+@_disfavoredOverload
+public func length(of string: String) -> UTF16Length {
+    return length(of: string as NSString)
+}

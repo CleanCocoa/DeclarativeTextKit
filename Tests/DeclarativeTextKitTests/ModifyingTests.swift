@@ -17,4 +17,18 @@ final class ModifyingTests: XCTestCase {
         XCTAssertEqual(buffer.content, "Lorem deipsumesque.")
         XCTAssertEqual(selectedRange, .init(location: 6, length: 12))
     }
+
+    func testModifying_DeletingMultiplePlaces() {
+        let buffer: Buffer = NSMutableString("Lorem ipsum dolor sit.")
+        let fullRange = SelectedRange(buffer.range)
+
+        var modify = Modifying(fullRange) { range in
+            Delete(.init(location: range.location + 1, length: length(of: "orem ")))
+            Delete(11 ..< range.endLocation - 1)
+        }
+        modify.callAsFunction(buffer: buffer)
+
+        XCTAssertEqual(buffer.content, "Lipsum.")
+        XCTAssertEqual(fullRange, .init(location: 0, length: 7))
+    }
 }

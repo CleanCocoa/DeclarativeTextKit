@@ -45,3 +45,9 @@ extension SelectedRange: Equatable {
         lhs.value == rhs.value
     }
 }
+
+extension SelectedRange: CustomStringConvertible {
+    public var description: String {
+        "(\(value.location)..<\(value.endLocation))(len=\(value.length))"
+    }
+}

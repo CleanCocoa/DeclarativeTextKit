@@ -17,3 +17,15 @@ extension ModificationBuilder {
         ))
     }
 }
+
+extension ModificationBuilder {
+    public static func buildPartialBlock(first: Delete) -> Delete {
+        first
+    }
+
+    public static func buildPartialBlock(accumulated: Delete, next: Delete) -> Delete {
+        return Delete(SortedArray(
+            unsorted: Array(accumulated.deletions) + Array(next.deletions)
+        ))
+    }
+}
