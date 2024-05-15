@@ -4,17 +4,14 @@ import AppKit
 
 extension Insert: Modification {
     public func apply(to buffer: Buffer) -> ChangeInLength {
-        var changeInLength = ChangeInLength()
-
-        for insertion in self.insertions.reversed() {
+        return self.insertions
+            .reversed()
+            .reduce(into: ChangeInLength()) { changeInLength, insertion in
             changeInLength += insertion.insert(in: buffer)
         }
-
-        return changeInLength
     }
 
     @inlinable
-    @discardableResult
     public func callAsFunction(intoBuffer buffer: Buffer) -> ChangeInLength {
         return apply(to: buffer)
     }
@@ -22,6 +19,6 @@ extension Insert: Modification {
 
 extension TextInsertion {
     fileprivate func insert(in buffer: Buffer) -> ChangeInLength {
-        insertable.insert(in: buffer, at: location)
+        return insertable.insert(in: buffer, at: location)
     }
 }

@@ -10,6 +10,12 @@ public struct ChangeInLength: Equatable {
     }
 }
 
+extension ChangeInLength: ExpressibleByIntegerLiteral {
+    public init(integerLiteral value: IntegerLiteralType) {
+        self.init(Buffer.Length(value))
+    }
+}
+
 extension ChangeInLength {
     public static func + (lhs: ChangeInLength, rhs: ChangeInLength) -> ChangeInLength {
         return ChangeInLength(lhs.delta + rhs.delta)
