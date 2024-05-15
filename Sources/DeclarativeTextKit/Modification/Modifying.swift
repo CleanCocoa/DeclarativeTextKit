@@ -3,7 +3,7 @@
 /// Marking a ``Buffer/Range`` as to-be-modified, combining Modifications into one block.
 public struct Modifying<Content>: Command
 where Content: Modification {
-    var range: SelectedRange
+    let range: SelectedRange
     let modification: (Buffer.Range) -> Content
 
     public init(
