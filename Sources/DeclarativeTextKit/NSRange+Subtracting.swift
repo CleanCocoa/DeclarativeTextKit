@@ -3,8 +3,6 @@
 import Foundation
 
 extension NSRange {
-    @inlinable
-    static var notFound: NSRange { NSRange(location: NSNotFound, length: 0) }
 
     /// A new range that represents a part of a text buffer, left over after removing `other` from the buffer.
     ///
