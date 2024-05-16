@@ -7,7 +7,7 @@ public struct ModificationBuilder { }
 
 extension ModificationBuilder {
     public static func buildPartialBlock(first: Insert) -> Insert {
-        first
+        return first
     }
 
     public static func buildPartialBlock(accumulated: Insert, next: Insert) -> Insert {
@@ -20,7 +20,7 @@ extension ModificationBuilder {
 
 extension ModificationBuilder {
     public static func buildPartialBlock(first: Delete) -> Delete {
-        first
+        return first
     }
 
     public static func buildPartialBlock(accumulated: Delete, next: Delete) -> Delete {
