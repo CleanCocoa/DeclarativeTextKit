@@ -12,7 +12,7 @@ public final class MutableStringBuffer: Buffer {
     @inlinable
     public var content: Content { self.storage as Buffer.Content }
 
-    public private(set) var selectedRange: Buffer.Range
+    public var selectedRange: Buffer.Range
 
     fileprivate init(
         storage: NSMutableString,
@@ -41,10 +41,6 @@ public final class MutableStringBuffer: Buffer {
         return self.storage.unsafeCharacter(at: location)
     }
 
-    public func select(_ range: Buffer.Range) {
-        self.selectedRange = range
-    }
-
     public func insert(_ content: Content, at location: Location) {
         self.storage.insert(content, at: location)
     }
@@ -52,11 +48,14 @@ public final class MutableStringBuffer: Buffer {
     /// Raises an `NSExceptionName` of name `.rangeException` if any part of `range` lies beyond the end of the buffer.
     public func delete(in range: Buffer.Range) {
         self.storage.deleteCharacters(in: range)
+        self.selectedRange.subtract(range)
     }
 
     public func replace(range: Buffer.Range, with content: Buffer.Content) {
         self.storage.replaceCharacters(in: range, with: content)
-        self.select(Buffer.Range(location: range.location + length(of: content), length: 0))
+        self.selectedRange = self.selectedRange
+            .subtracting(range)  // Removes potential overlap with the replacement range.
+            .shifted(by: length(of: content))  // Nudges selection to the right if needed.
     }
 }
 

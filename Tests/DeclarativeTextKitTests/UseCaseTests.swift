@@ -32,7 +32,7 @@ But it is nice.
 
         buffer.insert("raw")  // Simulate typing at the selection
 
-        XCTAssertEqual(buffer.description, """
+        assertBufferState(buffer, """
 # Heading
 
 ```raw{^}

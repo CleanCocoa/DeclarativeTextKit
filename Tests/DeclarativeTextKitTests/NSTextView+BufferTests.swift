@@ -6,7 +6,10 @@ import DeclarativeTextKit
 final class NSTextView_BufferTests: XCTestCase {
     func testContent() {
         let string = "Test ⭐️ string 🚞 here"
-        XCTAssertEqual(textView(string).content, string)
+        let buffer = textView(string)
+        XCTAssertEqual(buffer.content, string)
+        assertBufferState(buffer, "Test ⭐️ string 🚞 here{^}",
+                          "NSTextView puts insertion point at end of buffer")
     }
 
     func testRange() {
@@ -28,38 +31,41 @@ final class NSTextView_BufferTests: XCTestCase {
 
     func testInsertContentAtLocation() {
         let buffer = textView("hi")
+        buffer.insertionLocation = 1
+
+        assertBufferState(buffer, "h{^}i")
 
         buffer.insert("🐞 bug", at: 1)
 
-        XCTAssertEqual(buffer.string, "h🐞 bugi")
+        assertBufferState(buffer, "h🐞 bug{^}i")
     }
 
     func testInsertOverSelection() {
         let buffer = textView("fizz buzz fizz buzz")
-
         let selectedRange = Buffer.Range(location: 5, length: 5)
         buffer.select(selectedRange)
 
-        XCTAssertTrue(buffer.isSelectingText)
+        assertBufferState(buffer, "fizz {buzz }fizz buzz")
 
         buffer.insert("")
         XCTAssertFalse(buffer.isSelectingText, "Inserting goes out of selection mode")
-        XCTAssertEqual(buffer.selectedRange, Buffer.Range(location: selectedRange.location, length: 0))
-        XCTAssertEqual(buffer.content, "fizz fizz buzz")
+        assertBufferState(buffer, "fizz {^}fizz buzz")
 
         buffer.insert("foo ")
-        XCTAssertEqual(buffer.selectedRange, Buffer.Range(location: selectedRange.location + length(of: "foo "), length: 0))
-        XCTAssertEqual(buffer.content, "fizz foo fizz buzz")
+        assertBufferState(buffer, "fizz foo {^}fizz buzz")
     }
 
     func testSelect() {
         let buffer = textView("hello")
 
+        XCTAssertFalse(buffer.isSelectingText)
         XCTAssertEqual(buffer.selectedRange, .init(location: buffer.range.upperBound, length: 0))
 
         buffer.select(.init(location: 2, length: 2))
 
+        XCTAssertTrue(buffer.isSelectingText)
         XCTAssertEqual(buffer.selectedRange, .init(location: 2, length: 2))
+        XCTAssertEqual(buffer.insertionLocation, 2)
     }
 
     func testLineRange() {
@@ -78,19 +84,40 @@ final class NSTextView_BufferTests: XCTestCase {
 
     func testDelete() {
         let buffer = textView("Lorem ipsum")
+        buffer.insertionLocation = 5
+
+        assertBufferState(buffer, "Lorem{^} ipsum")
 
         buffer.delete(in: .init(location: 0, length: 3))
-        buffer.delete(in: .init(location: 0, length: 3))
+        assertBufferState(buffer, "em{^} ipsum")
 
-        XCTAssertEqual(buffer.content, "ipsum")
+        buffer.delete(in: .init(location: 0, length: 3))
+        assertBufferState(buffer, "{^}ipsum")
     }
 
-    func testReplace() {
-        let buffer = textView("Cya, nerdy world!")
+    func testReplaceAroundInsertionPoint() {
+        let buffer: Buffer = textView("Goodbye, cruel world!")
+        buffer.insertionLocation = length(of: "Goodbye, cruel")
 
-        buffer.replaceCharacters(in: .init(location: 5, length: 6), with: "")
-        buffer.replaceCharacters(in: .init(location: 0, length: 3), with: "Hi")
+        assertBufferState(buffer, "Goodbye, cruel{^} world!")
 
-        XCTAssertEqual(buffer.content, "Hi, world!")
+        buffer.replace(range: .init(location: 9, length: 6), with: "")
+        assertBufferState(buffer, "Goodbye, {^}world!")
+
+        buffer.replace(range: .init(location: 0, length: 7), with: "Hello")
+        assertBufferState(buffer, "Hello, {^}world!")
+    }
+
+    func testReplaceInSelectedRange() {
+        let buffer: Buffer = textView("Lorem ipsum")
+        buffer.selectedRange = .init(location: 3, length: 5)
+
+        assertBufferState(buffer, "Lor{em ip}sum")
+
+        buffer.replace(range: .init(location: 0, length: 6), with: "x")
+        assertBufferState(buffer, "x{ip}sum")
+
+        buffer.replace(range: .init(location: 0, length: 4), with: "y")
+        assertBufferState(buffer, "y{^}um")
     }
 }

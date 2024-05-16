@@ -56,11 +56,13 @@ final class MutableStringBufferTests: XCTestCase {
 
         // Precondition
         XCTAssertEqual(buffer.selectedRange, .init(location: 0, length: 0))
+        XCTAssertFalse(buffer.isSelectingText)
 
         buffer.select(.init(location: 1, length: 1))
 
         // Postcondition
         XCTAssertEqual(buffer.selectedRange, .init(location: 1, length: 1))
+        XCTAssertTrue(buffer.isSelectingText)
     }
 
     func testLineRange() {
@@ -79,19 +81,39 @@ final class MutableStringBufferTests: XCTestCase {
 
     func testDelete() {
         let buffer = MutableStringBuffer("Hello: world!")
+        buffer.insertionLocation = length(of: "Hello: wor")
+
+        assertBufferState(buffer, "Hello: wor{^}ld!")
 
         buffer.delete(in: .init(location: 0, length: 4))
         buffer.delete(in: .init(location: 0, length: 4))
 
-        assertBufferState(buffer, "{^}orld!")
+        assertBufferState(buffer, "or{^}ld!")
     }
 
-    func testReplace() {
+    func testReplaceAroundInsertionPoint() {
         let buffer = MutableStringBuffer("Goodbye, cruel world!")
+        buffer.insertionLocation = length(of: "Goodbye, cruel")
+
+        assertBufferState(buffer, "Goodbye, cruel{^} world!")
 
         buffer.replace(range: .init(location: 9, length: 6), with: "")
-        buffer.replace(range: .init(location: 0, length: 7), with: "Hello")
+        assertBufferState(buffer, "Goodbye, {^}world!")
 
-        assertBufferState(buffer, "Hello{^}, world!")
+        buffer.replace(range: .init(location: 0, length: 7), with: "Hello")
+        assertBufferState(buffer, "Hello, {^}world!")
+    }
+
+    func testReplaceInSelectedRange() {
+        let buffer = MutableStringBuffer("Lorem ipsum")
+        buffer.selectedRange = .init(location: 3, length: 5)
+
+        assertBufferState(buffer, "Lor{em ip}sum")
+
+        buffer.replace(range: .init(location: 0, length: 6), with: "x")
+        assertBufferState(buffer, "x{ip}sum")
+
+        buffer.replace(range: .init(location: 0, length: 4), with: "y")
+        assertBufferState(buffer, "y{^}um")
     }
 }

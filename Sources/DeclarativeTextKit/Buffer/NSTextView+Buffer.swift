@@ -36,17 +36,19 @@ extension NSTextView: Buffer {
         self.nsMutableString.insert(content, at: location)
     }
 
-    @inlinable
-    public func select(_ range: Buffer.Range) {
-        self.setSelectedRange(range)
-    }
-
     /// Raises an `NSExceptionName` of name `.rangeException` if any part of `range` lies beyond the end of the buffer.
     public func delete(in range: Buffer.Range) {
         self.nsMutableString.deleteCharacters(in: range)
     }
 
     public func replace(range: Buffer.Range, with content: Buffer.Content) {
+        let selectedRange = (self as Buffer).selectedRange
+        defer {
+            // Restore the recoverable part of the formerly selected range. By default, when the replaced range overlaps with the text view's selection, it removes the selection and switches to 0-length insertion point.
+            self.setSelectedRange(selectedRange
+                .subtracting(range)
+                .shifted(by: length(of: content)))
+        }
         self.nsMutableString.replaceCharacters(in: range, with: content)
     }
 }

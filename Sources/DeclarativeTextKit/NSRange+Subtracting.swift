@@ -3,10 +3,20 @@
 import Foundation
 
 extension NSRange {
+    /// Removes `other` from the receiver so that the result represents a range in a text buffer after removing text in `other` from it.
+    ///
+    /// Reduces the `length` by the intersection of both ranges, and shifts the `location` left (towards 0) by how much was removed from before the start.
+    ///
+    /// > Warning: Behavior for negative locations or lengths is undefined.
+    mutating func subtract(_ other: NSRange) {
+        self = self.subtracting(other)
+    }
 
     /// A new range that represents a part of a text buffer, left over after removing `other` from the buffer.
     ///
     /// Reduces the `length` by the intersection of both ranges, and shifts the `location` left (towards 0) by how much was removed from before the start.
+    ///
+    /// > Warning: Behavior for negative locations or lengths is undefined.
     func subtracting(_ other: NSRange) -> NSRange {
         guard self.location != NSNotFound else { return .notFound }
         guard other.location != NSNotFound else { return self }
