@@ -34,6 +34,24 @@ final class NSTextView_BufferTests: XCTestCase {
         XCTAssertEqual(buffer.string, "h🐞 bugi")
     }
 
+    func testInsertOverSelection() {
+        let buffer = textView("fizz buzz fizz buzz")
+
+        let selectedRange = Buffer.Range(location: 5, length: 5)
+        buffer.select(selectedRange)
+
+        XCTAssertTrue(buffer.isSelectingText)
+
+        buffer.insert("")
+        XCTAssertFalse(buffer.isSelectingText, "Inserting goes out of selection mode")
+        XCTAssertEqual(buffer.selectedRange, Buffer.Range(location: selectedRange.location, length: 0))
+        XCTAssertEqual(buffer.content, "fizz fizz buzz")
+
+        buffer.insert("foo ")
+        XCTAssertEqual(buffer.selectedRange, Buffer.Range(location: selectedRange.location + length(of: "foo "), length: 0))
+        XCTAssertEqual(buffer.content, "fizz foo fizz buzz")
+    }
+
     func testSelect() {
         let buffer = textView("hello")
 

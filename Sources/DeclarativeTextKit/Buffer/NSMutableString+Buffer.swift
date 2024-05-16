@@ -2,6 +2,7 @@
 
 import Foundation
 
+// FIXME: Partial implementation. Wrap in type to offer selection
 extension NSMutableString: Buffer {
     public var range: Buffer.Range { Buffer.Range(location: 0, length: self.length) }
 
@@ -27,5 +28,10 @@ extension NSMutableString: Buffer {
 
     public func replace(range: Buffer.Range, with content: Buffer.Content) {
         self.replaceCharacters(in: range, with: content)
+    }
+
+    public func insert(_ content: Content) {
+        // FIXME: stub
+        fatalError("Can't use the protocol extension's version because NSMutableString doesn't have a selectedRange")
     }
 }
