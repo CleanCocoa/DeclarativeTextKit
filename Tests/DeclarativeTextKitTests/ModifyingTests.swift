@@ -8,7 +8,7 @@ final class ModifyingTests: XCTestCase {
         let buffer: Buffer = MutableStringBuffer("Lorem ipsum.")
         let selectedRange: SelectedRange = .init(location: 6, length: 5)
 
-        var modify = Modifying(selectedRange) { affectedRange in
+        let modify = Modifying(selectedRange) { affectedRange in
             Insert(affectedRange.location) { "de" }
             Insert(affectedRange.endLocation) { "esque" }
         }
@@ -22,7 +22,7 @@ final class ModifyingTests: XCTestCase {
         let buffer: Buffer = MutableStringBuffer("Lorem ipsum dolor sit.")
         let fullRange = SelectedRange(buffer.range)
 
-        var modify = Modifying(fullRange) { range in
+        let modify = Modifying(fullRange) { range in
             Delete(.init(location: range.location + 1, length: length(of: "orem ")))
             Delete(11 ..< range.endLocation - 1)
         }
