@@ -41,14 +41,14 @@ final class MutableStringBufferTests: XCTestCase {
         buffer.select(selectedRange)
 
         XCTAssertTrue(buffer.isSelectingText)
-        XCTAssertEqual(buffer.description, "fizz {buzz }fizz buzz")
+        assertBufferState(buffer, "fizz {buzz }fizz buzz")
 
         buffer.insert("")
         XCTAssertFalse(buffer.isSelectingText, "Inserting goes out of selection mode")
-        XCTAssertEqual(buffer.description, "fizz {^}fizz buzz")
+        assertBufferState(buffer, "fizz {^}fizz buzz")
 
         buffer.insert("foo ")
-        XCTAssertEqual(buffer.description, "fizz foo {^}fizz buzz")
+        assertBufferState(buffer, "fizz foo {^}fizz buzz")
     }
 
     func testSelectedRange() {
@@ -83,7 +83,7 @@ final class MutableStringBufferTests: XCTestCase {
         buffer.delete(in: .init(location: 0, length: 4))
         buffer.delete(in: .init(location: 0, length: 4))
 
-        XCTAssertEqual(buffer.description, "{^}orld!")
+        assertBufferState(buffer, "{^}orld!")
     }
 
     func testReplace() {
@@ -92,6 +92,6 @@ final class MutableStringBufferTests: XCTestCase {
         buffer.replace(range: .init(location: 9, length: 6), with: "")
         buffer.replace(range: .init(location: 0, length: 7), with: "Hello")
 
-        XCTAssertEqual(buffer.description, "Hello{^}, world!")
+        assertBufferState(buffer, "Hello{^}, world!")
     }
 }

@@ -22,6 +22,9 @@ public final class MutableStringBuffer: Buffer {
         self.selectedRange = selectedRange
     }
 
+    /// Create new `NSMutableString`-backed buffer based on `content`.
+    ///
+    /// > Invariant: The insertion point starts at the beginning of the buffer.
     public convenience init(_ content: Buffer.Content) {
         self.init(
             storage: NSMutableString(string: content),
@@ -60,6 +63,16 @@ public final class MutableStringBuffer: Buffer {
 extension MutableStringBuffer: ExpressibleByStringLiteral {
     public convenience init(stringLiteral value: StringLiteralType) {
         self.init(value)
+    }
+}
+
+extension MutableStringBuffer {
+    /// Create a copy of `buffer`.
+    public convenience init<Wrapping>(_ buffer: Wrapping) where Wrapping: Buffer {
+        self.init(
+            storage: NSMutableString(string: buffer.content),
+            selectedRange: buffer.selectedRange
+        )
     }
 }
 

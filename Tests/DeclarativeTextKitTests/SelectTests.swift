@@ -66,4 +66,32 @@ This is a test.
         Select(LineRange(.init(location: 2, length: 10))).evaluate(in: textViewBuffer)
         XCTAssertEqual(textViewBuffer.selectedRange, textViewBuffer.range)
     }
+
+    func testSelect_RepeatedLineRange() {
+        let buffer = MutableStringBuffer("""
+Lorem ipsum
+dolor sit amet,
+consectetur adipisicing.
+""")
+
+        assertBufferState(buffer, """
+{^}Lorem ipsum
+dolor sit amet,
+consectetur adipisicing.
+""")
+
+        buffer.select(LineRange(buffer.selectedRange))
+        assertBufferState(buffer, """
+{Lorem ipsum
+}dolor sit amet,
+consectetur adipisicing.
+""")
+
+        buffer.select(LineRange(buffer.selectedRange))
+        assertBufferState(buffer, """
+{Lorem ipsum
+}dolor sit amet,
+consectetur adipisicing.
+""", "Selecting the same line again 'as a line' does not expand selection.")
+    }
 }
