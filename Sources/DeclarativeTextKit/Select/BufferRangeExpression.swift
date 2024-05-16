@@ -1,6 +1,6 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
-public protocol BufferRangeEvaluation: ExpressionEvaluation {
+public protocol BufferRangeEvaluation {
     func bufferRange() -> Buffer.Range
 }
 

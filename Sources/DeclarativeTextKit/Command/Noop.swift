@@ -3,5 +3,5 @@
 /// Command that does nothing.
 public struct Noop: Command {
     public init() { }
-    public func callAsFunction(buffer: Buffer) { }
+    public func evaluate(in buffer: Buffer) { }
 }

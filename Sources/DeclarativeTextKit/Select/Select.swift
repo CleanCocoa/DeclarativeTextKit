@@ -6,7 +6,7 @@ where Range: BufferRangeExpression {
     let body: (_ selectedRange: SelectedRange) -> CommandSequence
 }
 
-// MARK: - DSL
+// MARK: - Selection DSL
 
 extension Select {
     public init(
@@ -32,10 +32,10 @@ extension Select where Range == Buffer.Range {
     }
 }
 
-// MARK: -
+// MARK: - Acting as executable Command
 
-extension Select: Expression {
-    public struct Selection: ExpressionEvaluation {
+extension Select: Command {
+    public struct Selection {
         public let buffer: Buffer
         public let selectedRange: Buffer.Range
 
@@ -43,25 +43,31 @@ extension Select: Expression {
             self.buffer = buffer
             self.selectedRange = selectedRange
         }
-
-        public func callAsFunction() {
-            buffer.select(selectedRange)
-        }
     }
 
-    public func evaluate(in buffer: Buffer) -> Selection {
-        return Selection(
+    public func evaluate(in buffer: Buffer) {
+        let selection = Selection(
             buffer: buffer,
             selectedRange: range.evaluate(in: buffer).bufferRange()
         )
+
+        buffer.select(selection)
+
+        let commandInSelectionContext = body(SelectedRange(selection))
+        commandInSelectionContext(buffer: buffer)
     }
 }
 
-extension Select: Command {
-    public func callAsFunction(buffer: Buffer) {
-        let select = evaluate(in: buffer)
-        select()
-        let commandInSelectionContext = body(SelectedRange(select.selectedRange))
-        commandInSelectionContext(buffer: buffer)
+extension Buffer {
+    fileprivate func select<Range>(_ selection: Select<Range>.Selection)
+    where Range: BufferRangeExpression {
+        self.select(selection.selectedRange)
+    }
+}
+
+extension SelectedRange {
+    fileprivate init<Range>(_ selection: Select<Range>.Selection)
+    where Range: BufferRangeExpression {
+        self.init(selection.selectedRange)
     }
 }

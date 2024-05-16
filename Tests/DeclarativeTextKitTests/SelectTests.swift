@@ -22,25 +22,25 @@ This is a test.
     }
 
     func testSelect_BufferLocations() {
-        Select(0).evaluate(in: textViewBuffer)()
+        Select(0).evaluate(in: textViewBuffer)
         XCTAssertEqual(textViewBuffer.selectedRange, .init(location: 0, length: 0))
 
-        Select(10).evaluate(in: textViewBuffer)()
+        Select(10).evaluate(in: textViewBuffer)
         XCTAssertEqual(textViewBuffer.selectedRange, .init(location: 10, length: 0))
 
-        Select(-10).evaluate(in: textViewBuffer)()
+        Select(-10).evaluate(in: textViewBuffer)
         XCTAssertEqual(textViewBuffer.selectedRange, .init(location: textViewBuffer.range.upperBound, length: 0),
                        "Negative ranges wrap around (in text views)")
     }
 
     func testSelect_BufferRanges() {
-        Select(Buffer.Range(location: 0, length: 0)).evaluate(in: textViewBuffer)()
+        Select(Buffer.Range(location: 0, length: 0)).evaluate(in: textViewBuffer)
         XCTAssertEqual(textViewBuffer.selectedRange, .init(location: 0, length: 0))
 
-        Select(Buffer.Range(location: 10, length: 2)).evaluate(in: textViewBuffer)()
+        Select(Buffer.Range(location: 10, length: 2)).evaluate(in: textViewBuffer)
         XCTAssertEqual(textViewBuffer.selectedRange, .init(location: 10, length: 2))
 
-        Select(Buffer.Range(location: -10, length: 1)).evaluate(in: textViewBuffer)()
+        Select(Buffer.Range(location: -10, length: 1)).evaluate(in: textViewBuffer)
         XCTAssertEqual(textViewBuffer.selectedRange, .init(location: textViewBuffer.range.upperBound, length: 0),
                        "Negative ranges wrap around (in text views)")
     }
@@ -52,9 +52,8 @@ This is a test.
             file: StaticString = #file, line: UInt = #line
         ) {
             let range = Buffer.Range(location: location, length: 0)
-            let selection = Select(LineRange(range)).evaluate(in: textViewBuffer)
 
-            selection()
+            Select(LineRange(range)).evaluate(in: textViewBuffer)
 
             let expectedRange = textViewBuffer.lineRange(for: range)
             XCTAssertEqual(textViewBuffer.selectedRange, expectedRange, file: file, line: line)
@@ -64,7 +63,7 @@ This is a test.
             assertLineRanges(location: location)
         }
 
-        Select(LineRange(.init(location: 2, length: 10))).evaluate(in: textViewBuffer)()
+        Select(LineRange(.init(location: 2, length: 10))).evaluate(in: textViewBuffer)
         XCTAssertEqual(textViewBuffer.selectedRange, textViewBuffer.range)
     }
 }

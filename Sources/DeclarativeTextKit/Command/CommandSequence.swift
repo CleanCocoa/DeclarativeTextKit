@@ -2,13 +2,13 @@
 
 /// > Note: You don't create ``CommandSequence``s manually, you use `@CommandSequenceBuilder` blocks instead.
 public struct CommandSequence: Command {
-    public let commands: [Command]
+    public let commands: [any Command]
 
-    init(_ commands: [Command]) {
+    init(_ commands: [any Command]) {
         self.commands = commands
     }
 
-    public func callAsFunction(buffer: Buffer) {
+    public func evaluate(in buffer: Buffer) {
         for command in commands {
             command.callAsFunction(buffer: buffer)
         }
@@ -17,7 +17,7 @@ public struct CommandSequence: Command {
 
 @resultBuilder
 public struct CommandSequenceBuilder {
-    public static func buildBlock(_ components: Command...) -> CommandSequence {
+    public static func buildBlock(_ components: any Command...) -> CommandSequence {
         CommandSequence(components)
     }
 }
