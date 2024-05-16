@@ -4,21 +4,17 @@ import XCTest
 import DeclarativeTextKit
 
 final class SelectTests: XCTestCase {
-    @MainActor func textView(_ string: String) -> NSTextView {
-        let textView = NSTextView(usingTextLayoutManager: false)
-        textView.string = string
-        return textView
-    }
-
     var textViewBuffer: Buffer!
 
     override func setUp() async throws {
-        self.textViewBuffer = await textView("""
+        await MainActor.run {
+            self.textViewBuffer = textView("""
 Hello!
 
 This is a test.
 
 """)
+        }
     }
 
     override func tearDown() async throws {

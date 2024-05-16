@@ -4,12 +4,6 @@ import XCTest
 import DeclarativeTextKit
 
 final class NSTextView_BufferTests: XCTestCase {
-    func textView(_ string: String) -> NSTextView {
-        let textView = NSTextView(usingTextLayoutManager: false)
-        textView.string = string
-        return textView
-    }
-
     func testContent() {
         let string = "Test ⭐️ string 🚞 here"
         XCTAssertEqual(textView(string).content, string)
