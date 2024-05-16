@@ -33,6 +33,7 @@ public protocol Buffer: AnyObject {
 
     func delete(in range: Range)
 
+    /// Raises an `NSExceptionName` of name `.rangeException` if  `range` lies beyond the end of the buffer.
     func replace(range: Range, with content: Content)
 }
 

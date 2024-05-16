@@ -10,7 +10,7 @@ extension Insert {
 }
 
 final class InsertTests: XCTestCase {
-    var mutableString: NSMutableString = ""
+    var buffer: MutableStringBuffer = ""
 
     func testInsertString() throws {
         let insert = Insert(0) {
@@ -20,9 +20,9 @@ final class InsertTests: XCTestCase {
             "!"
         }
 
-        let changeInLength = insert(intoBuffer: mutableString)
+        let changeInLength = insert(intoBuffer: buffer)
 
-        XCTAssertEqual(mutableString, "Hello, World!")
+        XCTAssertEqual(buffer, "Hello, World!")
         XCTAssertEqual(changeInLength, 13)
     }
 
@@ -32,9 +32,9 @@ final class InsertTests: XCTestCase {
             Line("How are things lately?")
         }
 
-        let changeInLength = insert(intoBuffer: mutableString)
+        let changeInLength = insert(intoBuffer: buffer)
 
-        XCTAssertEqual(mutableString,
+        XCTAssertEqual(buffer,
             """
             Hello, World!
             How are things lately?
@@ -44,15 +44,15 @@ final class InsertTests: XCTestCase {
     }
 
     func testInsert_Lines_InsideParagraph() {
-        mutableString = "Test Paragraph"
+        buffer = "Test Paragraph"
         let insert = Insert(4) {
             Line("Hello")
             Line("World!")
         }
 
-        let changeInLength = insert(intoBuffer: mutableString)
+        let changeInLength = insert(intoBuffer: buffer)
 
-        XCTAssertEqual(mutableString,
+        XCTAssertEqual(buffer,
             """
             Test
             Hello
@@ -68,9 +68,9 @@ final class InsertTests: XCTestCase {
             "World!"
         }
 
-        let changeInLength = insert(intoBuffer: mutableString)
+        let changeInLength = insert(intoBuffer: buffer)
 
-        XCTAssertEqual(mutableString,
+        XCTAssertEqual(buffer,
             """
             Hello,
             World!
@@ -85,9 +85,9 @@ final class InsertTests: XCTestCase {
             Line("What's up?")
         }
 
-        let changeInLength = insert(intoBuffer: mutableString)
+        let changeInLength = insert(intoBuffer: buffer)
 
-        XCTAssertEqual(mutableString,
+        XCTAssertEqual(buffer,
             """
             Hello,
             World!
@@ -102,9 +102,9 @@ final class InsertTests: XCTestCase {
             Line("Hello,")
             "World! "
             "What's Up?"
-        }(intoBuffer: mutableString)
+        }(intoBuffer: buffer)
 
-        XCTAssertEqual(mutableString,
+        XCTAssertEqual(buffer,
             """
             Hello,
             World! What's Up?
@@ -118,9 +118,9 @@ final class InsertTests: XCTestCase {
             Line("World")
         }
 
-        let changeInLength = insert(intoBuffer: mutableString)
+        let changeInLength = insert(intoBuffer: buffer)
 
-        XCTAssertEqual(mutableString,
+        XCTAssertEqual(buffer,
             """
             Hello,
             World
@@ -136,9 +136,9 @@ final class InsertTests: XCTestCase {
             Line("What's up?")
         }
 
-        let changeInLength = insert(intoBuffer: mutableString)
+        let changeInLength = insert(intoBuffer: buffer)
 
-        XCTAssertEqual(mutableString,
+        XCTAssertEqual(buffer,
             """
             Hello,
             World!
@@ -155,9 +155,9 @@ final class InsertTests: XCTestCase {
             "What's up?"
         }
 
-        let changeInLength = insert(intoBuffer: mutableString)
+        let changeInLength = insert(intoBuffer: buffer)
 
-        XCTAssertEqual(mutableString,
+        XCTAssertEqual(buffer,
             """
             Hello,
             World!
@@ -176,9 +176,9 @@ final class InsertTests: XCTestCase {
             Line("How are things lately?")
         }
 
-        let changeInLength = insert(intoBuffer: mutableString)
+        let changeInLength = insert(intoBuffer: buffer)
 
-        XCTAssertEqual(mutableString,
+        XCTAssertEqual(buffer,
             """
             So,
             Hello, World!

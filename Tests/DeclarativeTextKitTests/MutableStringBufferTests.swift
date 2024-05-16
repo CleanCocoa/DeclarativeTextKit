@@ -3,51 +3,68 @@
 import XCTest
 import DeclarativeTextKit
 
-final class NSMutableString_BufferTests: XCTestCase {
+final class MutableStringBufferTests: XCTestCase {
     func testContent() {
         let string = "Test ⭐️ string 🚞 here"
-        XCTAssertEqual(NSMutableString(string: string).content, string)
+        XCTAssertEqual(MutableStringBuffer(string).content, string)
     }
 
     func testRange() {
-        XCTAssertEqual((NSMutableString("") as Buffer).range,
+        XCTAssertEqual(MutableStringBuffer("").range,
                        .init(location: 0, length: 0))
-        XCTAssertEqual((NSMutableString("a") as Buffer).range,
+        XCTAssertEqual(MutableStringBuffer("a").range,
                        .init(location: 0, length: 1))
-        XCTAssertEqual((NSMutableString("hello\n\nworld") as Buffer).range,
+        XCTAssertEqual(MutableStringBuffer("hello\n\nworld").range,
                        .init(location: 0, length: 12))
-        XCTAssertEqual((NSMutableString("💃🐞🏴‍☠️") as Buffer).range,
+        XCTAssertEqual(MutableStringBuffer("💃🐞🏴‍☠️").range,
                        .init(location: 0, length: 9))
     }
 
     func testCharacterAtLocation() {
-        let buffer = NSMutableString("bug 🐞")
+        let buffer = MutableStringBuffer("bug 🐞")
         let characters = (0..<5).map { buffer.unsafeCharacter(at: $0) }
         XCTAssertEqual(characters, ["b", "u", "g", " ", "🐞"])
     }
 
     func testInsertContentAtLocation() {
-        let buffer = NSMutableString("hi")
+        let buffer = MutableStringBuffer("hi")
 
         buffer.insert("🐞 bug", at: 1)
 
         XCTAssertEqual(buffer, "h🐞 bugi")
     }
 
+    func testInsertOverSelection() {
+        let buffer = MutableStringBuffer("fizz buzz fizz buzz")
+
+        let selectedRange = Buffer.Range(location: 5, length: 5)
+        buffer.select(selectedRange)
+
+        XCTAssertTrue(buffer.isSelectingText)
+        XCTAssertEqual(buffer.description, "fizz {buzz }fizz buzz")
+
+        buffer.insert("")
+        XCTAssertFalse(buffer.isSelectingText, "Inserting goes out of selection mode")
+        XCTAssertEqual(buffer.description, "fizz {^}fizz buzz")
+
+        buffer.insert("foo ")
+        XCTAssertEqual(buffer.description, "fizz foo {^}fizz buzz")
+    }
+
     func testSelectedRange() {
-        let buffer = NSMutableString("hi")
+        let buffer = MutableStringBuffer("hi")
 
         // Precondition
-        XCTAssertEqual(buffer.selectedRange, .init(location: NSNotFound, length: 0))
+        XCTAssertEqual(buffer.selectedRange, .init(location: 0, length: 0))
 
         buffer.select(.init(location: 1, length: 1))
 
         // Postcondition
-        XCTAssertEqual(buffer.selectedRange, .init(location: NSNotFound, length: 0))
+        XCTAssertEqual(buffer.selectedRange, .init(location: 1, length: 1))
     }
 
     func testLineRange() {
-        let buffer = NSMutableString("aa\nbb\ncc")
+        let buffer = MutableStringBuffer("aa\nbb\ncc")
 
         // Individual lines
         XCTAssertEqual(buffer.lineRange(for: .init(location: 0, length: 0)), .init(location: 0, length: 3))
@@ -61,20 +78,20 @@ final class NSMutableString_BufferTests: XCTestCase {
     }
 
     func testDelete() {
-        let buffer = NSMutableString("Hello: world!")
+        let buffer = MutableStringBuffer("Hello: world!")
 
         buffer.delete(in: .init(location: 0, length: 4))
         buffer.delete(in: .init(location: 0, length: 4))
 
-        XCTAssertEqual(buffer, "orld!")
+        XCTAssertEqual(buffer.description, "{^}orld!")
     }
 
     func testReplace() {
-        let buffer = NSMutableString("Goodbye, cruel world!")
+        let buffer = MutableStringBuffer("Goodbye, cruel world!")
 
-        buffer.replaceCharacters(in: .init(location: 9, length: 6), with: "")
-        buffer.replaceCharacters(in: .init(location: 0, length: 7), with: "Hello")
+        buffer.replace(range: .init(location: 9, length: 6), with: "")
+        buffer.replace(range: .init(location: 0, length: 7), with: "Hello")
 
-        XCTAssertEqual(buffer, "Hello, world!")
+        XCTAssertEqual(buffer.description, "Hello{^}, world!")
     }
 }

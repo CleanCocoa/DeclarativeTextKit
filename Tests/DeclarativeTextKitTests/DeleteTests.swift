@@ -4,12 +4,12 @@ import XCTest
 import DeclarativeTextKit
 
 final class DeleteTests: XCTestCase {
-    var mutableString: NSMutableString = "Hello, World!"
-
     func testDeleteOnce() {
-        let changeInLength = Delete(1..<8).evaluate(in: mutableString)
+        let buffer: Buffer = MutableStringBuffer("Hello, World!")
+        
+        let changeInLength = Delete(1..<8).evaluate(in: buffer)
 
         XCTAssertEqual(changeInLength, -7)
-        XCTAssertEqual(mutableString, "Horld!")
+        XCTAssertEqual(buffer.content, "Horld!")
     }
 }

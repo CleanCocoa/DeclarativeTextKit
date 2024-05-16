@@ -15,7 +15,7 @@ extension NSTextView {
 
 extension NSTextView: Buffer {
     @inlinable
-    public var range: Buffer.Range { self.nsMutableString.range }
+    public var range: Buffer.Range { Buffer.Range(location: 0, length: self.nsMutableString.length) }
 
     @inlinable
     public var content: Content { self.nsMutableString as Buffer.Content }

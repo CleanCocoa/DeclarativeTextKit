@@ -5,7 +5,7 @@ import DeclarativeTextKit
 
 final class ModifyingTests: XCTestCase {
     func testModifying_InsertionAtBothEnds() {
-        let buffer: Buffer = NSMutableString("Lorem ipsum.")
+        let buffer: Buffer = MutableStringBuffer("Lorem ipsum.")
         let selectedRange: SelectedRange = .init(location: 6, length: 5)
 
         var modify = Modifying(selectedRange) { affectedRange in
@@ -19,7 +19,7 @@ final class ModifyingTests: XCTestCase {
     }
 
     func testModifying_DeletingMultiplePlaces() {
-        let buffer: Buffer = NSMutableString("Lorem ipsum dolor sit.")
+        let buffer: Buffer = MutableStringBuffer("Lorem ipsum dolor sit.")
         let fullRange = SelectedRange(buffer.range)
 
         var modify = Modifying(fullRange) { range in
