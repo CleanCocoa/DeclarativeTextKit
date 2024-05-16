@@ -14,7 +14,7 @@ where Content: Modification {
         self.modification = body
     }
 
-    mutating public func callAsFunction(buffer: Buffer) {
+    public func callAsFunction(buffer: Buffer) {
         let changeInLength = modification(range.value).apply(to: buffer)
         range.value.length += changeInLength.delta
     }

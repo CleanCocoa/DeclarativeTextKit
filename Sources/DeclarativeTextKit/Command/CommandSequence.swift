@@ -7,6 +7,12 @@ public struct CommandSequence: Command {
     init(_ commands: [Command]) {
         self.commands = commands
     }
+
+    public func callAsFunction(buffer: Buffer) {
+        for command in commands {
+            command.callAsFunction(buffer: buffer)
+        }
+    }
 }
 
 @resultBuilder

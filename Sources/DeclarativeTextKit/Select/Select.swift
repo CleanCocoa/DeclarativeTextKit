@@ -1,6 +1,6 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
-public struct Select<Range>: Command
+public struct Select<Range>
 where Range: BufferRangeExpression {
     let range: Range
     let body: (_ selectedRange: SelectedRange) -> CommandSequence
@@ -54,5 +54,14 @@ extension Select: Expression {
             buffer: buffer,
             selectedRange: range.evaluate(in: buffer).bufferRange()
         )
+    }
+}
+
+extension Select: Command {
+    public func callAsFunction(buffer: Buffer) {
+        let select = evaluate(in: buffer)
+        select()
+        let commandInSelectionContext = body(SelectedRange(select.selectedRange))
+        commandInSelectionContext(buffer: buffer)
     }
 }
