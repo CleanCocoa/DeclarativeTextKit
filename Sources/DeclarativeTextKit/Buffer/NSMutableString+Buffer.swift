@@ -24,4 +24,8 @@ extension NSMutableString: Buffer {
     public func delete(in range: Buffer.Range) {
         self.deleteCharacters(in: range)
     }
+
+    public func replace(range: Buffer.Range, with content: Buffer.Content) {
+        self.replaceCharacters(in: range, with: content)
+    }
 }

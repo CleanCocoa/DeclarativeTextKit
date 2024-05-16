@@ -27,12 +27,12 @@ extension NSTextView: Buffer {
 
     /// Raises an `NSExceptionName` of name `.rangeException` if `location` is out of bounds.
     @inlinable
-    public func unsafeCharacter(at location: UTF16Offset) -> Buffer.Content {
+    public func unsafeCharacter(at location: Buffer.Location) -> Buffer.Content {
         return self.nsMutableString.unsafeCharacter(at: location)
     }
 
     @inlinable
-    public func insert(_ content: Content, at location: Location) {
+    public func insert(_ content: Buffer.Content, at location: Location) {
         self.nsMutableString.insert(content, at: location)
     }
 
@@ -44,5 +44,9 @@ extension NSTextView: Buffer {
     /// Raises an `NSExceptionName` of name `.rangeException` if any part of `range` lies beyond the end of the buffer.
     public func delete(in range: Buffer.Range) {
         self.nsMutableString.deleteCharacters(in: range)
+    }
+
+    public func replace(range: Buffer.Range, with content: Buffer.Content) {
+        self.nsMutableString.replaceCharacters(in: range, with: content)
     }
 }

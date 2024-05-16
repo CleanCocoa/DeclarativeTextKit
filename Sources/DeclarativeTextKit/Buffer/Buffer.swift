@@ -19,4 +19,6 @@ public protocol Buffer: AnyObject {
     func insert(_ content: Content, at location: Location)
 
     func delete(in range: Range)
+
+    func replace(range: Range, with content: Content)
 }

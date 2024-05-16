@@ -68,4 +68,13 @@ final class NSMutableString_BufferTests: XCTestCase {
 
         XCTAssertEqual(buffer, "orld!")
     }
+
+    func testReplace() {
+        let buffer = NSMutableString("Goodbye, cruel world!")
+
+        buffer.replaceCharacters(in: .init(location: 9, length: 6), with: "")
+        buffer.replaceCharacters(in: .init(location: 0, length: 7), with: "Hello")
+
+        XCTAssertEqual(buffer, "Hello, world!")
+    }
 }

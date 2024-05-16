@@ -66,4 +66,13 @@ final class NSTextView_BufferTests: XCTestCase {
 
         XCTAssertEqual(buffer.content, "ipsum")
     }
+
+    func testReplace() {
+        let buffer = textView("Cya, nerdy world!")
+
+        buffer.replaceCharacters(in: .init(location: 5, length: 6), with: "")
+        buffer.replaceCharacters(in: .init(location: 0, length: 3), with: "Hi")
+
+        XCTAssertEqual(buffer.content, "Hi, world!")
+    }
 }
