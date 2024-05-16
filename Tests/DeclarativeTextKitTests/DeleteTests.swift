@@ -7,7 +7,7 @@ final class DeleteTests: XCTestCase {
     var mutableString: NSMutableString = "Hello, World!"
 
     func testDeleteOnce() {
-        let changeInLength = Delete(1..<8).apply(to: mutableString)
+        let changeInLength = Delete(1..<8).evaluate(in: mutableString)
 
         XCTAssertEqual(changeInLength, -7)
         XCTAssertEqual(mutableString, "Horld!")

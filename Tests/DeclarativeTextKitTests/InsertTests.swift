@@ -3,6 +3,12 @@
 import XCTest
 import DeclarativeTextKit
 
+extension Insert {
+    func callAsFunction(intoBuffer buffer: Buffer) -> ChangeInLength {
+        return evaluate(in: buffer)
+    }
+}
+
 final class InsertTests: XCTestCase {
     var mutableString: NSMutableString = ""
 

@@ -1,7 +1,7 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
 extension Delete: Modification {
-    public func apply(to buffer: Buffer) -> ChangeInLength {
+    public func evaluate(in buffer: Buffer) -> ChangeInLength {
         return self.deletions
             .reversed()
             .reduce(into: ChangeInLength()) { changeInLength, deletion in

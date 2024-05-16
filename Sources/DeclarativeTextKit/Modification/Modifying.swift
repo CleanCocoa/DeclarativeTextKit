@@ -15,7 +15,7 @@ where Content: Modification {
     }
 
     public func evaluate(in buffer: Buffer) {
-        let changeInLength = modification(range.value).apply(to: buffer)
+        let changeInLength = modification(range.value).evaluate(in: buffer)
         range.value.length += changeInLength.delta
     }
 }

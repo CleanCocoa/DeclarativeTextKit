@@ -3,17 +3,12 @@
 import AppKit
 
 extension Insert: Modification {
-    public func apply(to buffer: Buffer) -> ChangeInLength {
+    public func evaluate(in buffer: Buffer) -> ChangeInLength {
         return self.insertions
             .reversed()
             .reduce(into: ChangeInLength()) { changeInLength, insertion in
             changeInLength += insertion.insert(in: buffer)
         }
-    }
-
-    @inlinable
-    public func callAsFunction(intoBuffer buffer: Buffer) -> ChangeInLength {
-        return apply(to: buffer)
     }
 }
 
