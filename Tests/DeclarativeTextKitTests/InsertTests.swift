@@ -189,4 +189,31 @@ final class InsertTests: XCTestCase {
             """)
         XCTAssertEqual(changeInLength, 68)
     }
+
+    func testInsertMixedIntoPreexistingText() {
+        buffer = MutableStringBuffer("""
+            This time,
+            there is already text.
+
+            """)
+        let insert = Insert(length(of: "This time,\nthere is already ")) {
+            "apparently"
+            Line("A. Lot.")
+            Line("Of")
+            "existing "
+        }
+
+        let changeInLength = insert(intoBuffer: buffer)
+
+        XCTAssertEqual(buffer,
+            """
+            This time,
+            there is already apparently
+            A. Lot.
+            Of
+            existing text.
+
+            """)
+        XCTAssertEqual(changeInLength, 31)
+    }
 }
