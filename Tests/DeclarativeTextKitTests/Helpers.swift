@@ -23,3 +23,27 @@ func assertBufferState(
         file: file, line: line
     )
 }
+
+func assertThrows<T, E: Error & Equatable>(
+    _ expression: @autoclosure () throws -> T,
+    error: E,
+    file: StaticString = #filePath, line: UInt = #line
+) {
+    var thrownError: Error?
+    XCTAssertThrowsError(
+        try expression(),
+        file: file, line: line
+    ) { thrownError = $0 }
+
+    XCTAssertTrue(
+        thrownError is E,
+        "Expected error type \(type(of: thrownError)), got of \(E.self)",
+        file: file, line: line
+    )
+
+    XCTAssertEqual(
+        thrownError as? E,
+        error,
+        file: file, line: line
+    )
+}

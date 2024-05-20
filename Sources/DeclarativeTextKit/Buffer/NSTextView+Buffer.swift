@@ -40,7 +40,14 @@ extension NSTextView: Buffer {
     }
 
     @inlinable
-    public func insert(_ content: Buffer.Content, at location: Location) {
+    public func insert(_ content: Buffer.Content, at location: Location) throws {
+        // Insertion into an empty range at the 0 location, or in a non-empty range at the after-end position equal appending and are permitted.
+        guard range.lowerBound <= location,
+              location <= range.upperBound
+        else {
+            throw LocationOutOfBounds(location: location, bounds: range)
+        }
+
         self.nsMutableString.insert(content, at: location)
     }
 

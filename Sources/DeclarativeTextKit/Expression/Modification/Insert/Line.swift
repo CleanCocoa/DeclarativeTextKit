@@ -18,7 +18,7 @@ public struct Line: Insertable {
     public func insert(
         in buffer: Buffer,
         at location: UTF16Offset
-    ) -> ChangeInLength {
+    ) throws -> ChangeInLength {
         let newlineBefore = location > buffer.range.lowerBound
             ? buffer.newline(at: location - 1)
             : true  // Favor not adding a newline at the start of a file
@@ -29,14 +29,14 @@ public struct Line: Insertable {
         var changeInLength = ChangeInLength()
 
         if !newlineAfter {
-            buffer.insert(.newline, at: location)
+            try buffer.insert(.newline, at: location)
             changeInLength += ChangeInLength(.newline)
         }
 
-        changeInLength += content.insert(in: buffer, at: location)
+        changeInLength += try content.insert(in: buffer, at: location)
 
         if !newlineBefore {
-            buffer.insert(.newline, at: location)
+            try buffer.insert(.newline, at: location)
             changeInLength += ChangeInLength(.newline)
         }
 
@@ -62,17 +62,17 @@ extension Line {
         public func insert(
             in buffer: Buffer,
             at location: UTF16Offset
-        ) -> ChangeInLength {
+        ) throws -> ChangeInLength {
             let newlineBefore = location > buffer.range.lowerBound
                 ? buffer.newline(at: location - 1)
                 : true  // Favor not adding a newline at the start of a file
 
             var changeInLength = ChangeInLength()
 
-            changeInLength += content.insert(in: buffer, at: location)
+            changeInLength += try content.insert(in: buffer, at: location)
 
             if !newlineBefore {
-                buffer.insert(.newline, at: location)
+                try buffer.insert(.newline, at: location)
                 changeInLength += ChangeInLength(.newline)
             }
 
@@ -100,7 +100,7 @@ extension Line {
         public func insert(
             in buffer: Buffer,
             at location: UTF16Offset
-        ) -> ChangeInLength {
+        ) throws -> ChangeInLength {
             let newlineAfter = location < buffer.range.upperBound
                 ? buffer.newline(at: location)
                 : !insertFinalNewline
@@ -108,10 +108,10 @@ extension Line {
             var changeInLength = ChangeInLength()
 
             if !newlineAfter {
-                buffer.insert(.newline, at: location)
+                try buffer.insert(.newline, at: location)
                 changeInLength += ChangeInLength(.newline)
             }
-            changeInLength += content.insert(in: buffer, at: location)
+            changeInLength += try content.insert(in: buffer, at: location)
 
             return changeInLength
         }

@@ -37,24 +37,19 @@ final class NSTextView_BufferTests: XCTestCase {
 
     func testCharacterAtLocation_OutOfBounds() throws {
         let buffer = textView("hi")
-        XCTAssertThrowsError(try buffer.character(at: 2)) { error in
-            switch error {
-            case let error as LocationOutOfBounds:
-                XCTAssertEqual(error.location, 2)
-                XCTAssertEqual(error.bounds, .init(location: 0, length: 2))
-            default:
-                XCTFail("Expected LocationOutOfBounds")
-            }
-        }
+        assertThrows(
+            try buffer.character(at: 2),
+            error: LocationOutOfBounds(location: 2, bounds: .init(location: 0, length: 2))
+        )
     }
 
-    func testInsertContentAtLocation() {
+    func testInsertContentAtLocation() throws {
         let buffer = textView("hi")
         buffer.insertionLocation = 1
 
         assertBufferState(buffer, "h{^}i")
 
-        buffer.insert("🐞 bug", at: 1)
+        try buffer.insert("🐞 bug", at: 1)
 
         assertBufferState(buffer, "h🐞 bug{^}i")
     }
@@ -72,6 +67,16 @@ final class NSTextView_BufferTests: XCTestCase {
 
         buffer.insert("foo ")
         assertBufferState(buffer, "fizz foo {^}fizz buzz")
+    }
+
+    func testInsertOutOfBounds() {
+        let buffer = textView("hi")
+        assertThrows(
+            try buffer.insert("💣", at: 3),
+            error: LocationOutOfBounds(
+                location: 3,
+                bounds: .init(location: 0, length: 2))
+        )
     }
 
     func testSelect() {

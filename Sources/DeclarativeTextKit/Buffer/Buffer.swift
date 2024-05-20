@@ -49,7 +49,9 @@ public protocol Buffer: AnyObject {
     func unsafeCharacter(at location: Location) -> Content
 
     /// Inserts `content` at `location` into the buffer, not affecting the typing location of ``selectedRange`` in the process.
-    func insert(_ content: Content, at location: Location)
+    ///
+    /// - Throws: ``LocationOutOfBounds`` if `location` exceeds ``range``.
+    func insert(_ content: Content, at location: Location) throws
 
     /// Inserts `content` like typing at the current typing location of ``selectedRange``.
     ///

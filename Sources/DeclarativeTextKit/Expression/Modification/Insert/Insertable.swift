@@ -4,7 +4,7 @@ public protocol Insertable {
     func insert(
         in buffer: Buffer,
         at location: Buffer.Location
-    ) -> ChangeInLength
+    ) throws -> ChangeInLength
 }
 
 @resultBuilder

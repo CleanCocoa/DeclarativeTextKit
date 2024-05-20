@@ -48,7 +48,14 @@ public final class MutableStringBuffer: Buffer {
         return self.storage.unsafeCharacter(at: location)
     }
 
-    public func insert(_ content: Content, at location: Location) {
+    public func insert(_ content: Content, at location: Location) throws {
+        // Insertion into an empty range at the 0 location, or in a non-empty range at the after-end position equal appending and are permitted.
+        guard range.lowerBound <= location,
+              location <= range.upperBound
+        else {
+            throw LocationOutOfBounds(location: location, bounds: range)
+        }
+
         self.storage.insert(content, at: location)
     }
 

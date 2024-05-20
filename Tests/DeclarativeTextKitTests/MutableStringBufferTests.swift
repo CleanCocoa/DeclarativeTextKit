@@ -34,23 +34,31 @@ final class MutableStringBufferTests: XCTestCase {
 
     func testCharacterAtLocation_OutOfBounds() throws {
         let buffer = MutableStringBuffer("hi")
-        XCTAssertThrowsError(try buffer.character(at: 2)) { error in
-            switch error {
-            case let error as LocationOutOfBounds:
-                XCTAssertEqual(error.location, 2)
-                XCTAssertEqual(error.bounds, .init(location: 0, length: 2))
-            default:
-                XCTFail("Expected LocationOutOfBounds")
-            }
-        }
+        assertThrows(
+            try buffer.character(at: 2),
+            error: LocationOutOfBounds(
+                location: 2,
+                bounds: .init(location: 0, length: 2)
+            )
+        )
     }
 
-    func testInsertContentAtLocation() {
+    func testInsertContentAtLocation() throws {
         let buffer = MutableStringBuffer("hi")
 
-        buffer.insert("🐞 bug", at: 1)
+        try buffer.insert("🐞 bug", at: 1)
 
         XCTAssertEqual(buffer, "h🐞 bugi")
+    }
+
+    func testInsertOutOfBounds() {
+        let buffer = MutableStringBuffer("hi")
+        assertThrows(
+            try buffer.insert("💣", at: 3),
+            error: LocationOutOfBounds(
+                location: 3,
+                bounds: .init(location: 0, length: 2))
+        )
     }
 
     func testInsertOverSelection() {
