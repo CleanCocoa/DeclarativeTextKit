@@ -4,7 +4,7 @@ import XCTest
 import DeclarativeTextKit
 
 final class UseCaseTests: XCTestCase {
-    func testWrapSelectionInLines() {
+    func testWrapSelectionInLines() throws {
         let buffer: MutableStringBuffer = """
 # Heading
 
@@ -26,7 +26,7 @@ But it is nice.
             // Move insertion point to the position after the opening backticks
             Select(lineRange.location + length(of: "```"))
         }
-        commandCascade(buffer: buffer)
+        try commandCascade.evaluate(in: buffer)
 
         XCTAssertEqual(buffer.selectedRange, Buffer.Range(location: 14, length: 0))
 

@@ -1,14 +1,14 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
-import AppKit
-
 extension Insert: Modification {
-    public func evaluate(in buffer: Buffer) -> ChangeInLength {
-        return self.insertions
+    @_disfavoredOverload  // Favor the throwing alternative of the protocol extension
+    public func evaluate(in buffer: Buffer) -> Result<ChangeInLength, ModificationFailure> {
+        let changeInLength = self.insertions
             .reversed()
             .reduce(into: ChangeInLength()) { changeInLength, insertion in
-            changeInLength += insertion.insert(in: buffer)
-        }
+                changeInLength += insertion.insert(in: buffer)
+            }
+        return .success(changeInLength)
     }
 }
 

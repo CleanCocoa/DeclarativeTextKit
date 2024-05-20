@@ -21,49 +21,49 @@ This is a test.
         self.textViewBuffer = nil
     }
 
-    func testSelect_BufferLocations() {
-        Select(0).evaluate(in: textViewBuffer)
+    func testSelect_BufferLocations() throws {
+        try Select(0).evaluate(in: textViewBuffer)
         XCTAssertEqual(textViewBuffer.selectedRange, .init(location: 0, length: 0))
 
-        Select(10).evaluate(in: textViewBuffer)
+        try Select(10).evaluate(in: textViewBuffer)
         XCTAssertEqual(textViewBuffer.selectedRange, .init(location: 10, length: 0))
 
-        Select(-10).evaluate(in: textViewBuffer)
+        try Select(-10).evaluate(in: textViewBuffer)
         XCTAssertEqual(textViewBuffer.selectedRange, .init(location: textViewBuffer.range.upperBound, length: 0),
                        "Negative ranges wrap around (in text views)")
     }
 
-    func testSelect_BufferRanges() {
-        Select(Buffer.Range(location: 0, length: 0)).evaluate(in: textViewBuffer)
+    func testSelect_BufferRanges() throws {
+        try Select(Buffer.Range(location: 0, length: 0)).evaluate(in: textViewBuffer)
         XCTAssertEqual(textViewBuffer.selectedRange, .init(location: 0, length: 0))
 
-        Select(Buffer.Range(location: 10, length: 2)).evaluate(in: textViewBuffer)
+        try Select(Buffer.Range(location: 10, length: 2)).evaluate(in: textViewBuffer)
         XCTAssertEqual(textViewBuffer.selectedRange, .init(location: 10, length: 2))
 
-        Select(Buffer.Range(location: -10, length: 1)).evaluate(in: textViewBuffer)
+        try Select(Buffer.Range(location: -10, length: 1)).evaluate(in: textViewBuffer)
         XCTAssertEqual(textViewBuffer.selectedRange, .init(location: textViewBuffer.range.upperBound, length: 0),
                        "Negative ranges wrap around (in text views)")
     }
 
 
-    func testSelect_LineRanges() {
+    func testSelect_LineRanges() throws {
         func assertLineRanges(
             location: Buffer.Location,
             file: StaticString = #file, line: UInt = #line
-        ) {
+        ) throws {
             let range = Buffer.Range(location: location, length: 0)
 
-            Select(LineRange(range)).evaluate(in: textViewBuffer)
+            try Select(LineRange(range)).evaluate(in: textViewBuffer)
 
             let expectedRange = textViewBuffer.lineRange(for: range)
             XCTAssertEqual(textViewBuffer.selectedRange, expectedRange, file: file, line: line)
         }
 
         for location in (textViewBuffer.range.lowerBound ..< textViewBuffer.range.upperBound) {
-            assertLineRanges(location: location)
+            try assertLineRanges(location: location)
         }
 
-        Select(LineRange(.init(location: 2, length: 10))).evaluate(in: textViewBuffer)
+        try Select(LineRange(.init(location: 2, length: 10))).evaluate(in: textViewBuffer)
         XCTAssertEqual(textViewBuffer.selectedRange, textViewBuffer.range)
     }
 

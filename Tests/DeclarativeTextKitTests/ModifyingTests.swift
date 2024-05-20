@@ -4,7 +4,7 @@ import XCTest
 import DeclarativeTextKit
 
 final class ModifyingTests: XCTestCase {
-    func testModifying_InsertionAtBothEnds() {
+    func testModifying_InsertionAtBothEnds() throws {
         let buffer: Buffer = MutableStringBuffer("Lorem ipsum.")
         let selectedRange: SelectedRange = .init(location: 6, length: 5)
 
@@ -18,13 +18,13 @@ final class ModifyingTests: XCTestCase {
         assertBufferState(buffer, "{^}Lorem ipsum.",
                           "Content and selection is unchanged before evaluation")
 
-        modify.evaluate(in: buffer)
+        try modify.evaluate(in: buffer)
 
         XCTAssertEqual(buffer.content, "Lorem deipsumesque.")
         XCTAssertEqual(selectedRange, .init(location: 6, length: 12))
     }
 
-    func testModifying_DeletingMultiplePlaces() {
+    func testModifying_DeletingMultiplePlaces() throws {
         let buffer: Buffer = MutableStringBuffer("Lorem ipsum dolor sit.")
         let fullRange = SelectedRange(buffer.range)
 
@@ -38,7 +38,7 @@ final class ModifyingTests: XCTestCase {
         assertBufferState(buffer, "{^}Lorem ipsum dolor sit.",
                           "Content and selection is unchanged before evaluation")
 
-        modify.evaluate(in: buffer)
+        try modify.evaluate(in: buffer)
 
         XCTAssertEqual(buffer.content, "Lipsum.")
         XCTAssertEqual(fullRange, .init(location: 0, length: 7))

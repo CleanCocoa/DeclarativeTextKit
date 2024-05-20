@@ -9,6 +9,9 @@ public struct LineRange {
 }
 
 extension LineRange: BufferRangeExpression {
+    public typealias Evaluation = LineRangeInBuffer
+    public typealias Failure = Never
+
     public struct LineRangeInBuffer: BufferRangeEvaluation {
         let buffer: Buffer
         let inputRange: Buffer.Range

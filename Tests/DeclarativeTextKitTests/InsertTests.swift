@@ -4,8 +4,8 @@ import XCTest
 import DeclarativeTextKit
 
 extension Insert {
-    func callAsFunction(intoBuffer buffer: Buffer) -> ChangeInLength {
-        return evaluate(in: buffer)
+    func callAsFunction(intoBuffer buffer: Buffer) throws -> ChangeInLength {
+        return try evaluate(in: buffer)
     }
 }
 
@@ -20,19 +20,19 @@ final class InsertTests: XCTestCase {
             "!"
         }
 
-        let changeInLength = insert(intoBuffer: buffer)
+        let changeInLength = try insert(intoBuffer: buffer)
 
         XCTAssertEqual(buffer, "Hello, World!")
         XCTAssertEqual(changeInLength, 13)
     }
 
-    func testInsert_Lines_InEmptyDocument() {
+    func testInsert_Lines_InEmptyDocument() throws {
         let insert = Insert(0) {
             Line("Hello, World!")
             Line("How are things lately?")
         }
 
-        let changeInLength = insert(intoBuffer: buffer)
+        let changeInLength = try insert(intoBuffer: buffer)
 
         XCTAssertEqual(buffer,
             """
@@ -43,14 +43,14 @@ final class InsertTests: XCTestCase {
         XCTAssertEqual(changeInLength, 37)
     }
 
-    func testInsert_Lines_InsideParagraph() {
+    func testInsert_Lines_InsideParagraph() throws {
         buffer = "Test Paragraph"
         let insert = Insert(4) {
             Line("Hello")
             Line("World!")
         }
 
-        let changeInLength = insert(intoBuffer: buffer)
+        let changeInLength = try insert(intoBuffer: buffer)
 
         XCTAssertEqual(buffer,
             """
@@ -62,13 +62,13 @@ final class InsertTests: XCTestCase {
         XCTAssertEqual(changeInLength, 14)
     }
 
-    func testInsert_Line_And_String() {
+    func testInsert_Line_And_String() throws {
         let insert = Insert(0) {
             Line("Hello,")
             "World!"
         }
 
-        let changeInLength = insert(intoBuffer: buffer)
+        let changeInLength = try insert(intoBuffer: buffer)
 
         XCTAssertEqual(buffer,
             """
@@ -78,14 +78,14 @@ final class InsertTests: XCTestCase {
         XCTAssertEqual(changeInLength, 13)
     }
 
-    func testInsert_Line_And_String_And_Line() {
+    func testInsert_Line_And_String_And_Line() throws {
         let insert = Insert(0) {
             Line("Hello,")
             "World!"
             Line("What's up?")
         }
 
-        let changeInLength = insert(intoBuffer: buffer)
+        let changeInLength = try insert(intoBuffer: buffer)
 
         XCTAssertEqual(buffer,
             """
@@ -97,12 +97,14 @@ final class InsertTests: XCTestCase {
         XCTAssertEqual(changeInLength, 25)
     }
 
-    func testInsert_Line_And_Strings() {
-        let changeInLength = Insert(0) {
+    func testInsert_Line_And_Strings() throws {
+        let insert = Insert(0) {
             Line("Hello,")
             "World! "
             "What's Up?"
-        }(intoBuffer: buffer)
+        }
+
+        let changeInLength = try insert(intoBuffer: buffer)
 
         XCTAssertEqual(buffer,
             """
@@ -112,13 +114,13 @@ final class InsertTests: XCTestCase {
         XCTAssertEqual(changeInLength, 24)
     }
 
-    func testInsert_String_And_Line() {
+    func testInsert_String_And_Line() throws {
         let insert = Insert(0) {
             "Hello,"
             Line("World")
         }
 
-        let changeInLength = insert(intoBuffer: buffer)
+        let changeInLength = try insert(intoBuffer: buffer)
 
         XCTAssertEqual(buffer,
             """
@@ -129,14 +131,14 @@ final class InsertTests: XCTestCase {
         XCTAssertEqual(changeInLength, 13)
     }
 
-    func testInsert_String_And_Lines() {
+    func testInsert_String_And_Lines() throws {
         let insert = Insert(0) {
             "Hello,"
             Line("World!")
             Line("What's up?")
         }
 
-        let changeInLength = insert(intoBuffer: buffer)
+        let changeInLength = try insert(intoBuffer: buffer)
 
         XCTAssertEqual(buffer,
             """
@@ -148,14 +150,14 @@ final class InsertTests: XCTestCase {
         XCTAssertEqual(changeInLength, 25)
     }
 
-    func testInsert_String_And_Line_And_String() {
+    func testInsert_String_And_Line_And_String() throws {
         let insert = Insert(0) {
             "Hello,"
             Line("World!")
             "What's up?"
         }
 
-        let changeInLength = insert(intoBuffer: buffer)
+        let changeInLength = try insert(intoBuffer: buffer)
 
         XCTAssertEqual(buffer,
             """
@@ -166,7 +168,7 @@ final class InsertTests: XCTestCase {
         XCTAssertEqual(changeInLength, 24)
     }
 
-    func testInsertMixed() {
+    func testInsertMixed() throws {
         let insert = Insert(0) {
             "So,"
             Line("Hello, World!")
@@ -176,7 +178,7 @@ final class InsertTests: XCTestCase {
             Line("How are things lately?")
         }
 
-        let changeInLength = insert(intoBuffer: buffer)
+        let changeInLength = try insert(intoBuffer: buffer)
 
         XCTAssertEqual(buffer,
             """
@@ -190,7 +192,7 @@ final class InsertTests: XCTestCase {
         XCTAssertEqual(changeInLength, 68)
     }
 
-    func testInsertMixedIntoPreexistingText() {
+    func testInsertMixedIntoPreexistingText() throws {
         buffer = MutableStringBuffer("""
             This time,
             there is already text.
@@ -203,7 +205,7 @@ final class InsertTests: XCTestCase {
             "existing "
         }
 
-        let changeInLength = insert(intoBuffer: buffer)
+        let changeInLength = try insert(intoBuffer: buffer)
 
         XCTAssertEqual(buffer,
             """

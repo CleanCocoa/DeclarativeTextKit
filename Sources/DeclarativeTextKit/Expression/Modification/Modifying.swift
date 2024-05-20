@@ -14,8 +14,14 @@ where Content: Modification {
         self.modification = body
     }
 
-    public func evaluate(in buffer: Buffer) {
-        let changeInLength = modification(range.value).evaluate(in: buffer)
-        range.value.length += changeInLength.delta
+    @_disfavoredOverload  // Favor the throwing alternative of the protocol extension
+    public func evaluate(in buffer: Buffer) -> Result<Void, ModificationFailure> {
+        switch modification(range.value).evaluate(in: buffer) {
+        case .success(let changeInLength):
+            range.value.length += changeInLength.delta
+            return .success(())
+        case .failure(let failure):
+            return .failure(failure)
+        }
     }
 }

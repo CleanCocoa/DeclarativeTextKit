@@ -45,7 +45,8 @@ extension Select: Command {
         }
     }
 
-    public func evaluate(in buffer: Buffer) {
+    @_disfavoredOverload  // Favor the throwing alternative of the protocol extension
+    public func evaluate(in buffer: Buffer) -> Result<Void, CommandSequenceFailure> {
         let selection = Selection(
             buffer: buffer,
             selectedRange: range.evaluate(in: buffer).bufferRange()
@@ -54,7 +55,7 @@ extension Select: Command {
         buffer.select(selection)
 
         let commandInSelectionContext = body(SelectedRange(selection))
-        commandInSelectionContext(buffer: buffer)
+        return commandInSelectionContext.evaluate(in: buffer)
     }
 }
 

@@ -3,7 +3,7 @@
 import Foundation
 
 extension SelectedRange: BufferRangeExpression {
-    public func evaluate(in buffer: Buffer) -> NSRange.NSRangeInBuffer {
-        return NSRange.NSRangeInBuffer(range: value)
+    public func evaluate(in buffer: Buffer) -> Result<NSRange.NSRangeInBuffer, Never> {
+        return .success(NSRange.NSRangeInBuffer(range: value))
     }
 }
