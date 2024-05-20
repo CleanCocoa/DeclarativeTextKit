@@ -49,10 +49,7 @@ public final class MutableStringBuffer: Buffer {
     }
 
     public func insert(_ content: Content, at location: Location) throws {
-        // Insertion into an empty range at the 0 location, or in a non-empty range at the after-end position equal appending and are permitted.
-        guard range.lowerBound <= location,
-              location <= range.upperBound
-        else {
+        guard range.isValidInsertionPointLocation(at: location) else {
             throw LocationOutOfBounds(location: location, bounds: range)
         }
 
