@@ -1,5 +1,15 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
+public struct LocationOutOfBounds: Error, Equatable {
+    public let location: Buffer.Location
+    public let bounds: Buffer.Range
+
+    public init(location: Buffer.Location, bounds: Buffer.Range) {
+        self.location = location
+        self.bounds = bounds
+    }
+}
+
 /// A text buffer contains UTF16 characters.
 public protocol Buffer: AnyObject {
     typealias Location = UTF16Offset
@@ -30,7 +40,12 @@ public protocol Buffer: AnyObject {
 
     /// Returns a character-wide slice of ``content`` at `location`.
     ///
-    /// > Warning: Raises an `NSExceptionName` of name `.rangeException` if `location` is out of bounds.
+    /// - Throws: ``LocationOutOfBounds`` if `location` exceeds ``range``.
+    func character(at location: Location) throws -> Content
+
+    /// Returns a character-wide slice of ``content`` at `location`.
+    ///
+    /// > Warning: Raises an exception if `location` is out of bounds.
     func unsafeCharacter(at location: Location) -> Content
 
     /// Inserts `content` at `location` into the buffer, not affecting the typing location of ``selectedRange`` in the process.

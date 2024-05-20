@@ -25,6 +25,14 @@ extension NSTextView: Buffer {
         return self.nsMutableString.lineRange(for: range)
     }
 
+    @inlinable
+    public func character(at location: Location) throws -> Buffer.Content {
+        guard range.contains(location) else {
+            throw LocationOutOfBounds(location: location, bounds: range)
+        }
+        return self.nsMutableString.unsafeCharacter(at: location)
+    }
+
     /// Raises an `NSExceptionName` of name `.rangeException` if `location` is out of bounds.
     @inlinable
     public func unsafeCharacter(at location: Buffer.Location) -> Buffer.Content {
