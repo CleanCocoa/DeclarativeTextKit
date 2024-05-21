@@ -35,6 +35,8 @@ public protocol Buffer: AnyObject {
 
     /// Returns a character-wide slice of ``content`` at `location`.
     ///
+    /// Useful for unchecked access to buffer contents e.g. in loops, requiring checks on the caller's side.
+    ///
     /// > Warning: Raises an exception if `location` is out of bounds.
     func unsafeCharacter(at location: Location) -> Content
 
