@@ -3,6 +3,9 @@
 import Foundation
 
 extension NSRange: BufferRangeExpression {
+    public typealias Evaluation = NSRangeInBuffer
+    public typealias Failure = Never
+
     public struct NSRangeInBuffer: BufferRangeEvaluation {
         let range: Buffer.Range
 

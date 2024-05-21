@@ -5,6 +5,12 @@ public protocol BufferRangeEvaluation {
 }
 
 public protocol BufferRangeExpression: Expression 
-where Evaluation: BufferRangeEvaluation {
+where Evaluation: BufferRangeEvaluation, Failure == Never {
+    func evaluate(in buffer: Buffer) -> Evaluation
+}
 
+extension BufferRangeExpression {
+    public func evaluate(in buffer: Buffer) -> Result<Evaluation, Never> {
+        return .success(evaluate(in: buffer) as Evaluation)
+    }
 }

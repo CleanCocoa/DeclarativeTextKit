@@ -14,8 +14,26 @@ where Content: Modification {
         self.modification = body
     }
 
-    public func evaluate(in buffer: Buffer) {
-        let changeInLength = modification(range.value).evaluate(in: buffer)
-        range.value.length += changeInLength.delta
+    @_disfavoredOverload  // Favor the throwing alternative of the protocol extension
+    public func evaluate(in buffer: Buffer) -> Result<Void, BufferAccessFailure> {
+        return _evaluate(in: buffer)
+    }
+
+    private func _evaluate<B: Buffer>(in buffer: B) -> Result<Void, BufferAccessFailure> {
+        do {
+            let scopedBuffer = try ScopedBufferSlice(base: buffer, scopedRange: range.value)
+
+            return try buffer.modifying(affectedRange: range.value) { () -> Result<Void, BufferAccessFailure> in
+                switch modification(range.value).evaluate(in: scopedBuffer) {
+                case .success(let changeInLength):
+                    range.value.length += changeInLength.delta
+                    return .success(())
+                case .failure(let failure):
+                    return .failure(failure)
+                }
+            }
+        } catch {
+            return .failure(.wrap(error))
+        }
     }
 }

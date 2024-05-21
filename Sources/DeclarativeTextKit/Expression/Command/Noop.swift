@@ -2,6 +2,9 @@
 
 /// Command that does nothing.
 public struct Noop: Command {
+    public typealias Evaluation = Void
+    public typealias Failure = Never
+
     public init() { }
-    public func evaluate(in buffer: Buffer) { }
+    public func evaluate(in buffer: Buffer) -> Result<Void, Never> { .success(()) }
 }

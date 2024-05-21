@@ -36,26 +36,50 @@ public final class MutableStringBuffer: Buffer {
         return self.storage.lineRange(for: range)
     }
 
+    public func character(at location: Location) throws -> Buffer.Content {
+        guard range.contains(location) else {
+            throw BufferAccessFailure.outOfRange(location: location, available: range)
+        }
+        return self.storage.unsafeCharacter(at: location)
+    }
+
     /// Raises an `NSExceptionName` of name `.rangeException` if `location` is out of bounds.
     public func unsafeCharacter(at location: Buffer.Location) -> Buffer.Content {
         return self.storage.unsafeCharacter(at: location)
     }
 
-    public func insert(_ content: Content, at location: Location) {
+    public func insert(_ content: Content, at location: Location) throws {
+        guard range.isValidInsertionPointLocation(at: location) else {
+            throw BufferAccessFailure.outOfRange(location: location, available: range)
+        }
+
         self.storage.insert(content, at: location)
     }
 
-    /// Raises an `NSExceptionName` of name `.rangeException` if any part of `range` lies beyond the end of the buffer.
-    public func delete(in range: Buffer.Range) {
-        self.storage.deleteCharacters(in: range)
-        self.selectedRange.subtract(range)
+    public func delete(in deletedRange: Buffer.Range) throws {
+        guard range.contains(deletedRange) else {
+            throw BufferAccessFailure.outOfRange(requested: deletedRange, available: range)
+        }
+
+        self.storage.deleteCharacters(in: deletedRange)
+        self.selectedRange.subtract(deletedRange)
     }
 
-    public func replace(range: Buffer.Range, with content: Buffer.Content) {
-        self.storage.replaceCharacters(in: range, with: content)
+    public func replace(range replacementRange: Buffer.Range, with content: Buffer.Content) throws {
+        guard range.contains(replacementRange) else {
+            throw BufferAccessFailure.outOfRange(requested: replacementRange, available: range)
+        }
+
+        self.storage.replaceCharacters(in: replacementRange, with: content)
+
         self.selectedRange = self.selectedRange
-            .subtracting(range)  // Removes potential overlap with the replacement range.
-            .shifted(by: length(of: content))  // Nudges selection to the right if needed.
+            .subtracting(replacementRange)  // Removes potential overlap with the replacement range.
+            .shifted(by: replacementRange.location <= self.selectedRange.location ? length(of: content) : 0)  // Nudges selection to the right if needed.
+    }
+
+    @inlinable
+    public func modifying<T>(affectedRange: Buffer.Range, _ block: () -> T) throws -> T {
+        return block()
     }
 }
 

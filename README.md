@@ -28,7 +28,7 @@ Select(LineRange(selectedRange)) { lineRange in
     // In that range, attempt to wrap the selected text
     // in two lines to make it a code block.
     // (Abort if the text view doesn't permit changes.)
-    try Modifying(lineRange) { rangeToWrap in
+    Modifying(lineRange) { rangeToWrap in
         Insert(rangeToWrap.location) { Line("```") }
         Insert(rangeToWrap.endLocation) { Line("```") }
     }

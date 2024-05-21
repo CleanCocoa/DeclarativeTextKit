@@ -1,18 +1,21 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
 extension Delete: Modification {
-    public func evaluate(in buffer: Buffer) -> ChangeInLength {
-        return self.deletions
-            .reversed()
-            .reduce(into: ChangeInLength()) { changeInLength, deletion in
-                changeInLength += deletion.delete(from: buffer)
-        }
+    @_disfavoredOverload  // Favor the throwing alternative of the protocol extension
+    public func evaluate(in buffer: Buffer) -> Result<ChangeInLength, BufferAccessFailure> {
+        return Result {
+            try self.deletions
+                .reversed()
+                .reduce(into: ChangeInLength()) { changeInLength, deletion in
+                    changeInLength += try deletion.delete(from: buffer)
+                }
+        }.mapError(BufferAccessFailure.wrap(_:))
     }
 }
 
 extension TextDeletion {
-    fileprivate func delete(from buffer: Buffer) -> ChangeInLength {
-        buffer.delete(in: self.range)
+    fileprivate func delete(from buffer: Buffer) throws -> ChangeInLength {
+        try buffer.delete(in: self.range)
         return ChangeInLength(-range.length)
     }
 }

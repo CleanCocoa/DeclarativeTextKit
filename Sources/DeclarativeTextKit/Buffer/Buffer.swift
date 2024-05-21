@@ -30,11 +30,20 @@ public protocol Buffer: AnyObject {
 
     /// Returns a character-wide slice of ``content`` at `location`.
     ///
-    /// > Warning: Raises an `NSExceptionName` of name `.rangeException` if `location` is out of bounds.
+    /// - Throws: ``BufferAccessFailure`` if `location` exceeds ``range``.
+    func character(at location: Location) throws -> Content
+
+    /// Returns a character-wide slice of ``content`` at `location`.
+    ///
+    /// Useful for unchecked access to buffer contents e.g. in loops, requiring checks on the caller's side.
+    ///
+    /// > Warning: Raises an exception if `location` is out of bounds.
     func unsafeCharacter(at location: Location) -> Content
 
     /// Inserts `content` at `location` into the buffer, not affecting the typing location of ``selectedRange`` in the process.
-    func insert(_ content: Content, at location: Location)
+    ///
+    /// - Throws: ``BufferAccessFailure`` if `location` exceeds ``range``.
+    func insert(_ content: Content, at location: Location) throws
 
     /// Inserts `content` like typing at the current typing location of ``selectedRange``.
     ///
@@ -42,17 +51,22 @@ public protocol Buffer: AnyObject {
     ///
     /// - inserting text at the insertion point moves the insertion point by `length(of: content)`,
     /// - replacing text moves the insertion point to the end of the inserted text (exiting the selection mode).
-    func insert(_ content: Content)
+    func insert(_ content: Content) throws
 
-    /// Deletes content from `range`.
+    /// Deletes content from `deletedRange`.
     ///
-    /// Deletion does not move the typing location of ``selectedRange`` to `range` in the process, but deleting from before ``insertionLocation-4ey6j`` will move the insertion further towards the beginning of the text.
+    /// Deletion does not move the typing location of ``selectedRange`` to `deletedRange` in the process, but deleting from before ``insertionLocation-4ey6j`` will move the insertion further towards the beginning of the text.
     ///
-    /// > Warning: Raises an `NSExceptionName` of name `.rangeException` if  `range` lies beyond the end of the buffer.
-    func delete(in range: Range)
+    /// - Throws: ``BufferAccessFailure`` if `deletedRange` exceeds ``range``.
+    func delete(in deletedRange: Range) throws
 
-    /// > Warning: Raises an `NSExceptionName` of name `.rangeException` if  `range` lies beyond the end of the buffer.
-    func replace(range: Range, with content: Content)
+    /// - Throws: ``BufferAccessFailure`` if `replacementRange` exceeds ``range``.
+    func replace(range replacementRange: Range, with content: Content) throws
+
+    /// Wrapping changes inside `block` in a modification request to bundle updates.
+    ///
+    /// - Throws: ``BufferAccessFailure`` if changes to `affectedRange` are not permitted.
+    func modifying<T>(affectedRange: Range, _ block: () -> T) throws -> T
 }
 
 import Foundation // For inlining isSelectingText as long as Buffer.Range is a typealias
@@ -73,7 +87,7 @@ extension Buffer {
     }
 
     @inlinable @inline(__always)
-    public func insert(_ content: Content) {
-        replace(range: selectedRange, with: content)
+    public func insert(_ content: Content) throws {
+        try replace(range: selectedRange, with: content)
     }
 }

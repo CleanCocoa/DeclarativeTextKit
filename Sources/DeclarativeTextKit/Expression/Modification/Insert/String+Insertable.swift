@@ -7,8 +7,8 @@ extension Swift.String: Insertable {
     public func insert(
         in buffer: Buffer,
         at location: UTF16Offset
-    ) -> ChangeInLength {
-        buffer.insert(self, at: location)
+    ) throws -> ChangeInLength {
+        try buffer.insert(self, at: location)
         return ChangeInLength(self)
     }
 }

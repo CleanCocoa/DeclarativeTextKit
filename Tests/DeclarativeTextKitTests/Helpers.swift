@@ -23,3 +23,71 @@ func assertBufferState(
         file: file, line: line
     )
 }
+
+func assertThrows<T, E: Error & Equatable>(
+    _ expression: @autoclosure () throws -> T,
+    error: E,
+    file: StaticString = #filePath, line: UInt = #line
+) {
+    var thrownError: Error?
+    XCTAssertThrowsError(
+        try expression(),
+        file: file, line: line
+    ) { thrownError = $0 }
+
+    guard let thrownError else {
+        XCTFail(
+            "Expected to throw error",
+            file: file, line: line
+        )
+        return
+    }
+
+    guard let thrownError = thrownError as? E else {
+        XCTFail(
+            "Expected error type \(E.self), got of \(type(of: thrownError))",
+            file: file, line: line
+        )
+        return
+    }
+
+    XCTAssertEqual(
+        thrownError,
+        error,
+        file: file, line: line
+    )
+}
+
+func assertThrows<T>(
+    _ expression: @autoclosure () throws -> T,
+    error: BufferAccessFailure,
+    file: StaticString = #filePath, line: UInt = #line
+) {
+    var thrownError: Error?
+    XCTAssertThrowsError(
+        try expression(),
+        file: file, line: line
+    ) { thrownError = $0 }
+
+    guard let thrownError else {
+        XCTFail(
+            "Expected to throw error",
+            file: file, line: line
+        )
+        return
+    }
+
+    guard let thrownError = thrownError as? BufferAccessFailure else {
+        XCTFail(
+            "Expected error type \(BufferAccessFailure.self), got of \(type(of: thrownError))",
+            file: file, line: line
+        )
+        return
+    }
+
+    XCTAssertEqual(
+        error.debugDescription,
+        "\(thrownError)",
+        file: file, line: line
+    )
+}
