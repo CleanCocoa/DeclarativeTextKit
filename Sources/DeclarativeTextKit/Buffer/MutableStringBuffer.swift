@@ -71,9 +71,10 @@ public final class MutableStringBuffer: Buffer {
         }
 
         self.storage.replaceCharacters(in: replacementRange, with: content)
+
         self.selectedRange = self.selectedRange
             .subtracting(replacementRange)  // Removes potential overlap with the replacement range.
-            .shifted(by: length(of: content))  // Nudges selection to the right if needed.
+            .shifted(by: replacementRange.location <= self.selectedRange.location ? length(of: content) : 0)  // Nudges selection to the right if needed.
     }
 }
 

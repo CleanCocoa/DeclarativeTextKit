@@ -66,7 +66,7 @@ extension NSTextView: Buffer {
             // Restore the recoverable part of the formerly selected range. By default, when the replaced range overlaps with the text view's selection, it removes the selection and switches to 0-length insertion point.
             self.setSelectedRange(selectedRange
                 .subtracting(replacementRange)
-                .shifted(by: length(of: content)))
+                .shifted(by: replacementRange.location <= selectedRange.location ? length(of: content) : 0))
         }
         self.nsMutableString.replaceCharacters(in: replacementRange, with: content)
     }

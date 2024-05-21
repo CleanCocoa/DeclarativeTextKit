@@ -146,17 +146,70 @@ final class NSTextView_BufferTests: XCTestCase {
         }
     }
 
+    func testReplace_BeforeInsertionPoint() throws {
+        let buffer = textView("0123456789")
+        buffer.insertionLocation = 5
+
+        assertBufferState(buffer, "01234{^}56789")
+
+        try buffer.replace(range: .init(location: 1, length: 2), with: "xxxx")
+        assertBufferState(buffer, "0xxxx34{^}56789")
+    }
+
+    func testReplace_AtInsertionPoint() throws {
+        let buffer = textView("0123456789")
+        buffer.insertionLocation = 5
+
+        assertBufferState(buffer, "01234{^}56789")
+
+        try buffer.replace(range: .init(location: 5, length: 2), with: "xxxx")
+        assertBufferState(buffer, "01234xxxx{^}789")
+    }
+
+    func testReplace_AfterInsertionPoint() throws {
+        let buffer = textView("0123456789")
+        buffer.insertionLocation = 5
+
+        assertBufferState(buffer, "01234{^}56789")
+
+        try buffer.replace(range: .init(location: 6, length: 2), with: "xxxx")
+        assertBufferState(buffer, "01234{^}5xxxx89")
+    }
+
+    func testReplace_BeforeSelectedRange() throws {
+        let buffer = textView("0123456789")
+        buffer.selectedRange = .init(location: 4, length: 3)
+
+        assertBufferState(buffer, "0123{456}789")
+
+        try buffer.replace(range: .init(location: 1, length: 2), with: "xxxx")
+        assertBufferState(buffer, "0xxxx3{456}789")
+    }
+
+    func testReplace_AfterSelectedRange() throws {
+        let buffer = textView("0123456789")
+        buffer.selectedRange = .init(location: 4, length: 3)
+
+        assertBufferState(buffer, "0123{456}789")
+
+        try buffer.replace(range: .init(location: 8, length: 1), with: "xxxx")
+        assertBufferState(buffer, "0123{456}7xxxx9")
+    }
+
     func testReplaceAroundInsertionPoint() throws {
-        let buffer: Buffer = textView("Goodbye, cruel world!")
+        let buffer: Buffer = textView("Goodbye, cruel universe!")
         buffer.insertionLocation = length(of: "Goodbye, cruel")
 
-        assertBufferState(buffer, "Goodbye, cruel{^} world!")
+        assertBufferState(buffer, "Goodbye, cruel{^} universe!")
 
         try buffer.replace(range: .init(location: 9, length: 6), with: "")
-        assertBufferState(buffer, "Goodbye, {^}world!")
+        assertBufferState(buffer, "Goodbye, {^}universe!")
 
         try buffer.replace(range: .init(location: 0, length: 7), with: "Hello")
-        assertBufferState(buffer, "Hello, {^}world!")
+        assertBufferState(buffer, "Hello, {^}universe!")
+
+        try buffer.replace(range: .init(location: 7, length: 8), with: "world")
+        assertBufferState(buffer, "Hello, world{^}!")
     }
 
     func testReplaceInSelectedRange() throws {
