@@ -16,7 +16,18 @@ where Content: Modification {
 
     @_disfavoredOverload  // Favor the throwing alternative of the protocol extension
     public func evaluate(in buffer: Buffer) -> Result<Void, BufferAccessFailure> {
-        switch modification(range.value).evaluate(in: buffer) {
+        return _evaluate(in: buffer)
+    }
+
+    private func _evaluate<B: Buffer>(in buffer: B) -> Result<Void, BufferAccessFailure> {
+        let scopedBuffer: ScopedBufferSlice<B>
+        do {
+            scopedBuffer = try ScopedBufferSlice(base: buffer, scopedRange: range.value)
+        } catch {
+            return .failure(.wrap(error))
+        }
+
+        switch modification(range.value).evaluate(in: scopedBuffer) {
         case .success(let changeInLength):
             range.value.length += changeInLength.delta
             return .success(())
