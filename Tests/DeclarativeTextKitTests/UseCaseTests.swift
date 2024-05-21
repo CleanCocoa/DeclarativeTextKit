@@ -30,7 +30,7 @@ But it is nice.
 
         XCTAssertEqual(buffer.selectedRange, Buffer.Range(location: 14, length: 0))
 
-        buffer.insert("raw")  // Simulate typing at the selection
+        try buffer.insert("raw")  // Simulate typing at the selection
 
         assertBufferState(buffer, """
 # Heading

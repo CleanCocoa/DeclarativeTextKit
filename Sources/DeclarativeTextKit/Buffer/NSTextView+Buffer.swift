@@ -56,14 +56,18 @@ extension NSTextView: Buffer {
         self.nsMutableString.deleteCharacters(in: deletedRange)
     }
 
-    public func replace(range: Buffer.Range, with content: Buffer.Content) {
+    public func replace(range replacementRange: Buffer.Range, with content: Buffer.Content) throws {
+        guard range.contains(replacementRange) else {
+            throw BufferAccessFailure.outOfRange(requested: replacementRange, available: range)
+        }
+
         let selectedRange = (self as Buffer).selectedRange
         defer {
             // Restore the recoverable part of the formerly selected range. By default, when the replaced range overlaps with the text view's selection, it removes the selection and switches to 0-length insertion point.
             self.setSelectedRange(selectedRange
-                .subtracting(range)
+                .subtracting(replacementRange)
                 .shifted(by: length(of: content)))
         }
-        self.nsMutableString.replaceCharacters(in: range, with: content)
+        self.nsMutableString.replaceCharacters(in: replacementRange, with: content)
     }
 }

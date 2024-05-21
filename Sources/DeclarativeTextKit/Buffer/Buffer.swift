@@ -49,7 +49,7 @@ public protocol Buffer: AnyObject {
     ///
     /// - inserting text at the insertion point moves the insertion point by `length(of: content)`,
     /// - replacing text moves the insertion point to the end of the inserted text (exiting the selection mode).
-    func insert(_ content: Content)
+    func insert(_ content: Content) throws
 
     /// Deletes content from `deletedRange`.
     ///
@@ -58,8 +58,8 @@ public protocol Buffer: AnyObject {
     /// - Throws: ``BufferAccessFailure`` if `deletedRange` exceeds ``range``.
     func delete(in deletedRange: Range) throws
 
-    /// > Warning: Raises an `NSExceptionName` of name `.rangeException` if  `range` lies beyond the end of the buffer.
-    func replace(range: Range, with content: Content)
+    /// - Throws: ``BufferAccessFailure`` if `replacementRange` exceeds ``range``.
+    func replace(range replacementRange: Range, with content: Content) throws
 }
 
 import Foundation // For inlining isSelectingText as long as Buffer.Range is a typealias
@@ -80,7 +80,7 @@ extension Buffer {
     }
 
     @inlinable @inline(__always)
-    public func insert(_ content: Content) {
-        replace(range: selectedRange, with: content)
+    public func insert(_ content: Content) throws {
+        try replace(range: selectedRange, with: content)
     }
 }

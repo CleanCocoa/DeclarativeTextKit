@@ -65,10 +65,14 @@ public final class MutableStringBuffer: Buffer {
         self.selectedRange.subtract(deletedRange)
     }
 
-    public func replace(range: Buffer.Range, with content: Buffer.Content) {
-        self.storage.replaceCharacters(in: range, with: content)
+    public func replace(range replacementRange: Buffer.Range, with content: Buffer.Content) throws {
+        guard range.contains(replacementRange) else {
+            throw BufferAccessFailure.outOfRange(requested: replacementRange, available: range)
+        }
+
+        self.storage.replaceCharacters(in: replacementRange, with: content)
         self.selectedRange = self.selectedRange
-            .subtracting(range)  // Removes potential overlap with the replacement range.
+            .subtracting(replacementRange)  // Removes potential overlap with the replacement range.
             .shifted(by: length(of: content))  // Nudges selection to the right if needed.
     }
 }
