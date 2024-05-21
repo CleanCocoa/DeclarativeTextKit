@@ -2,24 +2,14 @@
 
 extension Insert: Modification {
     @_disfavoredOverload  // Favor the throwing alternative of the protocol extension
-    public func evaluate(in buffer: Buffer) -> Result<ChangeInLength, ModificationFailure> {
+    public func evaluate(in buffer: Buffer) -> Result<ChangeInLength, BufferAccessFailure> {
         return Result {
             try self.insertions
                 .reversed()
                 .reduce(into: ChangeInLength()) { changeInLength, insertion in
                     changeInLength += try insertion.insert(in: buffer)
                 }
-        }.mapError { error in
-            switch error {
-            case let error as LocationOutOfBounds:
-                return ModificationFailure.outOfRange(
-                    requested: .init(location: error.location, length: 0),
-                    selected: error.bounds
-                )
-            default:
-                return ModificationFailure.wrapped(error)
-            }
-        }
+        }.mapError(BufferAccessFailure.wrap(_:))
     }
 }
 

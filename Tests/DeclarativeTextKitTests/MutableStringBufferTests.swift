@@ -1,7 +1,7 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
 import XCTest
-import DeclarativeTextKit
+@testable import DeclarativeTextKit
 
 final class MutableStringBufferTests: XCTestCase {
     func testContent() {
@@ -36,9 +36,9 @@ final class MutableStringBufferTests: XCTestCase {
         let buffer = MutableStringBuffer("hi")
         assertThrows(
             try buffer.character(at: 2),
-            error: LocationOutOfBounds(
+            error: BufferAccessFailure.outOfRange(
                 location: 2,
-                bounds: .init(location: 0, length: 2)
+                available: .init(location: 0, length: 2)
             )
         )
     }
@@ -55,9 +55,10 @@ final class MutableStringBufferTests: XCTestCase {
         let buffer = MutableStringBuffer("hi")
         assertThrows(
             try buffer.insert("💣", at: 3),
-            error: LocationOutOfBounds(
+            error: BufferAccessFailure.outOfRange(
                 location: 3,
-                bounds: .init(location: 0, length: 2))
+                available: .init(location: 0, length: 2)
+            )
         )
     }
 

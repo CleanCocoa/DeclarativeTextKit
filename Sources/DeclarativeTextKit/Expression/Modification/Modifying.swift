@@ -15,7 +15,7 @@ where Content: Modification {
     }
 
     @_disfavoredOverload  // Favor the throwing alternative of the protocol extension
-    public func evaluate(in buffer: Buffer) -> Result<Void, ModificationFailure> {
+    public func evaluate(in buffer: Buffer) -> Result<Void, BufferAccessFailure> {
         switch modification(range.value).evaluate(in: buffer) {
         case .success(let changeInLength):
             range.value.length += changeInLength.delta

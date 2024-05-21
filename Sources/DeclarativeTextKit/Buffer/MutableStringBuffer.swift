@@ -38,7 +38,7 @@ public final class MutableStringBuffer: Buffer {
 
     public func character(at location: Location) throws -> Buffer.Content {
         guard range.contains(location) else {
-            throw LocationOutOfBounds(location: location, bounds: range)
+            throw BufferAccessFailure.outOfRange(location: location, available: range)
         }
         return self.storage.unsafeCharacter(at: location)
     }
@@ -50,7 +50,7 @@ public final class MutableStringBuffer: Buffer {
 
     public func insert(_ content: Content, at location: Location) throws {
         guard range.isValidInsertionPointLocation(at: location) else {
-            throw LocationOutOfBounds(location: location, bounds: range)
+            throw BufferAccessFailure.outOfRange(location: location, available: range)
         }
 
         self.storage.insert(content, at: location)

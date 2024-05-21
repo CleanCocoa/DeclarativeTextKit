@@ -2,7 +2,7 @@
 
 extension Delete: Modification {
     @_disfavoredOverload  // Favor the throwing alternative of the protocol extension
-    public func evaluate(in buffer: Buffer) -> Result<ChangeInLength, ModificationFailure> {
+    public func evaluate(in buffer: Buffer) -> Result<ChangeInLength, BufferAccessFailure> {
         let changeInLength = self.deletions
             .reversed()
             .reduce(into: ChangeInLength()) { changeInLength, deletion in

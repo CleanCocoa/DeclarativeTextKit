@@ -28,7 +28,7 @@ extension NSTextView: Buffer {
     @inlinable
     public func character(at location: Location) throws -> Buffer.Content {
         guard range.contains(location) else {
-            throw LocationOutOfBounds(location: location, bounds: range)
+            throw BufferAccessFailure.outOfRange(location: location, available: range)
         }
         return self.nsMutableString.unsafeCharacter(at: location)
     }
@@ -42,7 +42,7 @@ extension NSTextView: Buffer {
     @inlinable
     public func insert(_ content: Buffer.Content, at location: Location) throws {
         guard range.isValidInsertionPointLocation(at: location) else {
-            throw LocationOutOfBounds(location: location, bounds: range)
+            throw BufferAccessFailure.outOfRange(location: location, available: range)
         }
 
         self.nsMutableString.insert(content, at: location)

@@ -1,15 +1,5 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
-public struct LocationOutOfBounds: Error, Equatable {
-    public let location: Buffer.Location
-    public let bounds: Buffer.Range
-
-    public init(location: Buffer.Location, bounds: Buffer.Range) {
-        self.location = location
-        self.bounds = bounds
-    }
-}
-
 /// A text buffer contains UTF16 characters.
 public protocol Buffer: AnyObject {
     typealias Location = UTF16Offset
@@ -40,7 +30,7 @@ public protocol Buffer: AnyObject {
 
     /// Returns a character-wide slice of ``content`` at `location`.
     ///
-    /// - Throws: ``LocationOutOfBounds`` if `location` exceeds ``range``.
+    /// - Throws: ``BufferAccessFailure`` if `location` exceeds ``range``.
     func character(at location: Location) throws -> Content
 
     /// Returns a character-wide slice of ``content`` at `location`.
@@ -50,7 +40,7 @@ public protocol Buffer: AnyObject {
 
     /// Inserts `content` at `location` into the buffer, not affecting the typing location of ``selectedRange`` in the process.
     ///
-    /// - Throws: ``LocationOutOfBounds`` if `location` exceeds ``range``.
+    /// - Throws: ``BufferAccessFailure`` if `location` exceeds ``range``.
     func insert(_ content: Content, at location: Location) throws
 
     /// Inserts `content` like typing at the current typing location of ``selectedRange``.
