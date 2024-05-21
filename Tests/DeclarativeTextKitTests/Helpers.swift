@@ -35,6 +35,14 @@ func assertThrows<T, E: Error & Equatable>(
         file: file, line: line
     ) { thrownError = $0 }
 
+    guard let thrownError else {
+        XCTFail(
+            "Expected to throw error",
+            file: file, line: line
+        )
+        return
+    }
+
     guard let thrownError = thrownError as? E else {
         XCTFail(
             "Expected error type \(E.self), got of \(type(of: thrownError))",
@@ -60,6 +68,14 @@ func assertThrows<T>(
         try expression(),
         file: file, line: line
     ) { thrownError = $0 }
+
+    guard let thrownError else {
+        XCTFail(
+            "Expected to throw error",
+            file: file, line: line
+        )
+        return
+    }
 
     guard let thrownError = thrownError as? BufferAccessFailure else {
         XCTFail(

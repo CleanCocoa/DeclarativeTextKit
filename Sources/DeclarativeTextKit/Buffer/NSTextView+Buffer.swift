@@ -70,4 +70,12 @@ extension NSTextView: Buffer {
         }
         self.nsMutableString.replaceCharacters(in: replacementRange, with: content)
     }
+
+    public func modifying<T>(affectedRange: Buffer.Range, _ block: () -> T) throws -> T {
+        guard self.shouldChangeText(in: affectedRange, replacementString: nil) else {
+            throw BufferAccessFailure.modificationForbidden(in: affectedRange)
+        }
+        defer { self.didChangeText() }
+        return block()
+    }
 }

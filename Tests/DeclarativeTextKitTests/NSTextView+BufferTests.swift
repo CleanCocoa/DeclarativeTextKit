@@ -250,4 +250,41 @@ final class NSTextView_BufferTests: XCTestCase {
             )
         }
     }
+
+    func testModifying_DependsOnDelegate() throws {
+        class Delegate: NSObject, NSTextViewDelegate {
+            var shouldChangeText = false
+
+            func textView(_ textView: NSTextView, shouldChangeTextIn affectedCharRange: NSRange, replacementString: String?) -> Bool {
+                return shouldChangeText
+            }
+        }
+
+        let buffer = textView("Text")
+        let delegate = Delegate()
+        buffer.delegate = delegate
+
+        // Forbidden
+        delegate.shouldChangeText = false
+        for location in buffer.range.location ..< buffer.range.endLocation {
+            assertThrows(
+                try buffer.modifying(affectedRange: .init(location: location, length: 0)) {
+                    XCTFail("Modification should not execute")
+                },
+                error: BufferAccessFailure.modificationForbidden(in: .init(location: location, length: 0))
+            )
+        }
+
+        // Allowed
+        delegate.shouldChangeText = true
+        for location in buffer.range.location ..< buffer.range.endLocation {
+            var didModify = false
+            let result = try buffer.modifying(affectedRange: .init(location: location, length: 0)) {
+                defer { didModify = true }
+                return location * 2
+            }
+            XCTAssertTrue(didModify)
+            XCTAssertEqual(result, location * 2)
+        }
+    }
 }

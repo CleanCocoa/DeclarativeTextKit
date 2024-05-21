@@ -39,6 +39,16 @@ public struct BufferAccessFailure: Error {
     }
 
     @usableFromInline
+    static func modificationForbidden(
+        in requestedRange: Buffer.Range
+    ) -> BufferAccessFailure {
+        BufferAccessFailure(
+            label: "modification not allowed",
+            context: "tried to modify (\(requestedRange.location)..<\(requestedRange.endLocation))"
+        )
+    }
+
+    @usableFromInline
     static func wrap(_ error: any Error) -> BufferAccessFailure {
         return error as? BufferAccessFailure
         ?? BufferAccessFailure(

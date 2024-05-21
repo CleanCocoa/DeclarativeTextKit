@@ -47,7 +47,7 @@ final class ModifyingTests: XCTestCase {
 
         try modify.evaluate(in: buffer)
 
-        XCTAssertEqual(buffer.content, "Lorem deipsumesque.")
+        assertBufferState(buffer, "{^}Lorem deipsumesque.")
         XCTAssertEqual(selectedRange, .init(location: 6, length: 12))
     }
 
@@ -67,7 +67,43 @@ final class ModifyingTests: XCTestCase {
 
         try modify.evaluate(in: buffer)
 
-        XCTAssertEqual(buffer.content, "Lipsum.")
+        assertBufferState(buffer, "{^}Lipsum.")
         XCTAssertEqual(fullRange, .init(location: 0, length: 7))
+
+    }
+
+    func testModifying_ModificationForbidden() throws {
+        class Delegate: NSObject, NSTextViewDelegate {
+            var shouldChangeText = false
+
+            func textView(_ textView: NSTextView, shouldChangeTextIn affectedCharRange: NSRange, replacementString: String?) -> Bool {
+                return shouldChangeText
+            }
+        }
+
+        let buffer = textView("Lorem ipsum.")
+        let delegate = Delegate()
+        buffer.delegate = delegate
+        let selectedRange: SelectedRange = .init(location: 6, length: 5)
+
+        assertBufferState(buffer, "Lorem ipsum.{^}")
+
+        let modify = Modifying(selectedRange) { affectedRange in
+            Insert(affectedRange.location) { "de" }
+            Insert(affectedRange.endLocation) { "esque" }
+        }
+
+        // Forbidden
+        delegate.shouldChangeText = false
+        assertThrows(        
+            try modify.evaluate(in: buffer),
+            error: BufferAccessFailure.modificationForbidden(in: .init(location: 6, length: 5))
+        )
+
+        // Allowed
+        delegate.shouldChangeText = true
+        try modify.evaluate(in: buffer)
+        assertBufferState(buffer, "Lorem deipsumesque.{^}")
+        XCTAssertEqual(selectedRange, .init(location: 6, length: 12))
     }
 }

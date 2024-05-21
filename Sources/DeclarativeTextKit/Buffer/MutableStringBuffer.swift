@@ -76,6 +76,11 @@ public final class MutableStringBuffer: Buffer {
             .subtracting(replacementRange)  // Removes potential overlap with the replacement range.
             .shifted(by: replacementRange.location <= self.selectedRange.location ? length(of: content) : 0)  // Nudges selection to the right if needed.
     }
+
+    @inlinable
+    public func modifying<T>(affectedRange: Buffer.Range, _ block: () -> T) throws -> T {
+        return block()
+    }
 }
 
 extension MutableStringBuffer: ExpressibleByStringLiteral {

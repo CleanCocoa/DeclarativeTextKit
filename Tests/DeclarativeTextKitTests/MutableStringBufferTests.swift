@@ -250,4 +250,18 @@ final class MutableStringBufferTests: XCTestCase {
             )
         }
     }
+
+    func testModifying_PassesThrough() throws {
+        let buffer = MutableStringBuffer("Text")
+
+        for location in buffer.range.location ..< buffer.range.endLocation {
+            var didModify = false
+            let result = try buffer.modifying(affectedRange: .init(location: location, length: 0)) {
+                defer { didModify = true }
+                return location * 3
+            }
+            XCTAssertTrue(didModify)
+            XCTAssertEqual(result, location * 3)
+        }
+    }
 }

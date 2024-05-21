@@ -60,6 +60,11 @@ public protocol Buffer: AnyObject {
 
     /// - Throws: ``BufferAccessFailure`` if `replacementRange` exceeds ``range``.
     func replace(range replacementRange: Range, with content: Content) throws
+
+    /// Wrapping changes inside `block` in a modification request to bundle updates.
+    ///
+    /// - Throws: ``BufferAccessFailure`` if changes to `affectedRange` are not permitted.
+    func modifying<T>(affectedRange: Range, _ block: () -> T) throws -> T
 }
 
 import Foundation // For inlining isSelectingText as long as Buffer.Range is a typealias

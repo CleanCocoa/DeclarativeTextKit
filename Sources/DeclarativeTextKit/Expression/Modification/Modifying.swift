@@ -20,19 +20,20 @@ where Content: Modification {
     }
 
     private func _evaluate<B: Buffer>(in buffer: B) -> Result<Void, BufferAccessFailure> {
-        let scopedBuffer: ScopedBufferSlice<B>
         do {
-            scopedBuffer = try ScopedBufferSlice(base: buffer, scopedRange: range.value)
+            let scopedBuffer = try ScopedBufferSlice(base: buffer, scopedRange: range.value)
+
+            return try buffer.modifying(affectedRange: range.value) { () -> Result<Void, BufferAccessFailure> in
+                switch modification(range.value).evaluate(in: scopedBuffer) {
+                case .success(let changeInLength):
+                    range.value.length += changeInLength.delta
+                    return .success(())
+                case .failure(let failure):
+                    return .failure(failure)
+                }
+            }
         } catch {
             return .failure(.wrap(error))
-        }
-
-        switch modification(range.value).evaluate(in: scopedBuffer) {
-        case .success(let changeInLength):
-            range.value.length += changeInLength.delta
-            return .success(())
-        case .failure(let failure):
-            return .failure(failure)
         }
     }
 }

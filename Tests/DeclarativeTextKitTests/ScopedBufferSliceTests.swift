@@ -75,7 +75,7 @@ final class ScopedBufferSliceTests: XCTestCase {
             XCTAssertEqual(scopedSlice.scopedRange, .init(location: 3, length: 3))
 
             XCTAssertNoThrow(try scopedSlice.insert("xxx", at: locationInBounds))
-            
+
             // Postcondition
             XCTAssertEqual(scopedSlice.scopedRange, .init(location: 3, length: 6), "Insertion should expand range")
         }
@@ -180,5 +180,78 @@ final class ScopedBufferSliceTests: XCTestCase {
         try scopedSlice.replace(range: .init(location: 6, length: 2), with: "gestn")
         assertBufferState(scopedSlice, "{^}012longestness6789")
         XCTAssertEqual(scopedSlice.scopedRange, .init(location: 3, length: 11))
+    }
+}
+
+extension ScopedBufferSliceTests {
+    func testModifying_DelegatesToBaseAndProtectsScope() throws {
+        class Delegate: NSObject, NSTextViewDelegate {
+            var shouldChangeText = false
+
+            func textView(_ textView: NSTextView, shouldChangeTextIn affectedCharRange: NSRange, replacementString: String?) -> Bool {
+                return shouldChangeText
+            }
+        }
+
+        let base = textView("Text")
+        let delegate = Delegate()
+        base.delegate = delegate
+        let availableRange = Buffer.Range(location: 1, length: 2)
+        let scopedSlice = try! ScopedBufferSlice(base: base, scopedRange: availableRange)
+
+        let locationsInScope = 1...2
+        let locationsOutOfScope = Array(0..<1) + Array(3..<4)
+
+        // MARK: Forbidden
+        delegate.shouldChangeText = false
+        // Error outside of scope
+        for location in locationsOutOfScope {
+            let range = Buffer.Range(location: location, length: 0)
+            assertThrows(
+                try scopedSlice.modifying(affectedRange: range) {
+                    XCTFail("Modification should not execute")
+                },
+                error: BufferAccessFailure.outOfRange(
+                    requested: range,
+                    available: availableRange
+                )
+            )
+        }
+        // Forbidden in scope
+        for location in locationsInScope {
+            let range = Buffer.Range(location: location, length: 0)
+            assertThrows(
+                try scopedSlice.modifying(affectedRange: range) {
+                    XCTFail("Modification should not execute")
+                },
+                error: BufferAccessFailure.modificationForbidden(in: range)
+            )
+        }
+
+        // MARK: Allowed
+        delegate.shouldChangeText = true
+        // Error outside of scope
+        for location in locationsOutOfScope {
+            let range = Buffer.Range(location: location, length: 0)
+            assertThrows(
+                try scopedSlice.modifying(affectedRange: range) {
+                    XCTFail("Modification should not execute")
+                },
+                error: BufferAccessFailure.outOfRange(
+                    requested: range,
+                    available: availableRange
+                )
+            )
+        }
+        // Allowed in scope
+        for location in locationsInScope {
+            var didModify = false
+            let result = try scopedSlice.modifying(affectedRange: .init(location: location, length: 0)) {
+                defer { didModify = true }
+                return location * 2
+            }
+            XCTAssertTrue(didModify)
+            XCTAssertEqual(result, location * 2)
+        }
     }
 }

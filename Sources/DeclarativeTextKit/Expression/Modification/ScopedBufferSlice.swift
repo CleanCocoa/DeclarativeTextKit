@@ -97,4 +97,15 @@ where Base: Buffer {
 
         try base.insert(content, at: location)
     }
+
+    func modifying<T>(affectedRange: Buffer.Range, _ block: () -> T) throws -> T {
+        guard scopedRange.contains(affectedRange) else {
+            throw BufferAccessFailure.outOfRange(
+                requested: affectedRange,
+                available: scopedRange
+            )
+        }
+
+        return try base.modifying(affectedRange: affectedRange, block)
+    }
 }
