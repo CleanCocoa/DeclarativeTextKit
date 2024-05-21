@@ -56,10 +56,13 @@ public final class MutableStringBuffer: Buffer {
         self.storage.insert(content, at: location)
     }
 
-    /// Raises an `NSExceptionName` of name `.rangeException` if any part of `range` lies beyond the end of the buffer.
-    public func delete(in range: Buffer.Range) {
-        self.storage.deleteCharacters(in: range)
-        self.selectedRange.subtract(range)
+    public func delete(in deletedRange: Buffer.Range) throws {
+        guard range.contains(deletedRange) else {
+            throw BufferAccessFailure.outOfRange(requested: deletedRange, available: range)
+        }
+
+        self.storage.deleteCharacters(in: deletedRange)
+        self.selectedRange.subtract(deletedRange)
     }
 
     public func replace(range: Buffer.Range, with content: Buffer.Content) {

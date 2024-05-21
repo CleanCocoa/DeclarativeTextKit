@@ -107,16 +107,46 @@ final class MutableStringBufferTests: XCTestCase {
         XCTAssertEqual(buffer.lineRange(for: .init(location: 1, length: 7)), buffer.range)
     }
 
-    func testDelete() {
+    func testDelete() throws {
         let buffer = MutableStringBuffer("Hello: world!")
         buffer.insertionLocation = length(of: "Hello: wor")
 
         assertBufferState(buffer, "Hello: wor{^}ld!")
 
-        buffer.delete(in: .init(location: 0, length: 4))
-        buffer.delete(in: .init(location: 0, length: 4))
+        try buffer.delete(in: .init(location: 0, length: 4))
+        assertBufferState(buffer, "o: wor{^}ld!")
 
+        try buffer.delete(in: .init(location: 0, length: 4))
         assertBufferState(buffer, "or{^}ld!")
+
+        try buffer.delete(in: .init(location: 0, length: 4))
+        assertBufferState(buffer, "{^}!")
+    }
+
+    func testDeleteOutsideBounds() {
+        let buffer = MutableStringBuffer("Lorem ipsum")
+        let expectedAvailableRange = Buffer.Range(location: 0, length: 11)
+
+        let invalidRanges: [Buffer.Range] = [
+            .init(location: -1, length: 999),
+            .init(location: -1, length: 1),
+            .init(location: -1, length: 0),
+            .init(location: 11, length: -2),
+            .init(location: 11, length: -1),
+            .init(location: 1, length: 999),
+            .init(location: 11, length: 0),
+            .init(location: 11, length: 1),
+            .init(location: 100, length: 999),
+        ]
+        for invalidRange in invalidRanges {
+            assertThrows(
+                try buffer.delete(in: invalidRange),
+                error: BufferAccessFailure.outOfRange(
+                    requested: invalidRange,
+                    available: expectedAvailableRange
+                )
+            )
+        }
     }
 
     func testReplaceAroundInsertionPoint() {

@@ -51,12 +51,12 @@ public protocol Buffer: AnyObject {
     /// - replacing text moves the insertion point to the end of the inserted text (exiting the selection mode).
     func insert(_ content: Content)
 
-    /// Deletes content from `range`.
+    /// Deletes content from `deletedRange`.
     ///
-    /// Deletion does not move the typing location of ``selectedRange`` to `range` in the process, but deleting from before ``insertionLocation-4ey6j`` will move the insertion further towards the beginning of the text.
+    /// Deletion does not move the typing location of ``selectedRange`` to `deletedRange` in the process, but deleting from before ``insertionLocation-4ey6j`` will move the insertion further towards the beginning of the text.
     ///
-    /// > Warning: Raises an `NSExceptionName` of name `.rangeException` if  `range` lies beyond the end of the buffer.
-    func delete(in range: Range)
+    /// - Throws: ``BufferAccessFailure`` if `deletedRange` exceeds ``range``.
+    func delete(in deletedRange: Range) throws
 
     /// > Warning: Raises an `NSExceptionName` of name `.rangeException` if  `range` lies beyond the end of the buffer.
     func replace(range: Range, with content: Content)

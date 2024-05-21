@@ -48,9 +48,12 @@ extension NSTextView: Buffer {
         self.nsMutableString.insert(content, at: location)
     }
 
-    /// Raises an `NSExceptionName` of name `.rangeException` if any part of `range` lies beyond the end of the buffer.
-    public func delete(in range: Buffer.Range) {
-        self.nsMutableString.deleteCharacters(in: range)
+    public func delete(in deletedRange: Buffer.Range) throws {
+        guard range.contains(deletedRange) else {
+            throw BufferAccessFailure.outOfRange(requested: deletedRange, available: range)
+        }
+
+        self.nsMutableString.deleteCharacters(in: deletedRange)
     }
 
     public func replace(range: Buffer.Range, with content: Buffer.Content) {
