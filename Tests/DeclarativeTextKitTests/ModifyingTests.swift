@@ -69,7 +69,29 @@ final class ModifyingTests: XCTestCase {
 
         assertBufferState(buffer, "{^}Lipsum.")
         XCTAssertEqual(fullRange, .init(location: 0, length: 7))
+    }
 
+    func testModifying_DeletingInLoop() throws {
+        let buffer: Buffer = MutableStringBuffer("0123456789")
+        buffer.insertionLocation = 6
+        let fullRange = SelectedRange(buffer.range)
+
+        let modify = Modifying(fullRange) { range in
+            // Deleting at locations [0,1,2,3,4] tests that we can treat locations as absolute without one deletion invalidating the next.
+            for location in 0..<5 {
+                Delete(location: location, length: 1)
+            }
+        }
+
+        XCTAssertEqual(fullRange, .init(buffer.range),
+                       "SelectedRange box is unchanged before evaluation")
+        assertBufferState(buffer, "012345{^}6789",
+                          "Content and selection is unchanged before evaluation")
+
+        try modify.evaluate(in: buffer)
+
+        XCTAssertEqual(fullRange, .init(location: 0, length: 5))
+        assertBufferState(buffer, "5{^}6789")
     }
 
     func testModifying_ModificationForbidden() throws {

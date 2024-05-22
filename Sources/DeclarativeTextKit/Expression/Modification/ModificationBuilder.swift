@@ -28,4 +28,10 @@ extension ModificationBuilder {
             unsorted: Array(accumulated.deletions) + Array(next.deletions)
         ))
     }
+
+    public static func buildArray(_ components: [Delete]) -> Delete {
+        return Delete(SortedArray(
+            unsorted: components.map(\.deletions).joined()
+        ))
+    }
 }
