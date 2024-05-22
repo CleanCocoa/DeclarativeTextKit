@@ -193,11 +193,11 @@ extension ScopedBufferSliceTests {
             }
         }
 
-        let base = textView("Text")
+        let buffer = textView("Text")
         let delegate = Delegate()
-        base.delegate = delegate
+        buffer.textView.delegate = delegate
         let availableRange = Buffer.Range(location: 1, length: 2)
-        let scopedSlice = try! ScopedBufferSlice(base: base, scopedRange: availableRange)
+        let scopedSlice = try! ScopedBufferSlice(base: buffer, scopedRange: availableRange)
 
         let locationsInScope = 1...2
         let locationsOutOfScope = Array(0..<1) + Array(3..<4)

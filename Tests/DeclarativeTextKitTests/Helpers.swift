@@ -4,10 +4,10 @@ import AppKit
 import DeclarativeTextKit
 import XCTest
 
-func textView(_ string: String) -> NSTextView {
+func textView(_ string: String) -> NSTextViewBuffer {
     let textView = NSTextView(usingTextLayoutManager: false)
     textView.string = string
-    return textView
+    return NSTextViewBuffer(textView: textView)
 }
 
 func assertBufferState(

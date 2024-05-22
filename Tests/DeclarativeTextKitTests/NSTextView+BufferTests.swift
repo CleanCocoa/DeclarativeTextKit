@@ -262,7 +262,7 @@ final class NSTextView_BufferTests: XCTestCase {
 
         let buffer = textView("Text")
         let delegate = Delegate()
-        buffer.delegate = delegate
+        buffer.textView.delegate = delegate
 
         // Forbidden
         delegate.shouldChangeText = false

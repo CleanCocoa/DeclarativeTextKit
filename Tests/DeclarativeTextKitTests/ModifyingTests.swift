@@ -130,7 +130,7 @@ final class ModifyingTests: XCTestCase {
 
         let buffer = textView("Lorem ipsum.")
         let delegate = Delegate()
-        buffer.delegate = delegate
+        buffer.textView.delegate = delegate
         let selectedRange: SelectedRange = .init(location: 6, length: 5)
 
         assertBufferState(buffer, "Lorem ipsum.{^}")
