@@ -23,15 +23,22 @@ open class NSTextViewBuffer: Buffer {
         set { textView.selectedRange = newValue }
     }
 
-    public init(textView: NSTextView) {
-        self.textView = textView
-    }
-
     @inlinable
     open var range: Buffer.Range { Buffer.Range(location: 0, length: textView.nsMutableString.length) }
 
     @inlinable
     open var content: Content { textView.nsMutableString as Buffer.Content }
+
+    public init(textView: NSTextView) {
+        self.textView = textView
+    }
+
+    @usableFromInline
+    func wrapAsEditing<T>(_ body: () -> T) -> T {
+        textView.textStorage?.beginEditing()
+        defer { textView.textStorage?.endEditing() }
+        return body()
+    }
 
     @inlinable
     open func lineRange(for range: Buffer.Range) -> Buffer.Range {
@@ -43,6 +50,7 @@ open class NSTextViewBuffer: Buffer {
         guard range.contains(location) else {
             throw BufferAccessFailure.outOfRange(location: location, available: range)
         }
+
         return textView.nsMutableString.unsafeCharacter(at: location)
     }
 
@@ -58,7 +66,9 @@ open class NSTextViewBuffer: Buffer {
             throw BufferAccessFailure.outOfRange(location: location, available: range)
         }
 
-        textView.nsMutableString.insert(content, at: location)
+        wrapAsEditing {
+            textView.nsMutableString.insert(content, at: location)
+        }
     }
 
     open func delete(in deletedRange: Buffer.Range) throws {
@@ -66,7 +76,9 @@ open class NSTextViewBuffer: Buffer {
             throw BufferAccessFailure.outOfRange(requested: deletedRange, available: range)
         }
 
-        textView.nsMutableString.deleteCharacters(in: deletedRange)
+        wrapAsEditing {
+            textView.nsMutableString.deleteCharacters(in: deletedRange)
+        }
     }
 
     open func replace(range replacementRange: Buffer.Range, with content: Buffer.Content) throws {
@@ -81,7 +93,10 @@ open class NSTextViewBuffer: Buffer {
                 .subtracting(replacementRange)
                 .shifted(by: replacementRange.location <= selectedRange.location ? length(of: content) : 0))
         }
-        textView.nsMutableString.replaceCharacters(in: replacementRange, with: content)
+
+        wrapAsEditing {
+            textView.nsMutableString.replaceCharacters(in: replacementRange, with: content)
+        }
     }
 
     open func modifying<T>(affectedRange: Buffer.Range, _ block: () -> T) throws -> T {
@@ -89,7 +104,10 @@ open class NSTextViewBuffer: Buffer {
             throw BufferAccessFailure.modificationForbidden(in: affectedRange)
         }
         defer { textView.didChangeText() }
-        return block()
+
+        return wrapAsEditing {
+            return block()
+        }
     }
 }
 #endif
