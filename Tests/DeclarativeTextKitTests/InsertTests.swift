@@ -10,7 +10,7 @@ extension Insert {
 }
 
 final class InsertTests: XCTestCase {
-    var buffer: MutableStringBuffer = ""
+    var buffer = MutableStringBuffer("")
 
     func testInsertString() throws {
         let insert = Insert(0) {
@@ -22,7 +22,7 @@ final class InsertTests: XCTestCase {
 
         let changeInLength = try insert(intoBuffer: buffer)
 
-        XCTAssertEqual(buffer, "Hello, World!")
+        XCTAssertEqual(buffer.content, "Hello, World!")
         XCTAssertEqual(changeInLength, 13)
     }
 
@@ -34,7 +34,7 @@ final class InsertTests: XCTestCase {
 
         let changeInLength = try insert(intoBuffer: buffer)
 
-        XCTAssertEqual(buffer,
+        XCTAssertEqual(buffer.content,
             """
             Hello, World!
             How are things lately?
@@ -44,7 +44,7 @@ final class InsertTests: XCTestCase {
     }
 
     func testInsert_Lines_InsideParagraph() throws {
-        buffer = "Test Paragraph"
+        buffer = MutableStringBuffer("Test Paragraph")
         let insert = Insert(4) {
             Line("Hello")
             Line("World!")
@@ -52,7 +52,7 @@ final class InsertTests: XCTestCase {
 
         let changeInLength = try insert(intoBuffer: buffer)
 
-        XCTAssertEqual(buffer,
+        XCTAssertEqual(buffer.content,
             """
             Test
             Hello
@@ -70,7 +70,7 @@ final class InsertTests: XCTestCase {
 
         let changeInLength = try insert(intoBuffer: buffer)
 
-        XCTAssertEqual(buffer,
+        XCTAssertEqual(buffer.content,
             """
             Hello,
             World!
@@ -87,7 +87,7 @@ final class InsertTests: XCTestCase {
 
         let changeInLength = try insert(intoBuffer: buffer)
 
-        XCTAssertEqual(buffer,
+        XCTAssertEqual(buffer.content,
             """
             Hello,
             World!
@@ -106,7 +106,7 @@ final class InsertTests: XCTestCase {
 
         let changeInLength = try insert(intoBuffer: buffer)
 
-        XCTAssertEqual(buffer,
+        XCTAssertEqual(buffer.content,
             """
             Hello,
             World! What's Up?
@@ -122,7 +122,7 @@ final class InsertTests: XCTestCase {
 
         let changeInLength = try insert(intoBuffer: buffer)
 
-        XCTAssertEqual(buffer,
+        XCTAssertEqual(buffer.content,
             """
             Hello,
             World
@@ -140,7 +140,7 @@ final class InsertTests: XCTestCase {
 
         let changeInLength = try insert(intoBuffer: buffer)
 
-        XCTAssertEqual(buffer,
+        XCTAssertEqual(buffer.content,
             """
             Hello,
             World!
@@ -159,7 +159,7 @@ final class InsertTests: XCTestCase {
 
         let changeInLength = try insert(intoBuffer: buffer)
 
-        XCTAssertEqual(buffer,
+        XCTAssertEqual(buffer.content,
             """
             Hello,
             World!
@@ -180,7 +180,7 @@ final class InsertTests: XCTestCase {
 
         let changeInLength = try insert(intoBuffer: buffer)
 
-        XCTAssertEqual(buffer,
+        XCTAssertEqual(buffer.content,
             """
             So,
             Hello, World!
@@ -207,7 +207,7 @@ final class InsertTests: XCTestCase {
 
         let changeInLength = try insert(intoBuffer: buffer)
 
-        XCTAssertEqual(buffer,
+        XCTAssertEqual(buffer.content,
             """
             This time,
             there is already apparently

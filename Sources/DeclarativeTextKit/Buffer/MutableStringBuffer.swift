@@ -83,12 +83,6 @@ public final class MutableStringBuffer: Buffer {
     }
 }
 
-extension MutableStringBuffer: ExpressibleByStringLiteral {
-    public convenience init(stringLiteral value: StringLiteralType) {
-        self.init(value)
-    }
-}
-
 extension MutableStringBuffer {
     /// Create a copy of `buffer`.
     public convenience init<Wrapping>(_ buffer: Wrapping) where Wrapping: Buffer {

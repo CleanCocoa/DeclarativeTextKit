@@ -5,7 +5,7 @@ import DeclarativeTextKit
 
 final class UseCaseTests: XCTestCase {
     func testWrapSelectionInLines() throws {
-        let buffer: MutableStringBuffer = """
+        let buffer = MutableStringBuffer("""
 # Heading
 
 Text here. It is
@@ -13,7 +13,7 @@ not a lot of text.
 
 But it is nice.
 
-"""
+""")
         let selectedRange = Buffer.Range(location: 20, length: 11) // From line 3, "here", up to the next line.
 
         let commandCascade = Select(LineRange(selectedRange)) { lineRange in
