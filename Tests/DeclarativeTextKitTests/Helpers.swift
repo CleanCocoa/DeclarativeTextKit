@@ -1,14 +1,17 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
-import AppKit
 import DeclarativeTextKit
 import XCTest
+
+#if os(macOS)
+import AppKit
 
 func textView(_ string: String) -> NSTextViewBuffer {
     let textView = NSTextView(usingTextLayoutManager: false)
     textView.string = string
     return NSTextViewBuffer(textView: textView)
 }
+#endif
 
 func assertBufferState(
     _ buffer: Buffer,

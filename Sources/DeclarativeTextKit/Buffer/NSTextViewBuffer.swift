@@ -1,5 +1,6 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
+#if os(macOS)
 import AppKit
 
 extension NSTextView {
@@ -91,3 +92,4 @@ open class NSTextViewBuffer: Buffer {
         return block()
     }
 }
+#endif
