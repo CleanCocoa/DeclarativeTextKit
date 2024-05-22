@@ -16,6 +16,13 @@ extension ModificationBuilder {
             areInIncreasingOrder: TextInsertion.arePositionedInIncreasingOrder
         ))
     }
+
+    public static func buildArray(_ components: [Insert]) -> Insert {
+        return Insert(SortedArray(
+            unsorted: components.map(\.insertions).joined(),
+            areInIncreasingOrder: TextInsertion.arePositionedInIncreasingOrder
+        ))
+    }
 }
 
 extension ModificationBuilder {

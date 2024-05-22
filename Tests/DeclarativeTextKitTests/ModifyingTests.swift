@@ -52,6 +52,30 @@ final class ModifyingTests: XCTestCase {
         XCTAssertEqual(selectedRange, .init(location: 6, length: 12))
     }
 
+    func testModifying_InsertingInLoop() throws {
+        let buffer: Buffer = MutableStringBuffer("0123456789")
+        buffer.insertionLocation = 6
+        let fullRange = SelectedRange(buffer.range)
+
+        let modify = Modifying(fullRange) { range in
+            // Inserting at multiple locations verifies that we can treat locations as absolute without one insertion invalidating the next.
+            for location in stride(from: 0, to: 10, by: 2) {
+                Insert(location) { "x" }
+            }
+        }
+
+        XCTAssertEqual(fullRange, .init(buffer.range),
+                       "SelectedRange box is unchanged before evaluation")
+        assertBufferState(buffer, "012345{^}6789",
+                          "Content and selection is unchanged before evaluation")
+
+        try modify.evaluate(in: buffer)
+
+        XCTAssertEqual(fullRange, .init(location: 0, length: 15))
+        assertBufferState(buffer, "x01x23x45x{^}67x89")
+    }
+
+
     func testModifying_DeletingMultiplePlaces() throws {
         let buffer: Buffer = MutableStringBuffer("Lorem ipsum dolor sit.")
         let fullRange = SelectedRange(buffer.range)
