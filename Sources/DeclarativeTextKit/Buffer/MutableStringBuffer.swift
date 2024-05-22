@@ -54,6 +54,9 @@ public final class MutableStringBuffer: Buffer {
         }
 
         self.storage.insert(content, at: location)
+
+        self.selectedRange = self.selectedRange
+            .shifted(by: location <= self.selectedRange.location ? length(of: content) : 0)  // Nudges selection to the right if needed.
     }
 
     public func delete(in deletedRange: Buffer.Range) throws {

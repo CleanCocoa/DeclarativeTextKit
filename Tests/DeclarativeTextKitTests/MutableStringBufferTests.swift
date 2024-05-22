@@ -44,11 +44,14 @@ final class MutableStringBufferTests: XCTestCase {
     }
 
     func testInsertContentAtLocation() throws {
-        let buffer = MutableStringBuffer("hi")
+        let buffer = MutableStringBuffer("hello bug!")
+        buffer.selectedRange = .init(location: 6, length: 3)
 
-        try buffer.insert("🐞 bug", at: 1)
+        assertBufferState(buffer, "hello {bug}!")
 
-        XCTAssertEqual(buffer, "h🐞 bugi")
+        try buffer.insert(" 🐞", at: 5)
+
+        assertBufferState(buffer, "hello 🐞 {bug}!")
     }
 
     func testInsertOutOfBounds() {

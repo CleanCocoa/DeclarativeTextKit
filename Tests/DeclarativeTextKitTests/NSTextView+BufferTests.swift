@@ -47,14 +47,14 @@ final class NSTextView_BufferTests: XCTestCase {
     }
 
     func testInsertContentAtLocation() throws {
-        let buffer = textView("hi")
-        buffer.insertionLocation = 1
+        let buffer = textView("hello bug!")
+        buffer.selectedRange = .init(location: 6, length: 3)
 
-        assertBufferState(buffer, "h{^}i")
+        assertBufferState(buffer, "hello {bug}!")
 
-        try buffer.insert("🐞 bug", at: 1)
+        try buffer.insert(" 🐞", at: 5)
 
-        assertBufferState(buffer, "h🐞 bug{^}i")
+        assertBufferState(buffer, "hello 🐞 {bug}!")
     }
 
     func testInsertOverSelection() throws {

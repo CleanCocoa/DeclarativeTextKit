@@ -33,6 +33,7 @@ final class ModifyingTests: XCTestCase {
 
     func testModifying_InsertionAtBothEnds() throws {
         let buffer: Buffer = MutableStringBuffer("Lorem ipsum.")
+        buffer.insertionLocation = 8
         let selectedRange: SelectedRange = .init(location: 6, length: 5)
 
         let modify = Modifying(selectedRange) { affectedRange in
@@ -42,12 +43,12 @@ final class ModifyingTests: XCTestCase {
 
         XCTAssertEqual(selectedRange, .init(location: 6, length: 5),
                        "SelectedRange box is unchanged before evaluation")
-        assertBufferState(buffer, "{^}Lorem ipsum.",
+        assertBufferState(buffer, "Lorem ip{^}sum.",
                           "Content and selection is unchanged before evaluation")
 
         try modify.evaluate(in: buffer)
 
-        assertBufferState(buffer, "{^}Lorem deipsumesque.")
+        assertBufferState(buffer, "Lorem deip{^}sumesque.")
         XCTAssertEqual(selectedRange, .init(location: 6, length: 12))
     }
 
