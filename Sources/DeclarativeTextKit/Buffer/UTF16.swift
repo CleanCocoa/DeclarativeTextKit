@@ -1,6 +1,6 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
-import AppKit
+import Foundation
 
 public typealias UTF16Range = NSRange
 public typealias UTF16Offset = Int
