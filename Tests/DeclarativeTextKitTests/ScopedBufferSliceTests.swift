@@ -8,6 +8,7 @@ final class ScopedBufferSliceTests: XCTestCase {
 
     func createScopedBufferSlice() -> ScopedBufferSlice<MutableStringBuffer> {
         let base = MutableStringBuffer("0123456789")
+        base.insertionLocation = 8
         let scopedSlice = try! ScopedBufferSlice(base: base, scopedRange: availableRange)
         return scopedSlice
     }
@@ -170,15 +171,15 @@ final class ScopedBufferSliceTests: XCTestCase {
             )
         )
 
-        assertBufferState(scopedSlice, "{^}0123456789")
+        assertBufferState(scopedSlice, "01234567{^}89")
         XCTAssertEqual(scopedSlice.scopedRange, .init(location: 3, length: 3))
 
         try scopedSlice.replace(range: availableRange, with: "longness")
-        assertBufferState(scopedSlice, "{^}012longness6789")
+        assertBufferState(scopedSlice, "012longness67{^}89")
         XCTAssertEqual(scopedSlice.scopedRange, .init(location: 3, length: 8))
 
         try scopedSlice.replace(range: .init(location: 6, length: 2), with: "gestn")
-        assertBufferState(scopedSlice, "{^}012longestness6789")
+        assertBufferState(scopedSlice, "012longestness67{^}89")
         XCTAssertEqual(scopedSlice.scopedRange, .init(location: 3, length: 11))
     }
 }
