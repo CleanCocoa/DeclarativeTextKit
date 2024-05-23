@@ -14,7 +14,7 @@ final class ScopedBufferSliceTests: XCTestCase {
     }
 
     func testInit_RangeInBounds() throws {
-        let buffer = textView("abc")
+        let buffer = MutableStringBuffer("abc")
         buffer.insertionLocation = 1
 
         let allRangesInBounds: [Buffer.Range] = [
@@ -40,7 +40,7 @@ final class ScopedBufferSliceTests: XCTestCase {
     }
 
     func testInit_Appending() throws {
-        let buffer = textView("abc")
+        let buffer = MutableStringBuffer("abc")
         buffer.insertionLocation = 1
         let scopedSlice = try ScopedBufferSlice.appending(to: buffer)
 
@@ -49,7 +49,7 @@ final class ScopedBufferSliceTests: XCTestCase {
     }
 
     func testInit_RangeOutOfBounds_Throws() {
-        let buffer = textView("abc")
+        let buffer = MutableStringBuffer("abc")
 
         assertThrows(
             try ScopedBufferSlice(base: buffer, scopedRange: .init(location: 3, length: 2)),
@@ -75,6 +75,32 @@ final class ScopedBufferSliceTests: XCTestCase {
 
         for locationInBounds in 3..<6 {
             XCTAssertNoThrow(try scopedSlice.character(at: locationInBounds))
+        }
+    }
+
+    func testContentInRange() throws {
+        let scopedSlice = createScopedBufferSlice()
+
+        let characterPairs = try (3..<5).map { try scopedSlice.content(in: .init(location: $0, length: 2)) }
+        XCTAssertEqual(characterPairs, ["34", "45"])
+
+        XCTAssertEqual(try scopedSlice.content(in: availableRange), "345")
+    }
+
+    func testContentInRange_OutOfBounds() throws {
+        let scopedSlice = createScopedBufferSlice()
+
+        for locationOutOfBounds in Array(-1..<3) + Array(6..<12) {
+            for length in (0...2) {
+                let range = Buffer.Range(location: locationOutOfBounds, length: length)
+                assertThrows(
+                    try scopedSlice.content(in: range),
+                    error: BufferAccessFailure.outOfRange(
+                        requested: range,
+                        available: availableRange
+                    )
+                )
+            }
         }
     }
 

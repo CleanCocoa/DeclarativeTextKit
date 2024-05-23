@@ -46,12 +46,12 @@ open class NSTextViewBuffer: Buffer {
     }
 
     @inlinable
-    open func character(at location: Location) throws -> Buffer.Content {
-        guard canRead(at: location) else {
-            throw BufferAccessFailure.outOfRange(location: location, available: range)
+    open func content(in subrange: UTF16Range) throws -> Buffer.Content {
+        guard canRead(in: subrange) else {
+            throw BufferAccessFailure.outOfRange(requested: subrange, available: range)
         }
 
-        return textView.nsMutableString.unsafeCharacter(at: location)
+        return textView.nsMutableString.unsafeContent(in: subrange)
     }
 
     /// Raises an `NSExceptionName` of name `.rangeException` if `location` is out of bounds.

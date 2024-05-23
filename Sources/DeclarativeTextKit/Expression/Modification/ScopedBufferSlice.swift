@@ -39,14 +39,14 @@ where Base: Buffer {
         return base.lineRange(for: range)
     }
 
-    func character(at location: Location) throws -> Base.Content {
-        guard canRead(at: location) else {
+    func content(in subrange: UTF16Range) throws -> Base.Content {
+        guard canRead(in: subrange) else {
             throw BufferAccessFailure.outOfRange(
-                requested: Buffer.Range(location: location, length: 1),
+                requested: subrange,
                 available: scopedRange
             )
         }
-        return try base.character(at: location)
+        return try base.content(in: subrange)
     }
 
     func unsafeCharacter(at location: Location) -> Base.Content {

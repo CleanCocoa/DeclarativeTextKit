@@ -37,10 +37,43 @@ final class MutableStringBufferTests: XCTestCase {
         assertThrows(
             try buffer.character(at: 2),
             error: BufferAccessFailure.outOfRange(
-                location: 2,
+                requested: .init(location: 2, length: 1),
                 available: .init(location: 0, length: 2)
             )
         )
+    }
+
+    func testContentInRange() throws {
+        let buffer = MutableStringBuffer("bug 🐞!")
+        let utf16Offsets = try (0..<6).map { try buffer.content(in: .init(location: $0, length: 2)) }
+        XCTAssertEqual(utf16Offsets, ["bu", "ug", "g ", " 🐞", "🐞", "🐞!"],
+                       "The emoji is 2 scalar values wide and the underlying string should account for not splitting it")
+    }
+
+    func testContentInRange_OutOfBounds() throws {
+        let buffer = MutableStringBuffer("Lorem ipsum")
+        let expectedAvailableRange = Buffer.Range(location: 0, length: 11)
+
+        let invalidRanges: [Buffer.Range] = [
+            .init(location: -1, length: 999),
+            .init(location: -1, length: 1),
+            .init(location: -1, length: 0),
+            .init(location: 11, length: -2),
+            .init(location: 11, length: -1),
+            .init(location: 1, length: 999),
+            .init(location: 11, length: 0),
+            .init(location: 11, length: 1),
+            .init(location: 100, length: 999),
+        ]
+        for invalidRange in invalidRanges {
+            assertThrows(
+                try buffer.content(in: invalidRange),
+                error: BufferAccessFailure.outOfRange(
+                    requested: invalidRange,
+                    available: expectedAvailableRange
+                )
+            )
+        }
     }
 
     func testInsertToAppend() throws {

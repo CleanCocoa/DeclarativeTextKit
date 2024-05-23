@@ -36,11 +36,11 @@ public final class MutableStringBuffer: Buffer {
         return self.storage.lineRange(for: range)
     }
 
-    public func character(at location: Location) throws -> Buffer.Content {
-        guard canRead(at: location) else {
-            throw BufferAccessFailure.outOfRange(location: location, available: range)
+    public func content(in subrange: UTF16Range) throws -> Buffer.Content {
+        guard canRead(in: subrange) else {
+            throw BufferAccessFailure.outOfRange(requested: subrange, available: range)
         }
-        return self.storage.unsafeCharacter(at: location)
+        return self.storage.unsafeContent(in: subrange)
     }
 
     /// Raises an `NSExceptionName` of name `.rangeException` if `location` is out of bounds.
