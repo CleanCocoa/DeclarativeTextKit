@@ -64,6 +64,7 @@ func assertThrows<T, E: Error & Equatable>(
 func assertThrows<T>(
     _ expression: @autoclosure () throws -> T,
     error: BufferAccessFailure,
+    _ message: @autoclosure () -> String = "",
     file: StaticString = #filePath, line: UInt = #line
 ) {
     var thrownError: Error?
@@ -74,7 +75,8 @@ func assertThrows<T>(
 
     guard let thrownError else {
         XCTFail(
-            "Expected to throw error",
+            "Expected to throw error."
+            + (message().isEmpty ? "" : " \(message())"),
             file: file, line: line
         )
         return
@@ -82,7 +84,8 @@ func assertThrows<T>(
 
     guard let thrownError = thrownError as? BufferAccessFailure else {
         XCTFail(
-            "Expected error type \(BufferAccessFailure.self), got of \(type(of: thrownError))",
+            "Expected error type \(BufferAccessFailure.self), got of \(type(of: thrownError))."
+            + (message().isEmpty ? "" : "  \(message())"),
             file: file, line: line
         )
         return
@@ -91,6 +94,7 @@ func assertThrows<T>(
     XCTAssertEqual(
         error.debugDescription,
         "\(thrownError)",
+        message(),
         file: file, line: line
     )
 }

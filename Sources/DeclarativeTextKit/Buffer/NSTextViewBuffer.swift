@@ -47,7 +47,7 @@ open class NSTextViewBuffer: Buffer {
 
     @inlinable
     open func content(in subrange: UTF16Range) throws -> Buffer.Content {
-        guard canRead(in: subrange) else {
+        guard canInsert(in: subrange) else {
             throw BufferAccessFailure.outOfRange(requested: subrange, available: range)
         }
 

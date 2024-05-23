@@ -43,7 +43,21 @@ final class MutableStringBufferTests: XCTestCase {
         )
     }
 
-    func testContentInRange() throws {
+    func testContentInRange_EmptyLength() throws {
+        let buffer = MutableStringBuffer("123")
+        for location in buffer.range.location ..< buffer.range.endLocation + 1 /* Including the end location to get an empty substring should work */ {
+            XCTAssertEqual(try buffer.content(in: .init(location: location, length: 0)), "")
+        }
+    }
+
+    func testContentInRange_SingleCharacterLength() throws {
+        let buffer = MutableStringBuffer("123")
+        let results = try (0 ..< 3)
+            .map { try buffer.content(in: .init(location: $0, length: 1)) }
+        XCTAssertEqual(results, ["1", "2", "3"])
+    }
+
+    func testContentInRange_CharacterPairs() throws {
         let buffer = MutableStringBuffer("bug 🐞!")
         let utf16Offsets = try (0..<6).map { try buffer.content(in: .init(location: $0, length: 2)) }
         XCTAssertEqual(utf16Offsets, ["bu", "ug", "g ", " 🐞", "🐞", "🐞!"],
@@ -61,7 +75,6 @@ final class MutableStringBufferTests: XCTestCase {
             .init(location: 11, length: -2),
             .init(location: 11, length: -1),
             .init(location: 1, length: 999),
-            .init(location: 11, length: 0),
             .init(location: 11, length: 1),
             .init(location: 100, length: 999),
         ]
@@ -71,7 +84,8 @@ final class MutableStringBufferTests: XCTestCase {
                 error: BufferAccessFailure.outOfRange(
                     requested: invalidRange,
                     available: expectedAvailableRange
-                )
+                ),
+                "Should not read \(invalidRange)"
             )
         }
     }

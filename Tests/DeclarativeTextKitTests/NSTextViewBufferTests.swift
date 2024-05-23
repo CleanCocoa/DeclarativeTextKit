@@ -46,7 +46,21 @@ final class NSTextViewBufferTests: XCTestCase {
         )
     }
 
-    func testContentInRange() throws {
+    func testContentInRange_EmptyLength() throws {
+        let buffer = textView("123")
+        for location in buffer.range.location ..< buffer.range.endLocation + 1 /* Including the end location to get an empty substring should work */ {
+            XCTAssertEqual(try buffer.content(in: .init(location: location, length: 0)), "")
+        }
+    }
+
+    func testContentInRange_SingleCharacterLength() throws {
+        let buffer = textView("123")
+        let results = try (0 ..< 3)
+            .map { try buffer.content(in: .init(location: $0, length: 1)) }
+        XCTAssertEqual(results, ["1", "2", "3"])
+    }
+
+    func testContentInRange_CharacterPairs() throws {
         let buffer = textView("bug 🐞!")
         let utf16Offsets = try (0..<6).map { try buffer.content(in: .init(location: $0, length: 2)) }
         XCTAssertEqual(utf16Offsets, ["bu", "ug", "g ", " 🐞", "🐞", "🐞!"],
