@@ -1,7 +1,7 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
 /// Marking a ``Buffer/Range`` as to-be-modified, combining Modifications into one block.
-public struct Modifying<Content>: Command
+public struct Modifying<Content>
 where Content: Modification {
     let range: SelectedRange
     let modification: (Buffer.Range) -> Content
@@ -13,6 +13,11 @@ where Content: Modification {
         self.range = range
         self.modification = body
     }
+}
+
+extension Modifying: Expression {
+    public typealias Evaluation = Void
+    public typealias Failure = BufferAccessFailure
 
     @_disfavoredOverload  // Favor the throwing alternative of the protocol extension
     public func evaluate(in buffer: Buffer) -> Result<Void, BufferAccessFailure> {

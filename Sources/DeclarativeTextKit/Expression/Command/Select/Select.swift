@@ -18,17 +18,17 @@ extension Select {
     }
 
     public init(_ range: Range) {
-        self.init(range) { _ in Noop() }
+        self.init(range) { _ in Command.noop }
     }
 }
 
 extension Select where Range == Buffer.Range {
     public init(_ range: Buffer.Range) {
-        self.init(range) { _ in Noop() }
+        self.init(range) { _ in Command.noop }
     }
 
     public init(_ location: Buffer.Location) {
-        self.init(Buffer.Range(location: location, length: 0)) { _ in Noop() }
+        self.init(Buffer.Range(location: location, length: 0)) { _ in Command.noop }
     }
 
     public init(
@@ -45,7 +45,10 @@ extension Select where Range == Buffer.Range {
 
 // MARK: - Acting as executable Command
 
-extension Select: Command {
+extension Select: Expression {
+    public typealias Evaluation = Void
+    public typealias Failure = CommandSequenceFailure
+
     public struct Selection {
         public let buffer: Buffer
         public let selectedRange: Buffer.Range

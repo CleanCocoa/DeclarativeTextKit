@@ -5,10 +5,10 @@ public struct CommandSequenceFailure: Error {
 }
 
 /// > Note: You don't create ``CommandSequence``s manually, you use `@CommandSequenceBuilder` blocks instead.
-public struct CommandSequence: Command {
-    public let commands: [any Command]
+public struct CommandSequence {
+    public let commands: [Command]
 
-    init(_ commands: [any Command]) {
+    init(_ commands: [Command]) {
         self.commands = commands
     }
 
@@ -26,7 +26,16 @@ public struct CommandSequence: Command {
 
 @resultBuilder
 public struct CommandSequenceBuilder {
-    public static func buildBlock(_ components: any Command...) -> CommandSequence {
-        CommandSequence(components)
+    public static func buildPartialBlock(first: some Expression) -> CommandSequence {
+        return CommandSequence([Command(wrapped: first)])
+    }
+
+    public static func buildPartialBlock(
+        accumulated: CommandSequence,
+        next: some Expression
+    ) -> CommandSequence {
+        return CommandSequence(
+            accumulated.commands + [Command(wrapped: next)]
+        )
     }
 }
