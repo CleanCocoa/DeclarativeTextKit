@@ -5,20 +5,17 @@ import XCTest
 
 final class ModifyingTests: XCTestCase {
     func testModifying_InsertionOutsideSelectedBounds_Throws() throws {
-        func insert(at location: UTF16Offset) throws {
-            // Create new buffer for each iteration to discard mutations from previous runs.
-            let buffer: Buffer = MutableStringBuffer("0123456789")
-            let selectedRange = SelectedRange(location: 3, length: 3)
-
-            let modification = Modifying(selectedRange) { _ in
+        func insertCharacter(at location: UTF16Offset) throws -> ChangeInLength {
+            let modification = Modifying(location: 3, length: 3) { _ in
                 Insert(location) { "x" }
             }
-            try modification.evaluate(in: buffer)
+            // Create new buffer for each iteration to discard mutations from previous runs.
+            return try modification.evaluate(in: MutableStringBuffer("0123456789"))
         }
 
         for locationOutOfBounds in Array(0..<3) + Array(7..<10) {
             assertThrows(
-                try insert(at: locationOutOfBounds),
+                try insertCharacter(at: locationOutOfBounds),
                 error: BufferAccessFailure.outOfRange(
                     location: locationOutOfBounds,
                     available: .init(location: 3, length: 3)
@@ -27,7 +24,7 @@ final class ModifyingTests: XCTestCase {
         }
 
         for locationInBounds in 3...6 {
-            XCTAssertNoThrow(try insert(at: locationInBounds))
+            XCTAssertEqual(try insertCharacter(at: locationInBounds), 1)
         }
     }
 
@@ -46,8 +43,9 @@ final class ModifyingTests: XCTestCase {
         assertBufferState(buffer, "Lorem ip{^}sum.",
                           "Content and selection is unchanged before evaluation")
 
-        try modify.evaluate(in: buffer)
+        let changeInLength = try modify.evaluate(in: buffer)
 
+        XCTAssertEqual(changeInLength, 7)
         assertBufferState(buffer, "Lorem deip{^}sumesque.")
         XCTAssertEqual(selectedRange, .init(location: 6, length: 12))
     }
@@ -69,8 +67,9 @@ final class ModifyingTests: XCTestCase {
         assertBufferState(buffer, "012345{^}6789",
                           "Content and selection is unchanged before evaluation")
 
-        try modify.evaluate(in: buffer)
+        let changeInLength = try modify.evaluate(in: buffer)
 
+        XCTAssertEqual(changeInLength, 5)
         XCTAssertEqual(fullRange, .init(location: 0, length: 15))
         assertBufferState(buffer, "x01x23x45x{^}67x89")
     }
@@ -90,8 +89,9 @@ final class ModifyingTests: XCTestCase {
         assertBufferState(buffer, "{^}Lorem ipsum dolor sit.",
                           "Content and selection is unchanged before evaluation")
 
-        try modify.evaluate(in: buffer)
+        let changeInLength = try modify.evaluate(in: buffer)
 
+        XCTAssertEqual(changeInLength, -15)
         assertBufferState(buffer, "{^}Lipsum.")
         XCTAssertEqual(fullRange, .init(location: 0, length: 7))
     }
@@ -113,8 +113,9 @@ final class ModifyingTests: XCTestCase {
         assertBufferState(buffer, "012345{^}6789",
                           "Content and selection is unchanged before evaluation")
 
-        try modify.evaluate(in: buffer)
+        let changeInLength = try modify.evaluate(in: buffer)
 
+        XCTAssertEqual(changeInLength, -5)
         XCTAssertEqual(fullRange, .init(location: 0, length: 5))
         assertBufferState(buffer, "5{^}6789")
     }
@@ -149,7 +150,8 @@ final class ModifyingTests: XCTestCase {
 
         // Allowed
         delegate.shouldChangeText = true
-        try modify.evaluate(in: buffer)
+        let changeInLength = try modify.evaluate(in: buffer)
+        XCTAssertEqual(changeInLength, 7)
         assertBufferState(buffer, "Lorem deipsumesque.{^}")
         XCTAssertEqual(selectedRange, .init(location: 6, length: 12))
     }
