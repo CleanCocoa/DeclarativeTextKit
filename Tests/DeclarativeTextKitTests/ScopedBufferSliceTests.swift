@@ -134,7 +134,7 @@ final class ScopedBufferSliceTests: XCTestCase {
     func testReplace_OutOfBounds() throws {
         let scopedSlice = createScopedBufferSlice()
 
-        for locationOutOfBounds in Array(-1..<3) + Array(6..<12) {
+        for locationOutOfBounds in Array(-1..<3) + Array(7..<12) {
             for length in (0...2) {
                 let range = Buffer.Range(location: locationOutOfBounds, length: length)
                 assertThrows(
@@ -150,13 +150,36 @@ final class ScopedBufferSliceTests: XCTestCase {
 
     func testReplace_InsideBounds() throws {
         for locationInBounds in 3..<6 {
-            // Reset content for each test because the buffer is modified
-            let scopedSlice = createScopedBufferSlice()
+            for length in 0...1 {
+                // Reset content for each test because the buffer is modified
+                let scopedSlice = createScopedBufferSlice()
 
-            for length in (0...1) {
                 XCTAssertNoThrow(try scopedSlice.replace(range: .init(location: locationInBounds, length: length), with: "x"))
             }
         }
+    }
+
+    func testReplace_AtEdgeOfBoundsBounds() throws {
+        // Replacing at the endLocation with 0 length is like typing/inserting/appending.
+        XCTAssertNoThrow(
+            try createScopedBufferSlice().replace(range: .init(location: 6, length: 0), with: "x"),
+            "Typing at endLocation is permitted")
+        XCTAssertNoThrow(
+            try createScopedBufferSlice().replace(range: .init(location: 6, length: 0), with: "xyz"),
+            "Length of inserted text doesn't matter")
+
+        // Replacing a character beyond the bounds should throw
+        assertThrows(
+            try createScopedBufferSlice().replace(range: .init(location: 6, length: 1), with: "x"),
+            error: BufferAccessFailure.outOfRange(
+                requested: .init(location: 6, length: 1),
+                available: availableRange))
+        // Deleting a character beyond the bounds should throw
+        assertThrows(
+            try createScopedBufferSlice().replace(range: .init(location: 6, length: 1), with: ""),
+            error: BufferAccessFailure.outOfRange(
+                requested: .init(location: 6, length: 1),
+                available: availableRange))
     }
 
     func testReplace_InsideBounds_ExpandsAvailableRange() throws {
