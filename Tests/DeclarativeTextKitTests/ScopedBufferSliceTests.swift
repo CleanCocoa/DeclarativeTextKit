@@ -317,6 +317,13 @@ extension ScopedBufferSliceTests {
                 error: BufferAccessFailure.modificationForbidden(in: range)
             )
         }
+        assertThrows(
+            try scopedSlice.modifyingScope {
+                XCTFail("Modification should not execute")
+            },
+            error: BufferAccessFailure.modificationForbidden(in: scopedSlice.scopedRange)
+        )
+
 
         // MARK: Allowed
         delegate.shouldChangeText = true
@@ -343,5 +350,12 @@ extension ScopedBufferSliceTests {
             XCTAssertTrue(didModify)
             XCTAssertEqual(result, location * 2)
         }
+        var didModifyScope = false
+        let result = try scopedSlice.modifyingScope {
+            defer { didModifyScope = true }
+            return 1337
+        }
+        XCTAssertTrue(didModifyScope)
+        XCTAssertEqual(result, 1337)
     }
 }

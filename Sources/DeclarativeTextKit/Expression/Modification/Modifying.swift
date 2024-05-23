@@ -23,7 +23,7 @@ where Content: Modification {
         do {
             let scopedBuffer = try ScopedBufferSlice(base: buffer, scopedRange: range.value)
 
-            return try buffer.modifying(affectedRange: range.value) { () -> Result<Void, BufferAccessFailure> in
+            return try scopedBuffer.modifyingScope { () -> Result<Void, BufferAccessFailure> in
                 switch modification(range.value).evaluate(in: scopedBuffer) {
                 case .success(let changeInLength):
                     range.value.length += changeInLength.delta

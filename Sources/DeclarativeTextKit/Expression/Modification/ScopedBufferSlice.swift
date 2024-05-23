@@ -114,4 +114,8 @@ where Base: Buffer {
 
         return try base.modifying(affectedRange: affectedRange, block)
     }
+
+    func modifyingScope<T>(_ block: () -> T) throws -> T {
+        return try base.modifying(affectedRange: scopedRange, block)
+    }
 }
