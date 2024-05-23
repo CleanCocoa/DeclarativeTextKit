@@ -37,3 +37,20 @@ where Content: Modification {
         }
     }
 }
+
+extension Modifying {
+    public init(
+        _ range: Buffer.Range,
+        @ModificationBuilder body: @escaping (Buffer.Range) -> Content
+    ) {
+        self.init(SelectedRange(range), body: body)
+    }
+
+    public init(
+        location: Buffer.Location,
+        length: Buffer.Length,
+        @ModificationBuilder body: @escaping (Buffer.Range) -> Content
+    ) {
+        self.init(Buffer.Range(location: location, length: length), body: body)
+    }
+}
