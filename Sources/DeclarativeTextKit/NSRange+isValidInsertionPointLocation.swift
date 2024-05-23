@@ -9,6 +9,8 @@ extension NSRange {
     @usableFromInline
     func isValidInsertionPointLocation(at location: Int) -> Bool {
         // Insertion into an empty range at the 0 location, or in a non-empty range at the after-end position equal appending, and are permissible.
-        return lowerBound <= location && location <= upperBound
+        return location >= 0
+            && lowerBound <= location
+            && location <= upperBound
     }
 }
