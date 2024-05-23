@@ -30,6 +30,17 @@ extension Select where Range == Buffer.Range {
     public init(_ location: Buffer.Location) {
         self.init(Buffer.Range(location: location, length: 0)) { _ in Noop() }
     }
+
+    public init(
+        location: Buffer.Location,
+        length: Buffer.Length,
+        @CommandSequenceBuilder _ body: @escaping (_ selectedRange: SelectedRange) -> CommandSequence
+    ) {
+        self.init(
+            Buffer.Range(location: location, length: length),
+            body
+        )
+    }
 }
 
 // MARK: - Acting as executable Command
