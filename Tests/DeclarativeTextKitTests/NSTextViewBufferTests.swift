@@ -78,8 +78,8 @@ final class NSTextViewBufferTests: XCTestCase {
             .init(location: 11, length: -2),
             .init(location: 11, length: -1),
             .init(location: 1, length: 999),
-            .init(location: 11, length: 0),
             .init(location: 11, length: 1),
+            .init(location: 12, length: 0),
             .init(location: 100, length: 999),
         ]
         for invalidRange in invalidRanges {
@@ -88,7 +88,8 @@ final class NSTextViewBufferTests: XCTestCase {
                 error: BufferAccessFailure.outOfRange(
                     requested: invalidRange,
                     available: expectedAvailableRange
-                )
+                ),
+                "Reading from \(invalidRange)"
             )
         }
     }
@@ -179,6 +180,15 @@ final class NSTextViewBufferTests: XCTestCase {
         assertBufferState(buffer, "{^}ipsum")
     }
 
+    func testDeleteInRange_EmptyLength() throws {
+        let string = "123"
+        for location in 0 ..< string.count + 1 /* Including the end location to get an empty substring should work */ {
+            let buffer = textView(string)
+            XCTAssertEqual(try buffer.content(in: .init(location: location, length: 0)), "")
+            XCTAssertEqual(buffer.content, string, "Deleting empty range should not change string")
+        }
+    }
+
     func testDeleteOutsideBounds() {
         let buffer = textView("Lorem ipsum")
         let expectedAvailableRange = Buffer.Range(location: 0, length: 11)
@@ -190,8 +200,8 @@ final class NSTextViewBufferTests: XCTestCase {
             .init(location: 11, length: -2),
             .init(location: 11, length: -1),
             .init(location: 1, length: 999),
-            .init(location: 11, length: 0),
             .init(location: 11, length: 1),
+            .init(location: 12, length: 0),
             .init(location: 100, length: 999),
         ]
         for invalidRange in invalidRanges {
@@ -200,7 +210,8 @@ final class NSTextViewBufferTests: XCTestCase {
                 error: BufferAccessFailure.outOfRange(
                     requested: invalidRange,
                     available: expectedAvailableRange
-                )
+                ),
+                "Deleting in \(invalidRange)"
             )
         }
     }

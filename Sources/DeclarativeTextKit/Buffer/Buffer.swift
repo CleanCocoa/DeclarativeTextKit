@@ -100,32 +100,12 @@ extension Buffer {
     }
 
     @inlinable @inline(__always)
-    public func canInsert(in range: Buffer.Range) -> Bool {
+    public func contains(range: Buffer.Range) -> Bool {
         // Appending at the trailing end of the buffer is technically outside of its range, but permitted.
         if range.length == 0 {
-            return self.canInsert(at: range.location)
+            return self.range.isValidInsertionPointLocation(at: range.location)
         }
         // Overwriting rules are the same as deletion rules.
         return self.range.contains(range)
-    }
-
-    @inlinable @inline(__always)
-    public func canInsert(at location: Buffer.Location) -> Bool {
-        return self.range.isValidInsertionPointLocation(at: location)
-    }
-
-    @inlinable @inline(__always)
-    public func canDelete(range deletedRange: Buffer.Range) -> Bool {
-        return self.range.contains(deletedRange)
-    }
-
-    @inlinable @inline(__always)
-    public func canRead(in range: Buffer.Range) -> Bool {
-        return self.range.contains(range)
-    }
-
-    @inlinable @inline(__always)
-    public func canRead(at location: Buffer.Location) -> Bool {
-        return self.canRead(in: .init(location: location, length: 1))
     }
 }

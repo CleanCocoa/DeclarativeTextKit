@@ -90,7 +90,7 @@ final class ScopedBufferSliceTests: XCTestCase {
     func testContentInRange_OutOfBounds() throws {
         let scopedSlice = createScopedBufferSlice()
 
-        for locationOutOfBounds in Array(-1..<3) + Array(6..<12) {
+        for locationOutOfBounds in Array(-1..<3) + Array(7..<12) {
             for length in (0...2) {
                 let range = Buffer.Range(location: locationOutOfBounds, length: length)
                 assertThrows(
@@ -98,9 +98,29 @@ final class ScopedBufferSliceTests: XCTestCase {
                     error: BufferAccessFailure.outOfRange(
                         requested: range,
                         available: availableRange
-                    )
+                    ),
+                    "Reading from \(range)"
                 )
             }
+        }
+    }
+
+    func testContentInRange_AtEndLocation() throws {
+        let scopedSlice = createScopedBufferSlice()
+
+        XCTAssertEqual(try scopedSlice.content(in: .init(location: 6, length: 0)), "",
+                       "Reading 0 length substring at endLocation should ")
+
+        for length in (1...2) {
+            let range = Buffer.Range(location: 6, length: length)
+            assertThrows(
+                try scopedSlice.content(in: range),
+                error: BufferAccessFailure.outOfRange(
+                    requested: range,
+                    available: availableRange
+                ),
+                "Reading from \(range)"
+            )
         }
     }
 
@@ -150,7 +170,21 @@ final class ScopedBufferSliceTests: XCTestCase {
     func testDelete_OutOfBounds() throws {
         let scopedSlice = createScopedBufferSlice()
 
-        for locationOutOfBounds in Array(-1..<3) + Array(6..<12) {
+        XCTAssertEqual(try scopedSlice.content(in: .init(location: 6, length: 0)), "",
+                       "Reading 0 length substring at endLocation should ")
+        for length in (1...2) {
+            let range = Buffer.Range(location: 6, length: length)
+            assertThrows(
+                try scopedSlice.content(in: range),
+                error: BufferAccessFailure.outOfRange(
+                    requested: range,
+                    available: availableRange
+                ),
+                "Reading from \(range)"
+            )
+        }
+
+        for locationOutOfBounds in Array(-1..<3) + Array(7..<12) {
             for length in (0...2) {
                 let range = Buffer.Range(location: locationOutOfBounds, length: length)
                 assertThrows(
@@ -158,7 +192,8 @@ final class ScopedBufferSliceTests: XCTestCase {
                     error: BufferAccessFailure.outOfRange(
                         requested: range,
                         available: availableRange
-                    )
+                    ),
+                    "Deleting in \(range)"
                 )
             }
         }

@@ -25,7 +25,7 @@ where Base: Buffer {
         base: Base,
         scopedRange: Base.Range
     ) throws {
-        guard base.canInsert(in: scopedRange) else {
+        guard base.contains(range: scopedRange) else {
             throw BufferAccessFailure.outOfRange(
                 requested: scopedRange,
                 available: base.range
@@ -40,7 +40,7 @@ where Base: Buffer {
     }
 
     func content(in subrange: UTF16Range) throws -> Base.Content {
-        guard canRead(in: subrange) else {
+        guard contains(range: subrange) else {
             throw BufferAccessFailure.outOfRange(
                 requested: subrange,
                 available: scopedRange
@@ -54,7 +54,7 @@ where Base: Buffer {
     }
 
     func delete(in deletedRange: Base.Range) throws {
-        guard canDelete(range: deletedRange) else {
+        guard contains(range: deletedRange) else {
             throw BufferAccessFailure.outOfRange(
                 requested: deletedRange,
                 available: scopedRange
@@ -71,7 +71,7 @@ where Base: Buffer {
     }
 
     func replace(range replacementRange: Base.Range, with content: Base.Content) throws {
-        guard canInsert(in: replacementRange) else {
+        guard contains(range: replacementRange) else {
             throw BufferAccessFailure.outOfRange(
                 requested: replacementRange,
                 available: scopedRange
@@ -89,7 +89,7 @@ where Base: Buffer {
     }
 
     func insert(_ content: Base.Content, at location: Base.Location) throws {
-        guard canInsert(at: location) else {
+        guard contains(range: .init(location: location, length: 0)) else {
             throw BufferAccessFailure.outOfRange(
                 location: location,
                 available: scopedRange
@@ -105,7 +105,7 @@ where Base: Buffer {
     }
 
     func modifying<T>(affectedRange: Buffer.Range, _ block: () -> T) throws -> T {
-        guard canInsert(in: affectedRange) else {
+        guard contains(range: affectedRange) else {
             throw BufferAccessFailure.outOfRange(
                 requested: affectedRange,
                 available: scopedRange
