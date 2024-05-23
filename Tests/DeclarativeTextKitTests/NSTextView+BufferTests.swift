@@ -57,6 +57,18 @@ final class NSTextView_BufferTests: XCTestCase {
         assertBufferState(buffer, "hello 🐞 {bug}!")
     }
 
+    func testInsertToAppend() throws {
+        let buffer = textView("")
+
+        assertBufferState(buffer, "{^}")
+
+        try buffer.insert("hello")
+        assertBufferState(buffer, "hello{^}")
+
+        try buffer.insert(" world")
+        assertBufferState(buffer, "hello world{^}")
+    }
+
     func testInsertOverSelection() throws {
         let buffer = textView("fizz buzz fizz buzz")
         let selectedRange = Buffer.Range(location: 5, length: 10)
@@ -236,7 +248,6 @@ final class NSTextView_BufferTests: XCTestCase {
             .init(location: 1, length: 999),
             .init(location: 11, length: -2),
             .init(location: 11, length: -1),
-            .init(location: 11, length: 0),
             .init(location: 11, length: 1),
             .init(location: 100, length: 999),
         ]

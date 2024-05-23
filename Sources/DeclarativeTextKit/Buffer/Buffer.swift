@@ -90,4 +90,29 @@ extension Buffer {
     public func insert(_ content: Content) throws {
         try replace(range: selectedRange, with: content)
     }
+
+    @inlinable @inline(__always)
+    public func canInsert(in range: Buffer.Range) -> Bool {
+        // Appending at the trailing end of the buffer is technically outside of its range, but permitted.
+        if range.length == 0 {
+            return self.canInsert(at: range.location)
+        }
+        // Overwriting rules are the same as deletion rules.
+        return canDelete(range: range)
+    }
+
+    @inlinable @inline(__always)
+    public func canInsert(at location: Buffer.Location) -> Bool {
+        return self.range.isValidInsertionPointLocation(at: location)
+    }
+
+    @inlinable @inline(__always)
+    public func canDelete(range deletedRange: Buffer.Range) -> Bool {
+        return self.range.contains(deletedRange)
+    }
+
+    @inlinable @inline(__always)
+    public func canRead(at location: Buffer.Location) -> Bool {
+        return self.range.contains(location)
+    }
 }

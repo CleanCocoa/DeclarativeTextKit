@@ -37,7 +37,7 @@ public final class MutableStringBuffer: Buffer {
     }
 
     public func character(at location: Location) throws -> Buffer.Content {
-        guard range.contains(location) else {
+        guard canRead(at: location) else {
             throw BufferAccessFailure.outOfRange(location: location, available: range)
         }
         return self.storage.unsafeCharacter(at: location)
@@ -49,7 +49,7 @@ public final class MutableStringBuffer: Buffer {
     }
 
     public func insert(_ content: Content, at location: Location) throws {
-        guard range.isValidInsertionPointLocation(at: location) else {
+        guard canInsert(at: location) else {
             throw BufferAccessFailure.outOfRange(location: location, available: range)
         }
 
@@ -60,7 +60,7 @@ public final class MutableStringBuffer: Buffer {
     }
 
     public func delete(in deletedRange: Buffer.Range) throws {
-        guard range.contains(deletedRange) else {
+        guard canDelete(range: deletedRange) else {
             throw BufferAccessFailure.outOfRange(requested: deletedRange, available: range)
         }
 
@@ -69,7 +69,7 @@ public final class MutableStringBuffer: Buffer {
     }
 
     public func replace(range replacementRange: Buffer.Range, with content: Buffer.Content) throws {
-        guard range.contains(replacementRange) else {
+        guard canInsert(in: replacementRange) else {
             throw BufferAccessFailure.outOfRange(requested: replacementRange, available: range)
         }
 

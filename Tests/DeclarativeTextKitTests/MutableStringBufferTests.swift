@@ -43,6 +43,18 @@ final class MutableStringBufferTests: XCTestCase {
         )
     }
 
+    func testInsertToAppend() throws {
+        let buffer = MutableStringBuffer("")
+
+        assertBufferState(buffer, "{^}")
+
+        try buffer.insert("hello")
+        assertBufferState(buffer, "hello{^}")
+
+        try buffer.insert(" world")
+        assertBufferState(buffer, "hello world{^}")
+    }
+
     func testInsertContentAtLocation() throws {
         let buffer = MutableStringBuffer("hello bug!")
         buffer.selectedRange = .init(location: 6, length: 3)
@@ -239,7 +251,6 @@ final class MutableStringBufferTests: XCTestCase {
             .init(location: 1, length: 999),
             .init(location: 11, length: -2),
             .init(location: 11, length: -1),
-            .init(location: 11, length: 0),
             .init(location: 11, length: 1),
             .init(location: 100, length: 999),
         ]
