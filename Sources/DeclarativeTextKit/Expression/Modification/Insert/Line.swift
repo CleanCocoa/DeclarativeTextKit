@@ -11,6 +11,11 @@ public struct Line: Insertable {
     /// For whole text documents, this will ensure that the document's last character is a newline.
     public let insertFinalNewline: Bool = true
 
+    /// An empty line.
+    public init() {
+        self.init("")
+    }
+
     public init(_ content: Buffer.Content) {
         self.content = content
     }
