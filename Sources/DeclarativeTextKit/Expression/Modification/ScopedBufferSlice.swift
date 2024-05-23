@@ -2,10 +2,17 @@
 
 final class ScopedBufferSlice<Base>: Buffer
 where Base: Buffer {
+    static func appending(to base: Base) throws -> ScopedBufferSlice<Base> {
+        return try self.init(
+            base: base,
+            scopedRange: .init(location: base.range.endLocation, length: 0)
+        )
+    }
+
     private let base: Base
 
     var content: Base.Content { base.content }
-    var range: Base.Range { base.range }
+    var range: Base.Range { scopedRange }
     var selectedRange: Base.Range {
         get { base.selectedRange }
         set { base.selectedRange = newValue }
@@ -18,7 +25,7 @@ where Base: Buffer {
         base: Base,
         scopedRange: Base.Range
     ) throws {
-        guard base.range.contains(scopedRange) else {
+        guard base.canInsert(in: scopedRange) else {
             throw BufferAccessFailure.outOfRange(
                 requested: scopedRange,
                 available: base.range
@@ -33,10 +40,9 @@ where Base: Buffer {
     }
 
     func character(at location: Location) throws -> Base.Content {
-        let characterRange = Buffer.Range(location: location, length: 1)
-        guard scopedRange.contains(characterRange) else {
+        guard canRead(at: location) else {
             throw BufferAccessFailure.outOfRange(
-                requested: characterRange,
+                requested: Buffer.Range(location: location, length: 1),
                 available: scopedRange
             )
         }
@@ -48,7 +54,7 @@ where Base: Buffer {
     }
 
     func delete(in deletedRange: Base.Range) throws {
-        guard scopedRange.contains(deletedRange) else {
+        guard canDelete(range: deletedRange) else {
             throw BufferAccessFailure.outOfRange(
                 requested: deletedRange,
                 available: scopedRange
@@ -65,7 +71,7 @@ where Base: Buffer {
     }
 
     func replace(range replacementRange: Base.Range, with content: Base.Content) throws {
-        guard scopedRange.contains(replacementRange) else {
+        guard canInsert(in: replacementRange) else {
             throw BufferAccessFailure.outOfRange(
                 requested: replacementRange,
                 available: scopedRange
@@ -83,7 +89,7 @@ where Base: Buffer {
     }
 
     func insert(_ content: Base.Content, at location: Base.Location) throws {
-        guard scopedRange.isValidInsertionPointLocation(at: location) else {
+        guard canInsert(at: location) else {
             throw BufferAccessFailure.outOfRange(
                 location: location,
                 available: scopedRange
@@ -99,7 +105,7 @@ where Base: Buffer {
     }
 
     func modifying<T>(affectedRange: Buffer.Range, _ block: () -> T) throws -> T {
-        guard scopedRange.contains(affectedRange) else {
+        guard canInsert(in: affectedRange) else {
             throw BufferAccessFailure.outOfRange(
                 requested: affectedRange,
                 available: scopedRange

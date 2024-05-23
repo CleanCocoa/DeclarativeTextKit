@@ -17,10 +17,35 @@ final class ScopedBufferSliceTests: XCTestCase {
         let buffer = textView("abc")
         buffer.insertionLocation = 1
 
-        let scopedSlice = try ScopedBufferSlice(base: buffer, scopedRange: .init(location: 1, length: 2))
+        let allRangesInBounds: [Buffer.Range] = [
+            .init(location: 0, length: 0),
+            .init(location: 0, length: 1),
+            .init(location: 0, length: 2),
+            .init(location: 0, length: 3),
+            .init(location: 1, length: 0),
+            .init(location: 1, length: 1),
+            .init(location: 1, length: 2),
+            .init(location: 2, length: 0),
+            .init(location: 2, length: 1),
+            .init(location: 3, length: 0),
+        ]
+        for rangeInBounds in allRangesInBounds {
+            let scopedSlice = try ScopedBufferSlice(base: buffer, scopedRange: rangeInBounds)
+
+            assertBufferState(scopedSlice, "a{^}bc")
+            XCTAssertEqual(scopedSlice.scopedRange, rangeInBounds)
+            XCTAssertEqual(scopedSlice.range, rangeInBounds,
+                           "Reports the scoped range to be all there is")
+        }
+    }
+
+    func testInit_Appending() throws {
+        let buffer = textView("abc")
+        buffer.insertionLocation = 1
+        let scopedSlice = try ScopedBufferSlice.appending(to: buffer)
 
         assertBufferState(scopedSlice, "a{^}bc")
-        XCTAssertEqual(scopedSlice.scopedRange, .init(location: 1, length: 2))
+        XCTAssertEqual(scopedSlice.scopedRange, .init(location: 3, length: 0))
     }
 
     func testInit_RangeOutOfBounds_Throws() {
@@ -80,6 +105,20 @@ final class ScopedBufferSliceTests: XCTestCase {
             // Postcondition
             XCTAssertEqual(scopedSlice.scopedRange, .init(location: 3, length: 6), "Insertion should expand range")
         }
+    }
+
+    func testInsert_Appending() throws {
+        let base = MutableStringBuffer("0123456789")
+        base.insertionLocation = 10
+        let scopedSlice = try ScopedBufferSlice(base: base, scopedRange: .init(location: 7, length: 3))
+
+        assertBufferState(scopedSlice, "0123456789{^}")
+
+        XCTAssertNoThrow(try scopedSlice.insert("xxx"))
+
+        // Postcondition
+        assertBufferState(scopedSlice, "0123456789xxx{^}")
+        XCTAssertEqual(scopedSlice.scopedRange, .init(location: 7, length: 6), "Insertion should expand range")
     }
 
     func testDelete_OutOfBounds() throws {
@@ -223,17 +262,18 @@ extension ScopedBufferSliceTests {
         let availableRange = Buffer.Range(location: 1, length: 2)
         let scopedSlice = try! ScopedBufferSlice(base: buffer, scopedRange: availableRange)
 
-        let locationsInScope = 1...2
+        let length = 1
+        let locationsInScopeForEditing = 1...2
         let locationsOutOfScope = Array(0..<1) + Array(3..<4)
 
         // MARK: Forbidden
         delegate.shouldChangeText = false
         // Error outside of scope
         for location in locationsOutOfScope {
-            let range = Buffer.Range(location: location, length: 0)
+            let range = Buffer.Range(location: location, length: length)
             assertThrows(
                 try scopedSlice.modifying(affectedRange: range) {
-                    XCTFail("Modification should not execute")
+                    XCTFail("Modification in \(range) should not execute")
                 },
                 error: BufferAccessFailure.outOfRange(
                     requested: range,
@@ -242,8 +282,8 @@ extension ScopedBufferSliceTests {
             )
         }
         // Forbidden in scope
-        for location in locationsInScope {
-            let range = Buffer.Range(location: location, length: 0)
+        for location in locationsInScopeForEditing {
+            let range = Buffer.Range(location: location, length: length)
             assertThrows(
                 try scopedSlice.modifying(affectedRange: range) {
                     XCTFail("Modification should not execute")
@@ -256,10 +296,10 @@ extension ScopedBufferSliceTests {
         delegate.shouldChangeText = true
         // Error outside of scope
         for location in locationsOutOfScope {
-            let range = Buffer.Range(location: location, length: 0)
+            let range = Buffer.Range(location: location, length: length)
             assertThrows(
                 try scopedSlice.modifying(affectedRange: range) {
-                    XCTFail("Modification should not execute")
+                    XCTFail("Modification in \(range) should not execute")
                 },
                 error: BufferAccessFailure.outOfRange(
                     requested: range,
@@ -268,9 +308,9 @@ extension ScopedBufferSliceTests {
             )
         }
         // Allowed in scope
-        for location in locationsInScope {
+        for location in locationsInScopeForEditing {
             var didModify = false
-            let result = try scopedSlice.modifying(affectedRange: .init(location: location, length: 0)) {
+            let result = try scopedSlice.modifying(affectedRange: .init(location: location, length: length)) {
                 defer { didModify = true }
                 return location * 2
             }
