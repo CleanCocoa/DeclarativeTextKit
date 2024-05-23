@@ -94,4 +94,38 @@ consectetur adipisicing.
 consectetur adipisicing.
 """, "Selecting the same line again 'as a line' does not expand selection.")
     }
+
+    func testSelect_LineRangeInRealDocument() throws {
+        let buffer = MutableStringBuffer("""
+# Heading
+
+Text here. It is
+not a lot of text.
+
+But it is nice.
+
+""")
+        let selectedRange = Buffer.Range(location: 20, length: 11)
+        buffer.select(selectedRange)
+        assertBufferState(buffer, """
+# Heading
+
+Text here{. It is
+not} a lot of text.
+
+But it is nice.
+
+""")
+
+        try Select(LineRange(selectedRange)).evaluate(in: buffer)
+        assertBufferState(buffer, """
+# Heading
+
+{Text here. It is
+not a lot of text.
+}
+But it is nice.
+
+""")
+    }
 }
