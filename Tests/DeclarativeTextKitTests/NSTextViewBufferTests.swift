@@ -280,7 +280,7 @@ final class NSTextViewBufferTests: XCTestCase {
         for location in buffer.range.location ..< buffer.range.endLocation {
             assertThrows(
                 try buffer.modifying(affectedRange: .init(location: location, length: 0)) {
-                    XCTFail("Modification should not execute")
+                    XCTFail("Modification at \(location) should not execute")
                 },
                 error: BufferAccessFailure.modificationForbidden(in: .init(location: location, length: 0))
             )

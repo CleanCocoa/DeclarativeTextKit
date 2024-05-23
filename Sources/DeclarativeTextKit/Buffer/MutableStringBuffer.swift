@@ -82,6 +82,10 @@ public final class MutableStringBuffer: Buffer {
 
     @inlinable
     public func modifying<T>(affectedRange: Buffer.Range, _ block: () -> T) throws -> T {
+        guard canInsert(in: affectedRange) else {
+            throw BufferAccessFailure.outOfRange(requested: affectedRange, available: range)
+        }
+
         return block()
     }
 }

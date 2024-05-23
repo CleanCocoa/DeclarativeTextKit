@@ -265,7 +265,7 @@ final class MutableStringBufferTests: XCTestCase {
         }
     }
 
-    func testModifying_PassesThrough() throws {
+    func testModifying_InBounds_PassesThrough() throws {
         let buffer = MutableStringBuffer("Text")
 
         for location in buffer.range.location ..< buffer.range.endLocation {
@@ -276,6 +276,33 @@ final class MutableStringBufferTests: XCTestCase {
             }
             XCTAssertTrue(didModify)
             XCTAssertEqual(result, location * 3)
+        }
+    }
+
+    func testModifying_OutOfBounds_Throws() throws {
+        let buffer = MutableStringBuffer("Text")
+
+        let invalidRanges: [Buffer.Range] = [
+            .init(location: -1, length: 999),
+            .init(location: -1, length: 1),
+            .init(location: -1, length: 0),
+            .init(location: 3, length: 10),
+            .init(location: 4, length: 2),
+            .init(location: 5, length: 0),
+            .init(location: 5, length: -2),
+            .init(location: 5, length: -1),
+            .init(location: 100, length: 999),
+        ]
+        for invalidRange in invalidRanges {
+            assertThrows(
+                try buffer.modifying(affectedRange: invalidRange) {
+                    XCTFail("Modification in \(invalidRange) should not execute")
+                },
+                error: BufferAccessFailure.outOfRange(
+                    requested: invalidRange,
+                    available: .init(location: 0, length: 4)
+                )
+            )
         }
     }
 }
