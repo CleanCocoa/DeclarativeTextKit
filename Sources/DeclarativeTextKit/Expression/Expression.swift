@@ -21,10 +21,3 @@ extension Expression where Failure == Never {
         try! self.evaluate(in: buffer).get()
     }
 }
-
-extension Expression where Evaluation == Void {
-    @inlinable @inline(__always)
-    public func evaluate(in buffer: Buffer) throws {
-        return try self.evaluate(in: buffer).get()
-    }
-}
