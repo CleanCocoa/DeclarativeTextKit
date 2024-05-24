@@ -1,8 +1,8 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
-public struct Select<Range>
-where Range: BufferRangeExpression {
-    let range: Range
+public struct Select<RangeExpr>
+where RangeExpr: BufferRangeExpression {
+    let range: RangeExpr
     let body: (_ selectedRange: SelectedRange) -> CommandSequence
 }
 
@@ -10,19 +10,19 @@ where Range: BufferRangeExpression {
 
 extension Select {
     public init(
-        _ range: Range,
+        _ range: RangeExpr,
         @CommandSequenceBuilder _ body: @escaping (_ selectedRange: SelectedRange) -> CommandSequence
     ) {
         self.range = range
         self.body = body
     }
 
-    public init(_ range: Range) {
+    public init(_ range: RangeExpr) {
         self.init(range) { _ in Command.noop }
     }
 }
 
-extension Select where Range == Buffer.Range {
+extension Select where RangeExpr == Buffer.Range {
     public init(_ range: Buffer.Range) {
         self.init(range) { _ in Command.noop }
     }
@@ -49,40 +49,13 @@ extension Select: Expression {
     public typealias Evaluation = Void
     public typealias Failure = CommandSequenceFailure
 
-    public struct Selection {
-        public let buffer: Buffer
-        public let selectedRange: Buffer.Range
-
-        init(buffer: Buffer, selectedRange: Buffer.Range) {
-            self.buffer = buffer
-            self.selectedRange = selectedRange
-        }
-    }
-
     @_disfavoredOverload  // Favor the throwing alternative of the protocol extension
     public func evaluate(in buffer: Buffer) -> Result<Void, CommandSequenceFailure> {
-        let selection = Selection(
-            buffer: buffer,
-            selectedRange: range.evaluate(in: buffer).bufferRange()
-        )
+        let selectedRange = SelectedRange(range.evaluate(in: buffer).bufferRange())
 
-        buffer.select(selection)
+        buffer.select(selectedRange)
 
-        let commandInSelectionContext = body(SelectedRange(selection))
+        let commandInSelectionContext = body(selectedRange)
         return commandInSelectionContext.evaluate(in: buffer)
-    }
-}
-
-extension Buffer {
-    fileprivate func select<Range>(_ selection: Select<Range>.Selection)
-    where Range: BufferRangeExpression {
-        self.select(selection.selectedRange)
-    }
-}
-
-extension SelectedRange {
-    fileprivate init<Range>(_ selection: Select<Range>.Selection)
-    where Range: BufferRangeExpression {
-        self.init(selection.selectedRange)
     }
 }
