@@ -11,7 +11,9 @@ public struct CommandSequence {
     init(_ commands: [Command]) {
         self.commands = commands
     }
+}
 
+extension CommandSequence: Expression {
     public func evaluate(in buffer: Buffer) -> Result<Void, CommandSequenceFailure> {
         do {
             for command in commands {
@@ -24,18 +26,36 @@ public struct CommandSequence {
     }
 }
 
+public protocol CommandConvertible: Expression { }
+extension Modifying: CommandConvertible where Content: Expression { }
+extension Select: CommandConvertible { }
+extension Noop: CommandConvertible { }
+
 @resultBuilder
 public struct CommandSequenceBuilder {
-    public static func buildPartialBlock(first: some Expression) -> CommandSequence {
+    public static func buildPartialBlock(first: Command) -> CommandSequence {
+        return CommandSequence([first])
+    }
+
+    public static func buildPartialBlock(first: some CommandConvertible) -> CommandSequence {
         return CommandSequence([Command(wrapped: first)])
     }
 
     public static func buildPartialBlock(
         accumulated: CommandSequence,
-        next: some Expression
+        next: some CommandConvertible
     ) -> CommandSequence {
         return CommandSequence(
             accumulated.commands + [Command(wrapped: next)]
+        )
+    }
+
+    public static func buildPartialBlock(
+        accumulated: CommandSequence,
+        next: Command
+    ) -> CommandSequence {
+        return CommandSequence(
+            accumulated.commands + [next]
         )
     }
 }

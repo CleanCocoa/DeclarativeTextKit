@@ -4,6 +4,7 @@ public protocol Expression {
     associatedtype Evaluation
     associatedtype Failure: Error
 
+    // We can't use `@_disfavoredOverload` here because then convincing the compiler to use this Result<V,E> overload becomes very tricky. Instead, annotate concrete implementations in conforming types as `@_disfavoredOverload`.
     func evaluate(in buffer: Buffer) -> Result<Evaluation, Failure>
 }
 
