@@ -3,7 +3,7 @@
 public struct Select<RangeExpr>
 where RangeExpr: BufferRangeExpression {
     let range: RangeExpr
-    let body: (_ selectedRange: SelectedRange) -> CommandSequence
+    let body: (_ selectedRange: SelectedRange) -> ModificationSequence
 }
 
 // MARK: - Selection DSL
@@ -11,30 +11,30 @@ where RangeExpr: BufferRangeExpression {
 extension Select {
     public init(
         _ range: RangeExpr,
-        @CommandSequenceBuilder _ body: @escaping (_ selectedRange: SelectedRange) -> CommandSequence
+        @ModificationBuilder _ body: @escaping (_ selectedRange: SelectedRange) -> ModificationSequence
     ) {
         self.range = range
         self.body = body
     }
 
     public init(_ range: RangeExpr) {
-        self.init(range) { _ in Command.noop }
+        self.init(range) { _ in Identity() }
     }
 }
 
 extension Select where RangeExpr == Buffer.Range {
     public init(_ range: Buffer.Range) {
-        self.init(range) { _ in Command.noop }
+        self.init(range) { _ in Identity() }
     }
 
     public init(_ location: Buffer.Location) {
-        self.init(Buffer.Range(location: location, length: 0)) { _ in Command.noop }
+        self.init(Buffer.Range(location: location, length: 0)) { _ in Identity() }
     }
 
     public init(
         location: Buffer.Location,
         length: Buffer.Length,
-        @CommandSequenceBuilder _ body: @escaping (_ selectedRange: SelectedRange) -> CommandSequence
+        @ModificationBuilder _ body: @escaping (_ selectedRange: SelectedRange) -> ModificationSequence
     ) {
         self.init(
             Buffer.Range(location: location, length: length),
@@ -45,12 +45,9 @@ extension Select where RangeExpr == Buffer.Range {
 
 // MARK: - Acting as executable Command
 
-extension Select: Expression {
-    public typealias Evaluation = Void
-    public typealias Failure = CommandSequenceFailure
-
+extension Select: Modification {
     @_disfavoredOverload  // Favor the throwing alternative of the protocol extension
-    public func evaluate(in buffer: Buffer) -> Result<Void, CommandSequenceFailure> {
+    public func evaluate(in buffer: Buffer) -> Result<ChangeInLength, BufferAccessFailure> {
         let selectedRange = SelectedRange(range.evaluate(in: buffer).bufferRange())
 
         buffer.select(selectedRange)

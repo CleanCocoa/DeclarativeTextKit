@@ -3,8 +3,10 @@
 
 /// Marking a ``Buffer/Range`` as to-be-modified in a range.
 public struct Modifying<Content> {
+    public typealias ModificationBody = (Buffer.Range) -> Content
+
     let range: SelectedRange
-    let modification: (Buffer.Range) -> Content
+    let modification: ModificationBody
 }
 
 extension Modifying: Expression
@@ -41,7 +43,7 @@ extension Modifying: Modification
 where Content: Modification {
     public init(
         _ range: SelectedRange,
-        @ModificationBuilder body: @escaping (Buffer.Range) -> Content
+        @ModificationBuilder body: @escaping ModificationBody
     ) {
         self.range = range
         self.modification = body
@@ -49,7 +51,7 @@ where Content: Modification {
 
     public init(
         _ range: Buffer.Range,
-        @ModificationBuilder body: @escaping (Buffer.Range) -> Content
+        @ModificationBuilder body: @escaping ModificationBody
     ) {
         self.init(SelectedRange(range), body: body)
     }
@@ -57,38 +59,7 @@ where Content: Modification {
     public init(
         location: Buffer.Location,
         length: Buffer.Length,
-        @ModificationBuilder body: @escaping (Buffer.Range) -> Content
-    ) {
-        self.init(Buffer.Range(location: location, length: length), body: body)
-    }
-}
-
-// MARK: - Grouping side-effects as `CommandSequence`
-
-extension Modifying
-where Content == CommandSequence {
-    @_disfavoredOverload  // Given two block-based initializers, favor the `Content: Modification` initializer.
-    public init(
-        _ range: SelectedRange,
-        @CommandSequenceBuilder body: @escaping (Buffer.Range) -> CommandSequence
-    ) {
-        self.range = range
-        self.modification = body
-    }
-
-    @_disfavoredOverload  // Given two block-based initializers, favor the `Content: Modification` initializer.
-    public init(
-        _ range: Buffer.Range,
-        @CommandSequenceBuilder body: @escaping (Buffer.Range) -> CommandSequence
-    ) {
-        self.init(SelectedRange(range), body: body)
-    }
-
-    @_disfavoredOverload  // Given two block-based initializers, favor the `Content: Modification` initializer.
-    public init(
-        location: Buffer.Location,
-        length: Buffer.Length,
-        @CommandSequenceBuilder body: @escaping (Buffer.Range) -> CommandSequence
+        @ModificationBuilder body: @escaping ModificationBody
     ) {
         self.init(Buffer.Range(location: location, length: length), body: body)
     }

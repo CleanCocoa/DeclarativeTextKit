@@ -25,6 +25,8 @@ extension ModificationBuilder {
     }
 }
 
+// MARK: - Building sequences of Deletions
+
 extension ModificationBuilder {
     public static func buildPartialBlock(first: Delete) -> Delete {
         return first
@@ -40,5 +42,24 @@ extension ModificationBuilder {
         return Delete(SortedArray(
             unsorted: components.map(\.deletions).joined()
         ))
+    }
+}
+
+// MARK: - Building sequences of utility commands
+
+extension ModificationBuilder {
+    public static func buildPartialBlock(
+        first: some ModificationSequence.Element
+    ) -> ModificationSequence {
+        return ModificationSequence([first])
+    }
+
+    public static func buildPartialBlock(
+        accumulated: ModificationSequence,
+        next: some ModificationSequence.Element
+    ) -> ModificationSequence {
+        return ModificationSequence(
+            accumulated.commands + [next]
+        )
     }
 }
