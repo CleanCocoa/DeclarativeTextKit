@@ -155,4 +155,38 @@ final class ModifyingTests: XCTestCase {
         assertBufferState(buffer, "Lorem deipsumesque.{^}")
         XCTAssertEqual(selectedRange, .init(location: 6, length: 12))
     }
+
+    func testNested_ForwardsChangeInLength() throws {
+        let buffer: Buffer = MutableStringBuffer("Hello")
+
+        let modify = Modifying(buffer.range) { affectedRange in
+            Modifying(affectedRange) { affectedRange in
+                Modifying(affectedRange) { affectedRange in
+                    Modifying(affectedRange) { affectedRange in
+                        Insert(affectedRange.endLocation) { " world" }
+                    }
+                }
+            }
+        }
+        let changeInLength = try modify.evaluate(in: buffer)
+        XCTAssertEqual(changeInLength, 6)
+    }
+
+    func testNested_AdjustsSelectedRange() throws {
+        let buffer: Buffer = MutableStringBuffer("Hello")
+        let selectedRange = SelectedRange(buffer.range)
+
+        let modify = Modifying(selectedRange) { affectedRange in
+            Modifying(affectedRange) { affectedRange in
+                Modifying(affectedRange) { affectedRange in
+                    Modifying(affectedRange) { affectedRange in
+                        Insert(affectedRange.endLocation) { " world" }
+                    }
+                }
+            }
+        }
+        _ = try modify.evaluate(in: buffer)
+        XCTAssertEqual(selectedRange.value.location, 0)
+        XCTAssertEqual(selectedRange.value.length, 11)
+    }
 }
