@@ -18,7 +18,7 @@ where Content: Expression {
         do {
             let scopedBuffer = try ScopedBufferSlice(base: buffer, scopedRange: range.value)
 
-            return try scopedBuffer.modifyingScope { () -> Result<Content.Evaluation, BufferAccessFailure> in
+            return try scopedBuffer.modifyingScope {
                 switch modification(range.value).evaluate(in: scopedBuffer) {
                 case .success(let value):
                     if let changeInLength = value as? ChangeInLength {
