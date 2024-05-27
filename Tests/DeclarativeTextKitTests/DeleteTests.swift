@@ -9,7 +9,7 @@ final class DeleteTests: XCTestCase {
         
         let changeInLength = try Delete(1..<8).evaluate(in: buffer)
 
-        XCTAssertEqual(changeInLength, -7)
+        XCTAssertEqual(changeInLength.delta, -7)
         XCTAssertEqual(buffer.content, "Horld!")
     }
 }

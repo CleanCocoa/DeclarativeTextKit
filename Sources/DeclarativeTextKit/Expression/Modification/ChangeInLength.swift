@@ -3,22 +3,42 @@
 import Foundation
 
 public struct ChangeInLength: Equatable {
-    public let delta: Buffer.Length
+    public static var empty: ChangeInLength { .init(elements: []) }
 
-    public init(_ delta: Buffer.Length = 0) {
-        self.delta = delta
+    public typealias Delta = Buffer.Length
+
+    @usableFromInline
+    enum Element: Equatable {
+        case unappliedToSelection(Delta)
+        case appliedToSelection(Delta)
+
+        var delta: Delta {
+            return switch self {
+            case .unappliedToSelection(let delta): delta
+            case .appliedToSelection(let delta): delta
+            }
+        }
     }
-}
 
-extension ChangeInLength: ExpressibleByIntegerLiteral {
-    public init(integerLiteral value: IntegerLiteralType) {
-        self.init(Buffer.Length(value))
+    var elements: [Element]
+
+    public var delta: Delta {
+        return elements.map(\.delta).reduce(0, +)
+    }
+
+    @usableFromInline
+    init(elements: [Element] = []) {
+        self.elements = elements
+    }
+
+    public init(_ delta: Buffer.Length) {
+        self.init(elements: [.unappliedToSelection(delta)])
     }
 }
 
 extension ChangeInLength {
     public static func + (lhs: ChangeInLength, rhs: ChangeInLength) -> ChangeInLength {
-        return ChangeInLength(lhs.delta + rhs.delta)
+        return ChangeInLength(elements: lhs.elements + rhs.elements)
     }
 
     public static func += (lhs: inout ChangeInLength, rhs: ChangeInLength) {

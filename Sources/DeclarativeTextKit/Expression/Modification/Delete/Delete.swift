@@ -21,6 +21,10 @@ extension Delete {
         self.init(TextDeletion(range: range))
     }
 
+    public init(_ selectedRange: SelectedRange) {
+        self.init(selectedRange.value)
+    }
+
     public init(_ rangeExpression: Range<Buffer.Location>) {
         self.init(TextDeletion(rangeExpression))
     }
