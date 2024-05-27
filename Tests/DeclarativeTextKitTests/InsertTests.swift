@@ -23,7 +23,7 @@ final class InsertTests: XCTestCase {
         let changeInLength = try insert(intoBuffer: buffer)
 
         XCTAssertEqual(buffer.content, "Hello, World!")
-        XCTAssertEqual(changeInLength, 13)
+        XCTAssertEqual(changeInLength.delta, 13)
     }
 
     func testInsert_Lines_InEmptyDocument() throws {
@@ -40,7 +40,7 @@ final class InsertTests: XCTestCase {
             How are things lately?
 
             """)
-        XCTAssertEqual(changeInLength, 37)
+        XCTAssertEqual(changeInLength.delta, 37)
     }
 
     func testInsert_Lines_InsideParagraph() throws {
@@ -59,7 +59,7 @@ final class InsertTests: XCTestCase {
             World!
              Paragraph
             """)
-        XCTAssertEqual(changeInLength, 14)
+        XCTAssertEqual(changeInLength.delta, 14)
     }
 
     func testInsert_Line_And_String() throws {
@@ -75,7 +75,7 @@ final class InsertTests: XCTestCase {
             Hello,
             World!
             """)
-        XCTAssertEqual(changeInLength, 13)
+        XCTAssertEqual(changeInLength.delta, 13)
     }
 
     func testInsert_Line_And_String_And_Line() throws {
@@ -94,7 +94,7 @@ final class InsertTests: XCTestCase {
             What's up?
 
             """)
-        XCTAssertEqual(changeInLength, 25)
+        XCTAssertEqual(changeInLength.delta, 25)
     }
 
     func testInsert_Line_And_Strings() throws {
@@ -111,7 +111,7 @@ final class InsertTests: XCTestCase {
             Hello,
             World! What's Up?
             """)
-        XCTAssertEqual(changeInLength, 24)
+        XCTAssertEqual(changeInLength.delta, 24)
     }
 
     func testInsert_String_And_Line() throws {
@@ -128,7 +128,7 @@ final class InsertTests: XCTestCase {
             World
 
             """)
-        XCTAssertEqual(changeInLength, 13)
+        XCTAssertEqual(changeInLength.delta, 13)
     }
 
     func testInsert_String_And_Lines() throws {
@@ -147,7 +147,7 @@ final class InsertTests: XCTestCase {
             What's up?
 
             """)
-        XCTAssertEqual(changeInLength, 25)
+        XCTAssertEqual(changeInLength.delta, 25)
     }
 
     func testInsert_String_And_Line_And_String() throws {
@@ -165,7 +165,7 @@ final class InsertTests: XCTestCase {
             World!
             What's up?
             """)
-        XCTAssertEqual(changeInLength, 24)
+        XCTAssertEqual(changeInLength.delta, 24)
     }
 
     func testInsertMixed() throws {
@@ -189,7 +189,7 @@ final class InsertTests: XCTestCase {
             How are things lately?
 
             """)
-        XCTAssertEqual(changeInLength, 68)
+        XCTAssertEqual(changeInLength.delta, 68)
     }
 
     func testInsertMixedIntoPreexistingText() throws {
@@ -216,6 +216,6 @@ final class InsertTests: XCTestCase {
             existing text.
 
             """)
-        XCTAssertEqual(changeInLength, 31)
+        XCTAssertEqual(changeInLength.delta, 31)
     }
 }

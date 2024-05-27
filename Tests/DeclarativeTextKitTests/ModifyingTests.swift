@@ -24,7 +24,7 @@ final class ModifyingTests: XCTestCase {
         }
 
         for locationInBounds in 3...6 {
-            XCTAssertEqual(try insertCharacter(at: locationInBounds), 1)
+            XCTAssertEqual(try insertCharacter(at: locationInBounds).delta, 1)
         }
     }
 
@@ -45,7 +45,7 @@ final class ModifyingTests: XCTestCase {
 
         let changeInLength = try modify.evaluate(in: buffer)
 
-        XCTAssertEqual(changeInLength, 7)
+        XCTAssertEqual(changeInLength.delta, 7)
         assertBufferState(buffer, "Lorem deip{^}sumesque.")
         XCTAssertEqual(selectedRange, .init(location: 6, length: 12))
     }
@@ -69,7 +69,7 @@ final class ModifyingTests: XCTestCase {
 
         let changeInLength = try modify.evaluate(in: buffer)
 
-        XCTAssertEqual(changeInLength, 5)
+        XCTAssertEqual(changeInLength.delta, 5)
         XCTAssertEqual(fullRange, .init(location: 0, length: 15))
         assertBufferState(buffer, "x01x23x45x{^}67x89")
     }
@@ -91,7 +91,7 @@ final class ModifyingTests: XCTestCase {
 
         let changeInLength = try modify.evaluate(in: buffer)
 
-        XCTAssertEqual(changeInLength, -15)
+        XCTAssertEqual(changeInLength.delta, -15)
         assertBufferState(buffer, "{^}Lipsum.")
         XCTAssertEqual(fullRange, .init(location: 0, length: 7))
     }
@@ -115,7 +115,7 @@ final class ModifyingTests: XCTestCase {
 
         let changeInLength = try modify.evaluate(in: buffer)
 
-        XCTAssertEqual(changeInLength, -5)
+        XCTAssertEqual(changeInLength.delta, -5)
         XCTAssertEqual(fullRange, .init(location: 0, length: 5))
         assertBufferState(buffer, "5{^}6789")
     }
@@ -151,7 +151,7 @@ final class ModifyingTests: XCTestCase {
         // Allowed
         delegate.shouldChangeText = true
         let changeInLength = try modify.evaluate(in: buffer)
-        XCTAssertEqual(changeInLength, 7)
+        XCTAssertEqual(changeInLength.delta, 7)
         assertBufferState(buffer, "Lorem deipsumesque.{^}")
         XCTAssertEqual(selectedRange, .init(location: 6, length: 12))
     }
@@ -169,7 +169,7 @@ final class ModifyingTests: XCTestCase {
             }
         }
         let changeInLength = try modify.evaluate(in: buffer)
-        XCTAssertEqual(changeInLength, 6)
+        XCTAssertEqual(changeInLength.delta, 6)
     }
 
     func testNested_AdjustsSelectedRange() throws {
@@ -188,5 +188,27 @@ final class ModifyingTests: XCTestCase {
         _ = try modify.evaluate(in: buffer)
         XCTAssertEqual(selectedRange.value.location, 0)
         XCTAssertEqual(selectedRange.value.length, 11)
+    }
+
+    func testModifying_Nested_UpdatesOuterRange() throws {
+        let buffer: Buffer = MutableStringBuffer("Lorem ipsum.")
+        buffer.insertionLocation = 8
+        let scopedRange: SelectedRange = .init(location: 6, length: 5)
+
+        let modify = Modifying(scopedRange) { affectedRange in
+            Modifying(affectedRange) { affectedRange in
+                Insert(affectedRange.location) { "de" }
+                Insert(affectedRange.endLocation) { "esque" }
+            }
+
+            Select(affectedRange)
+        }
+
+        let changeInLength = try modify.evaluate(in: buffer)
+
+        assertBufferState(buffer, "Lorem {deipsumesque}.")
+        XCTAssertEqual(changeInLength.delta, 7)
+        XCTAssertEqual(scopedRange, .init(location: 6, length: 12))
+        XCTAssertEqual(buffer.selectedRange, .init(location: 6, length: 12))
     }
 }

@@ -6,7 +6,7 @@ extension Delete: Modification {
         return Result {
             try self.deletions
                 .reversed()
-                .reduce(into: ChangeInLength()) { changeInLength, deletion in
+                .reduce(into: ChangeInLength.empty) { changeInLength, deletion in
                     changeInLength += try deletion.delete(from: buffer)
                 }
         }.mapError(BufferAccessFailure.wrap(_:))

@@ -6,7 +6,7 @@ extension Insert: Modification {
         return Result {
             try self.insertions
                 .reversed()
-                .reduce(into: ChangeInLength()) { changeInLength, insertion in
+                .reduce(into: ChangeInLength.empty) { changeInLength, insertion in
                     changeInLength += try insertion.insert(in: buffer)
                 }
         }.mapError(BufferAccessFailure.wrap(_:))

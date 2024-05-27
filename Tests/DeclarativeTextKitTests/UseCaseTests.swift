@@ -26,8 +26,9 @@ But it is nice.
             // Move insertion point to the position after the opening backticks
             Select(lineRange.location + length(of: "```"))
         }
-        try commandCascade.evaluate(in: buffer)
+        let changeInLength = try commandCascade.evaluate(in: buffer)
 
+        XCTAssertEqual(changeInLength.delta, 2 * length(of: "```") + 2 /* newlines */)
         XCTAssertEqual(buffer.selectedRange, Buffer.Range(location: 14, length: 0))
 
         try buffer.insert("raw")  // Simulate typing at the selection

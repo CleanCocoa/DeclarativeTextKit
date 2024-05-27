@@ -21,30 +21,53 @@ This is a test.
         self.textViewBuffer = nil
     }
 
+    func testSelect_DoesNotChangeInLength() throws {
+        let buffer = MutableStringBuffer("012")
+
+        XCTAssertEqual(try Select(0).evaluate(in: buffer).delta, 0)
+        XCTAssertEqual(try Select(1).evaluate(in: buffer).delta, 0)
+        XCTAssertEqual(try Select(2).evaluate(in: buffer).delta, 0)
+
+        XCTAssertEqual(try Select(location: 0, length: 0).evaluate(in: buffer).delta, 0)
+        XCTAssertEqual(try Select(location: 1, length: 0).evaluate(in: buffer).delta, 0)
+        XCTAssertEqual(try Select(location: 2, length: 0).evaluate(in: buffer).delta, 0)
+        XCTAssertEqual(try Select(location: 3, length: 0).evaluate(in: buffer).delta, 0)
+
+        XCTAssertEqual(try Select(location: 0, length: 1).evaluate(in: buffer).delta, 0)
+        XCTAssertEqual(try Select(location: 1, length: 1).evaluate(in: buffer).delta, 0)
+        XCTAssertEqual(try Select(location: 2, length: 1).evaluate(in: buffer).delta, 0)
+
+        XCTAssertEqual(try Select(location: 0, length: 2).evaluate(in: buffer).delta, 0)
+        XCTAssertEqual(try Select(location: 1, length: 2).evaluate(in: buffer).delta, 0)
+
+        XCTAssertEqual(try Select(location: 0, length: 3).evaluate(in: buffer).delta, 0)
+
+        XCTAssertEqual(try Select(LineRange(.init(location: 0, length: 1))).evaluate(in: buffer).delta, 0)
+    }
+
     func testSelect_BufferLocations() throws {
-        try Select(0).evaluate(in: textViewBuffer)
+        _ = try Select(0).evaluate(in: textViewBuffer)
         XCTAssertEqual(textViewBuffer.selectedRange, .init(location: 0, length: 0))
 
-        try Select(10).evaluate(in: textViewBuffer)
+        _ = try Select(10).evaluate(in: textViewBuffer)
         XCTAssertEqual(textViewBuffer.selectedRange, .init(location: 10, length: 0))
 
-        try Select(-10).evaluate(in: textViewBuffer)
+        _ = try Select(-10).evaluate(in: textViewBuffer)
         XCTAssertEqual(textViewBuffer.selectedRange, .init(location: textViewBuffer.range.upperBound, length: 0),
                        "Negative ranges wrap around (in text views)")
     }
 
     func testSelect_BufferRanges() throws {
-        try Select(Buffer.Range(location: 0, length: 0)).evaluate(in: textViewBuffer)
+        _ = try Select(Buffer.Range(location: 0, length: 0)).evaluate(in: textViewBuffer)
         XCTAssertEqual(textViewBuffer.selectedRange, .init(location: 0, length: 0))
 
-        try Select(Buffer.Range(location: 10, length: 2)).evaluate(in: textViewBuffer)
+        _ = try Select(Buffer.Range(location: 10, length: 2)).evaluate(in: textViewBuffer)
         XCTAssertEqual(textViewBuffer.selectedRange, .init(location: 10, length: 2))
 
-        try Select(Buffer.Range(location: -10, length: 1)).evaluate(in: textViewBuffer)
+        _ = try Select(Buffer.Range(location: -10, length: 1)).evaluate(in: textViewBuffer)
         XCTAssertEqual(textViewBuffer.selectedRange, .init(location: textViewBuffer.range.upperBound, length: 0),
                        "Negative ranges wrap around (in text views)")
     }
-
 
     func testSelect_LineRanges() throws {
         func assertLineRanges(
@@ -53,7 +76,7 @@ This is a test.
         ) throws {
             let range = Buffer.Range(location: location, length: 0)
 
-            try Select(LineRange(range)).evaluate(in: textViewBuffer)
+            _ = try Select(LineRange(range)).evaluate(in: textViewBuffer)
 
             let expectedRange = textViewBuffer.lineRange(for: range)
             XCTAssertEqual(textViewBuffer.selectedRange, expectedRange, file: file, line: line)
@@ -63,7 +86,7 @@ This is a test.
             try assertLineRanges(location: location)
         }
 
-        try Select(LineRange(.init(location: 2, length: 10))).evaluate(in: textViewBuffer)
+        _ = try Select(LineRange(.init(location: 2, length: 10))).evaluate(in: textViewBuffer)
         XCTAssertEqual(textViewBuffer.selectedRange, textViewBuffer.range)
     }
 
@@ -117,7 +140,7 @@ But it is nice.
 
 """)
 
-        try Select(LineRange(selectedRange)).evaluate(in: buffer)
+        _ = try Select(LineRange(selectedRange)).evaluate(in: buffer)
         assertBufferState(buffer, """
 # Heading
 

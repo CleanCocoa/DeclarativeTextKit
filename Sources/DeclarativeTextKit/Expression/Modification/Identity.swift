@@ -4,6 +4,6 @@
 public struct Identity: Modification {
     public init() { }
     public func evaluate(in buffer: any Buffer) -> Result<ChangeInLength, BufferAccessFailure> {
-        return .success(0)
+        return .success(.empty)
     }
 }

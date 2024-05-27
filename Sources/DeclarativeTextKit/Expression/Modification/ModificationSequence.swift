@@ -23,7 +23,7 @@ public struct ModificationSequence {
 extension ModificationSequence: Modification {
     public func evaluate(in buffer: Buffer) -> Result<ChangeInLength, BufferAccessFailure> {
         do {
-            var changeInLength: ChangeInLength = 0
+            var changeInLength: ChangeInLength = .empty
             for command in commands {
                 changeInLength += try command.evaluate(in: buffer)
             }

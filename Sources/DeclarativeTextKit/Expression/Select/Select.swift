@@ -41,6 +41,16 @@ extension Select where RangeExpr == Buffer.Range {
             body
         )
     }
+
+    public init(
+        location: Buffer.Location,
+        length: Buffer.Length
+    ) {
+        self.init(
+            location: location,
+            length: length
+        ) { _ in Identity() }
+    }
 }
 
 // MARK: - Acting as executable Command
