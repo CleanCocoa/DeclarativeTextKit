@@ -6,7 +6,7 @@ import XCTest
 final class ModifyingTests: XCTestCase {
     func testModifying_InsertionOutsideSelectedBounds_Throws() throws {
         func insertCharacter(at location: UTF16Offset) throws -> ChangeInLength {
-            let modification = Modifying(location: 3, length: 3) { _ in
+            let modification = Modifying(SelectedRange(location: 3, length: 3)) { _ in
                 Insert(location) { "x" }
             }
             // Create new buffer for each iteration to discard mutations from previous runs.
@@ -159,7 +159,7 @@ final class ModifyingTests: XCTestCase {
     func testNested_ForwardsChangeInLength() throws {
         let buffer: Buffer = MutableStringBuffer("Hello")
 
-        let modify = Modifying(buffer.range) { affectedRange in
+        let modify = Modifying(SelectedRange(buffer.range)) { affectedRange in
             Modifying(affectedRange) { affectedRange in
                 Modifying(affectedRange) { affectedRange in
                     Modifying(affectedRange) { affectedRange in

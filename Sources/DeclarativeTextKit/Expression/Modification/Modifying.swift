@@ -71,21 +71,4 @@ where Content: Modification {
         self.range = range
         self.modification = body
     }
-
-    @available(*, deprecated, message: "These initializers don't forward selection range changes properly a.t.m.; change make Modifying contingent on a StaticRange/dynamic SelectedRange")
-    public init(
-        _ range: Buffer.Range,
-        @ModificationBuilder body: @escaping ModificationBody
-    ) {
-        self.init(SelectedRange(range), body: body)
-    }
-
-    @available(*, deprecated, message: "These initializers don't forward selection range changes properly a.t.m.; change make Modifying contingent on a StaticRange/dynamic SelectedRange")
-    public init(
-        location: Buffer.Location,
-        length: Buffer.Length,
-        @ModificationBuilder body: @escaping ModificationBody
-    ) {
-        self.init(Buffer.Range(location: location, length: length), body: body)
-    }
 }
