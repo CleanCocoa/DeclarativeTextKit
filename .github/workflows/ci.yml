@@ -19,4 +19,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Test
-        run: set -o pipefail && swift test
+        run: set -o pipefail && swift test | xcbeautify --renderer github-actions
