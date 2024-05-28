@@ -23,7 +23,13 @@ public final class Undoable<Base>: Buffer where Base: Buffer {
 
     public let undoManager: UndoManager
 
-    /// Wraps `base`
+    /// Wraps `base` to support automatic undo/redo of buffer mutations.
+    ///
+    /// > Warning: Nesting `Undoable<Undoable<Undoable<...>>>` is technically possible, but undefined.
+    ///
+    /// - Parameters:
+    ///   - base: Buffer to add undo support for.
+    ///   - undoManager: Undo manager to use for undo grouping. By default uses a new `UndoManager` instance per buffer that disables `groupsByEvent` to manually control event grouping instead of automatically grouping operations per `RunLoop` iteration.
     public init(
         _ base: Base,
         undoManager: UndoManager = {
