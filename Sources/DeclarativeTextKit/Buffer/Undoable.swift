@@ -14,7 +14,7 @@ import Foundation
 ///
 /// ## Example
 ///
-/// It's up to you and your requirements if you want hold on to the original, non-undoable buffer, or wrap it in ``Undoable-struct`` and then the resulting object instead.
+/// It's up to you and your requirements if you want hold on to the original, non-undoable buffer, or wrap it in ``Undoable`` and then the resulting object instead.
 ///
 /// This example demonstrates how a regular buffer is decorated with undo support and how the original is still perfectly usable:
 ///
@@ -47,16 +47,36 @@ public final class Undoable<Base>: Buffer where Base: Buffer {
         set { base.selectedRange = newValue }
     }
 
-    public let undoManager: UndoManager
+    /// Lazy `UndoManager` access. Required to support `NSTextView`'s default behavior of not shipping with its own `UndoManager`, but delegating to the window or document.
+    @usableFromInline
+    let getUndoManager: () -> UndoManager?
 
-    /// Wraps `base` to support automatic undo/redo of buffer mutations.
+    /// Undo manager used by the buffer.
+    ///
+    /// By default, this is lazily evaluated to support using the `NSTextView`/`UITextView` behavior of bubbling up undo manager access up the responder chain until their window is reached. Misconfigured text views may ultimately return `nil` here.
+    ///
+    /// To guarantee that an undo manager is used to track changes to the buffer, use ``init(_:undoManager:)`` and supply an `UndoManager` instance (or use the default instance).
+    @inlinable @inline(__always)
+    public var undoManager: UndoManager? { getUndoManager() }
+
+    @usableFromInline
+    required init(
+        _ base: Base,
+        getUndoManager: @escaping () -> UndoManager?
+    ) {
+        self.base = base
+        self.getUndoManager = getUndoManager
+    }
+
+    /// Wraps `base` to support automatic undo/redo of buffer mutations using `undoManager`.
     ///
     /// > Warning: Nesting `Undoable<Undoable<Undoable<...>>>` is technically possible, but undefined.
     ///
     /// - Parameters:
     ///   - base: Buffer to add undo support for.
     ///   - undoManager: Undo manager to use for undo grouping. By default uses a new `UndoManager` instance per buffer that disables `groupsByEvent` to manually control event grouping instead of automatically grouping operations per `RunLoop` iteration.
-    public init(
+    @inlinable
+    public convenience init(
         _ base: Base,
         undoManager: UndoManager = {
             let undoManager = UndoManager()
@@ -64,8 +84,9 @@ public final class Undoable<Base>: Buffer where Base: Buffer {
             return undoManager
         }()
     ) {
-        self.base = base
-        self.undoManager = undoManager
+        self.init(base) {
+            return undoManager
+        }
     }
 
     public func lineRange(for range: Base.Range) -> Base.Range {
@@ -81,6 +102,12 @@ public final class Undoable<Base>: Buffer where Base: Buffer {
     }
 
     public func delete(in deletedRange: Base.Range) throws {
+        guard let undoManager else {
+            assertionFailure("Undoable buffer used without UndoManager")
+            try base.delete(in: deletedRange)
+            return
+        }
+
         let oldContent = try base.content(in: deletedRange)
         let oldSelection = base.selectedRange
 
@@ -95,6 +122,12 @@ public final class Undoable<Base>: Buffer where Base: Buffer {
     }
 
     public func replace(range replacementRange: Base.Range, with content: Base.Content) throws {
+        guard let undoManager else {
+            assertionFailure("Undoable buffer used without UndoManager")
+            try base.replace(range: replacementRange, with: content)
+            return
+        }
+
         let oldContent = try base.content(in: replacementRange)
         let oldSelection = base.selectedRange
 
@@ -110,6 +143,12 @@ public final class Undoable<Base>: Buffer where Base: Buffer {
     }
 
     public func insert(_ content: Base.Content, at location: Base.Location) throws {
+        guard let undoManager else {
+            assertionFailure("Undoable buffer used without UndoManager")
+            try base.insert(content, at: location)
+            return
+        }
+
         let oldSelection = base.selectedRange
 
         try base.insert(content, at: location)
@@ -136,6 +175,7 @@ public final class Undoable<Base>: Buffer where Base: Buffer {
 }
 
 // MARK: - Undo/Redo
+
 extension Undoable {
     /// Treat `block` as a single undoable action group.
     ///
@@ -149,6 +189,11 @@ extension Undoable {
         actionName: String? = nil,
         _ block: () throws -> T
     ) rethrows -> T {
+        guard let undoManager else {
+            assertionFailure("Undoable buffer used without UndoManager")
+            return try block()
+        }
+
         undoManager.beginUndoGrouping()
         defer { undoManager.endUndoGrouping() }
         if let actionName {
@@ -158,10 +203,14 @@ extension Undoable {
     }
 
     public func undo() {
-        undoManager.undoNestedGroup()
+        assert(undoManager != nil,
+               "Undoable buffer used without UndoManager")
+        undoManager?.undoNestedGroup()
     }
 
     public func redo() {
-        undoManager.redo()
+        assert(undoManager != nil,
+               "Undoable buffer used without UndoManager")
+        undoManager?.redo()
     }
 }
