@@ -2,7 +2,7 @@
 
 import Foundation
 
-/// A ``Buffer/Range`` value that can be modified over the course of multiple ``Modification``s like a reference type.
+/// A ``Buffer/Range`` value that can be modified over the course of multiple ``Modification``s. Behaves like a reference type under the hood.
 public struct SelectedRange {
     private final class Box {
         var value: Buffer.Range
