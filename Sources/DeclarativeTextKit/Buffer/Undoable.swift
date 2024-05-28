@@ -11,6 +11,32 @@ import Foundation
 /// To group multiple buffer mutations in a single undo group, e.g. to delete parts of text in multiple places as one action, you can either
 /// - use the ``Modifying-struct`` command from the DSL, which wraps its mutations in an undo group when applied to an ``Undoable`` buffer, or
 /// - use the ``undoGrouping(actionName:_:)`` function directly.
+///
+/// ## Example
+///
+/// It's up to you and your requirements if you want hold on to the original, non-undoable buffer, or wrap it in ``Undoable-struct`` and then the resulting object instead.
+///
+/// This example demonstrates how a regular buffer is decorated with undo support and how the original is still perfectly usable:
+///
+/// ```swift
+/// let buffer: Buffer = MutableStringBuffer("")
+/// print(buffer) // => ""
+///
+/// let undoable = Undoable(buffer)
+///
+/// // Combine changes into one operation:
+/// undoable.undoGrouping {
+///     undoable.insert("World", at: 0)
+///     undoable.insert("Hello, ", at: 0)
+/// }
+/// print(buffer) // => "Hello, World"
+///
+/// undoable.undo()
+/// print(buffer) // => ""
+///
+/// undoable.redo()
+/// print(buffer) // => "Hello, World"
+/// ```
 public final class Undoable<Base>: Buffer where Base: Buffer {
     private let base: Base
 
