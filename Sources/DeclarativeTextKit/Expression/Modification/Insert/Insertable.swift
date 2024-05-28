@@ -1,5 +1,6 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
+/// Inserts itself into a ``Buffer`` at time of evaluation.
 public protocol Insertable {
     func insert(
         in buffer: Buffer,
@@ -7,8 +8,10 @@ public protocol Insertable {
     ) throws -> ChangeInLength
 }
 
+/// Result Builder used in ``Insert/init(_:_:)`` to allow insertion of complex strings that can guarantee invariants, like ``Line`` ensures the inserted text is wrapped in newline characters (`"\n"`) in the resulting buffer, depending on existing content in that place.
 @resultBuilder
 public struct InsertableBuilder {
+    @inlinable
     public static func buildPartialBlock<I>(first: I) -> I
     where I: Insertable {
         return first
@@ -16,6 +19,7 @@ public struct InsertableBuilder {
 
     // MARK: Reducing consecutive Lines
 
+    @inlinable
     public static func buildPartialBlock(
         accumulated: Line,
         next: Line
@@ -25,6 +29,7 @@ public struct InsertableBuilder {
 
     // MARK: Reducing consecutive Strings
 
+    @inlinable
     public static func buildPartialBlock(
         accumulated: String,
         next: String
@@ -34,6 +39,7 @@ public struct InsertableBuilder {
 
     // MARK: Eagerly deciding where a newline goes in combinations
 
+    @inlinable
     public static func buildPartialBlock(
         accumulated: String,
         next: Line
@@ -41,13 +47,15 @@ public struct InsertableBuilder {
         return .init(accumulated + .newline + next.content)
     }
 
+    @inlinable
     public static func buildPartialBlock(
         accumulated: Line,
         next: String
     ) -> Line.StartsWithNewlineIfNeeded {
         return .init(accumulated.content + .newline + next)
     }
-    
+
+    @inlinable
     public static func buildPartialBlock(
         accumulated: Line.EndsWithNewlineIfNeeded,
         next: String
@@ -55,6 +63,7 @@ public struct InsertableBuilder {
         return .init(accumulated.content + .newline + next)
     }
 
+    @inlinable
     public static func buildPartialBlock(
         accumulated: Line.EndsWithNewlineIfNeeded,
         next: Line
@@ -62,6 +71,7 @@ public struct InsertableBuilder {
         return .init(accumulated.content + .newline + next.content)
     }
 
+    @inlinable
     public static func buildPartialBlock(
         accumulated: Line.StartsWithNewlineIfNeeded,
         next: String
@@ -69,6 +79,7 @@ public struct InsertableBuilder {
         return .init(accumulated.content + next)
     }
 
+    @inlinable
     public static func buildPartialBlock(
         accumulated: Line.StartsWithNewlineIfNeeded,
         next: Line

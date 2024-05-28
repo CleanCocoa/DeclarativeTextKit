@@ -1,8 +1,9 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
-/// Marking a ``Buffer/Range`` as to-be-modified in a range.
+/// Marks a ``Buffer/Range`` as to-be-modified in a range. Depending on the buffer a modification group is applied to, supports grouping of actions like undo, automatic text layout, and ensures that the underlying buffer is editable.
 ///
-/// Depending on the concrete ``Buffer`` you use, the execution of commands can support undoing/redoing of operations (see ``Undoable-struct``), or AppKit/UIKit compatible delegate calls that can prevent changes within the range (see ``NSTextViewBuffer``), or both when you combine the buffers.
+/// - For undo support, see ``Undoable-struct``.
+/// - For AppKit-compatible `NSTextViewDelegate` calls (that can prevent changes within the range), see ``NSTextViewBuffer``.
 ///
 /// You use ``Modifying`` to combine and group either
 /// - multiple ``Modification``s  like ``Insert`` and ``Delete`` at multiple locations into one block,
