@@ -1,6 +1,17 @@
 # Declarative Text Kit
 
+<!-- [![Build Status][build status badge]][build status] -->
+[![Platforms][platforms badge]][platforms]
+[![Documentation][documentation badge]][documentation]
+
 A Swift DSL to make modifications to text buffers.
+
+[build status]: https://github.com/CleanCocoa/DeclarativeTextKit/actions
+[build status badge]: https://github.com/CleanCocoa/DeclarativeTextKit/workflows/CI/badge.svg
+[platforms]: https://swiftpackageindex.com/CleanCocoa/DeclarativeTextKit
+[platforms badge]: https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2FCleanCocoa%2FDeclarativeTextKit%2Fbadge%3Ftype%3Dplatforms
+[documentation]: https://swiftpackageindex.com/CleanCocoa/DeclarativeTextKit/main/documentation
+[documentation badge]: https://img.shields.io/badge/Documentation-DocC-blue
 
 ## Goals
 
@@ -18,7 +29,7 @@ For changes to a text view on the user's behalf with proper undo support, you of
 If you want to modify a piece of a text in multiple places at once, the index reversal alone makes code harder to understand.
 
 
-## Example
+## What This Looks Like
 
 Expand the user's selection to full lines, then wrap the text in GitHub-flavored Markdown fenced code blocks and put the insertion point after the opening triple backticks:
 
@@ -39,6 +50,9 @@ Select(LineRange(selectedRange)) { lineRange in
 }
 ```
 
+[![Documentation][documentation badge blue]][documentation]
+
+[documentation badge blue]: https://img.shields.io/badge/→_Read_the_Extensive_Documentation-0000ff?style=for-the-badge
 
 ## Approach
 
