@@ -4,8 +4,8 @@
 import AppKit
 
 extension NSTextView {
-    /// `NSString` contents of the receiver without briding overhead.
-    @usableFromInline
+    /// `NSString` contents of the receiver avoiding Swift `String` bridging overhead.
+    @usableFromInline @inline(__always)
     var nsMutableString: NSMutableString {
         guard let textStorage = self.textStorage else {
             preconditionFailure("NSTextView.textStorage expected to be non-nil")
@@ -14,6 +14,13 @@ extension NSTextView {
     }
 }
 
+/// Adapter for `NSTextView` to perform ``Buffer`` commands.
+///
+/// Mutations are performed on the ``textView``'s `NSTextStorage` directly and wrapped in `beginEditing()`/`endEditing()` calls to correctly process changes in `NSTextStorage.processEditing()`. This includes the standard behavior of attribute range fixing and interfacing with the `NSLayoutManager`.
+///
+/// To group multiple buffer mutations as a single edit, e.g. to delete parts of text in multiple places as one action that coalesces attribute updates, you can either
+/// - use the ``Modifying-struct`` command from the DSL, which wraps its mutations in an editing group when applied to an ``NSTextViewBuffer``, or
+/// - use the ``wrapAsEditing(_:)`` function directly.
 open class NSTextViewBuffer: Buffer {
     public let textView: NSTextView
 
@@ -29,15 +36,17 @@ open class NSTextViewBuffer: Buffer {
     @inlinable
     open var content: Content { textView.nsMutableString as Buffer.Content }
 
+    /// Wraps `textView` as the target of all ``Buffer`` related actions.
     public init(textView: NSTextView) {
         self.textView = textView
     }
 
-    @usableFromInline
-    func wrapAsEditing<T>(_ body: () -> T) -> T {
+    /// Wrap the execution of `body` in `beginEditing()`/`endEditing()` calls to group changes inside into a single `NSTextStorage.processEditing()` run.
+    @inlinable
+    open func wrapAsEditing<T>(_ body: () throws -> T) rethrows -> T {
         textView.textStorage?.beginEditing()
         defer { textView.textStorage?.endEditing() }
-        return body()
+        return try body()
     }
 
     @inlinable
@@ -71,6 +80,7 @@ open class NSTextViewBuffer: Buffer {
         }
     }
 
+    @inlinable
     open func delete(in deletedRange: Buffer.Range) throws {
         guard contains(range: deletedRange) else {
             throw BufferAccessFailure.outOfRange(requested: deletedRange, available: range)
@@ -81,6 +91,7 @@ open class NSTextViewBuffer: Buffer {
         }
     }
 
+    @inlinable
     open func replace(range replacementRange: Buffer.Range, with content: Buffer.Content) throws {
         guard contains(range: replacementRange) else {
             throw BufferAccessFailure.outOfRange(requested: replacementRange, available: range)
@@ -99,6 +110,7 @@ open class NSTextViewBuffer: Buffer {
         }
     }
 
+    @inlinable
     open func modifying<T>(affectedRange: Buffer.Range, _ block: () -> T) throws -> T {
         guard textView.shouldChangeText(in: affectedRange, replacementString: nil) else {
             throw BufferAccessFailure.modificationForbidden(in: affectedRange)

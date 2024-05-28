@@ -8,6 +8,7 @@ extension NSRange {
     /// Reduces the `length` by the intersection of both ranges, and shifts the `location` left (towards 0) by how much was removed from before the start.
     ///
     /// > Warning: Behavior for negative locations or lengths is undefined.
+    @usableFromInline
     mutating func subtract(_ other: NSRange) {
         self = self.subtracting(other)
     }
@@ -17,6 +18,7 @@ extension NSRange {
     /// Reduces the `length` by the intersection of both ranges, and shifts the `location` left (towards 0) by how much was removed from before the start.
     ///
     /// > Warning: Behavior for negative locations or lengths is undefined.
+    @usableFromInline
     func subtracting(_ other: NSRange) -> NSRange {
         guard self.location != NSNotFound else { return .notFound }
         guard other.location != NSNotFound else { return self }
