@@ -34,7 +34,7 @@ But it is nice.
         try buffer.insert("raw")  // Simulate typing at the selection
 
         assertBufferState(buffer, """
-# 
+# Heading
 
 ```raw{^}
 Text here. It is
