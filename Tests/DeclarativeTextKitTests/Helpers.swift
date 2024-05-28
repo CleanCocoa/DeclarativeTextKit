@@ -20,7 +20,7 @@ func assertBufferState(
     file: StaticString = #file, line: UInt = #line
 ) {
     XCTAssertEqual(
-        MutableStringBuffer(buffer).description,
+        MutableStringBuffer(wrapping: buffer).description,
         expectedDescription,
         message(),
         file: file, line: line

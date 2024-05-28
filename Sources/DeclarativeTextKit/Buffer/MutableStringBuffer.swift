@@ -2,6 +2,19 @@
 
 import Foundation
 
+/// Memory-efficient ``Buffer`` implementation (``MutableStringBuffer``) you can use for off-screen mutations and in unit tests.
+public typealias InMemoryBuffer = MutableStringBuffer
+
+/// A self-contained ``Buffer`` implementation, backed by `NSMutableString` as the UTF-16-offset indexed storage.
+///
+/// Used as in-memory buffers, you can apply changes to off-screen textual content in a way that is consistent with text views, but actually independent of these. Opposed to the platform's Text Kit views, which are large class clusters with a lot of automatic behavior pertaining layout, keeping a ``MutableStringBuffer`` in memory produces little overhead. (In fact, only as much overhead as a `NSMutableString` will, plus storing the selected range.)
+///
+/// To adapt other buffers and copy their content, use ``MutableStringBuffer/init(wrapping:)``.
+///
+/// ## Utility for Apps
+///
+/// - Use ``MutableStringBuffer`` in unit tests.
+/// - Maintain multiple text buffers in memory while only ever rendering one buffer as a text view on screen, e.g. for opening multiple files in your app.
 public final class MutableStringBuffer: Buffer {
     @usableFromInline
     let storage: NSMutableString
@@ -22,7 +35,7 @@ public final class MutableStringBuffer: Buffer {
         self.selectedRange = selectedRange
     }
 
-    /// Create new `NSMutableString`-backed buffer based on `content`.
+    /// Create a new `NSMutableString`-backed buffer based on `content`.
     ///
     /// > Invariant: The insertion point starts at the beginning of the buffer.
     public convenience init(_ content: Buffer.Content) {
@@ -32,10 +45,12 @@ public final class MutableStringBuffer: Buffer {
         )
     }
 
+    @inlinable
     public func lineRange(for range: Buffer.Range) -> Buffer.Range {
         return self.storage.lineRange(for: range)
     }
 
+    @inlinable
     public func content(in subrange: UTF16Range) throws -> Buffer.Content {
         guard contains(range: subrange) else {
             throw BufferAccessFailure.outOfRange(requested: subrange, available: range)
@@ -44,10 +59,12 @@ public final class MutableStringBuffer: Buffer {
     }
 
     /// Raises an `NSExceptionName` of name `.rangeException` if `location` is out of bounds.
+    @inlinable
     public func unsafeCharacter(at location: Buffer.Location) -> Buffer.Content {
         return self.storage.unsafeCharacter(at: location)
     }
 
+    @inlinable
     public func insert(_ content: Content, at location: Location) throws {
         guard contains(range: .init(location: location, length: 0)) else {
             throw BufferAccessFailure.outOfRange(location: location, available: range)
@@ -59,6 +76,7 @@ public final class MutableStringBuffer: Buffer {
             .shifted(by: location <= self.selectedRange.location ? length(of: content) : 0)  // Nudges selection to the right if needed.
     }
 
+    @inlinable
     public func delete(in deletedRange: Buffer.Range) throws {
         guard contains(range: deletedRange) else {
             throw BufferAccessFailure.outOfRange(requested: deletedRange, available: range)
@@ -68,6 +86,7 @@ public final class MutableStringBuffer: Buffer {
         self.selectedRange.subtract(deletedRange)
     }
 
+    @inlinable
     public func replace(range replacementRange: Buffer.Range, with content: Buffer.Content) throws {
         guard contains(range: replacementRange) else {
             throw BufferAccessFailure.outOfRange(requested: replacementRange, available: range)
@@ -92,7 +111,9 @@ public final class MutableStringBuffer: Buffer {
 
 extension MutableStringBuffer {
     /// Create a copy of `buffer`.
-    public convenience init<Wrapping>(_ buffer: Wrapping) where Wrapping: Buffer {
+    public convenience init<Wrapped>(
+        wrapping buffer: Wrapped
+    ) where Wrapped: Buffer {
         self.init(
             storage: NSMutableString(string: buffer.content),
             selectedRange: buffer.selectedRange
@@ -108,6 +129,17 @@ extension MutableStringBuffer: Equatable {
 }
 
 extension MutableStringBuffer: CustomStringConvertible {
+    /// A textual representation of this buffer that includes its selection in the output.
+    ///
+    /// - Selected ranges will be wrapped in curly braces (`{...}`), while
+    /// - insertion point locations will show as `{^}`.
+    ///
+    /// ```swift
+    /// let buffer = MutableStringBuffer("Hello, world!"
+    /// print(buffer) // => "{^}Hello, world!"
+    /// buffer.select(Buffer.Range(location: 7, length: 5))
+    /// print(buffer) // => "Hello, {world}!"
+    /// ```
     public var description: String {
         let result = NSMutableString(string: self.content)
         if self.isSelectingText {
