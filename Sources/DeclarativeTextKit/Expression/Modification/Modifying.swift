@@ -1,10 +1,18 @@
-
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
 /// Marking a ``Buffer/Range`` as to-be-modified in a range.
 ///
-/// Depending on `Content`, you can use this to combine and group ``Modification``s at multiple locations into one block, or to execute multiple effects as a ``CommandSequence`` within a scope.
+/// Depending on the concrete ``Buffer`` you use, the execution of commands can support undoing/redoing of operations (see ``Undoable-struct``), or AppKit/UIKit compatible delegate calls that can prevent changes within the range (see ``NSTextViewBuffer``), or both when you combine the buffers.
 ///
+/// You use ``Modifying`` to combine and group either
+/// - multiple ``Modification``s  like ``Insert`` and ``Delete`` at multiple locations into one block,
+/// - or non-modifying effects like a ``Select`` command and nested ``Modifying`` blocks within a larger scope.
+///
+/// The Domain-Specific Language's grammar is enforced by the Result Builder, so you can't accidentally mix incompatible modifications.
+///
+/// ## Examples
+///
+/// ### Modifying a buffer in multiple locations at once
 /// To surround the selected range in a Markdown text buffer with two asterisks, `**`, to make the selected text bold:
 ///
 /// ```swift
@@ -14,9 +22,11 @@
 /// }
 /// ```
 ///
-/// To group multiple effects into one undo group:
+/// ### Grouping multiple effects, e.g. as an undo group
+/// To group multiple effects into one undo group if you :
 ///
 /// ```swift
+/// // Assuming `buffer` is of type `Undoable`
 /// Modifying(buffer.range) { fullRange in
 ///     // This modification block updates `fullRange`
 ///     // to reflect the changes inside:
