@@ -4,13 +4,21 @@ import Foundation
 
 /// Decorator of any ``Buffer`` to add undo/redo functionality through Foundation's `UndoManager`.
 ///
-/// ## How undo grouping works
+/// ## How Undo Grouping Works
 ///
 /// All direct mutations are wrapped in `beginUndoGrouping()`/`endUndoGrouping()` calls, so any deletion's and insertion's inverse action is added to the undo stack.
 ///
 /// To group multiple buffer mutations in a single undo group, e.g. to delete parts of text in multiple places as one action, you can either
 /// - use the ``Modifying-struct`` command from the DSL, which wraps its mutations in an undo group when applied to an ``Undoable`` buffer, or
 /// - use the ``undoGrouping(actionName:_:)`` function directly.
+///
+/// ## Caveats and Pitfalls
+///
+/// You need to make sure that the ``Undoable`` instance stays in memory (there's at least 1 strong reference) for undoing to work, especially if you register with the "global" undo manager of the current window.
+///
+/// Conversely, you can't treat ``Undoable`` instances as lightweight wrappers that you throw away after use. That would effectively remove all undoable actions.
+///
+/// **Reason:** ``Undoable`` removes all undo groups from its ``undoManager`` upon deinitialization. If you've ever worked with the block-based `UndoManager.registerUndo(withTarget:handler:)`, you know that the `target` parameter is not retained. It's an unowned reference. We can't keep the undoable action on the undo stack when the target, your ``Undoable`` buffer, is gone. It cleans up after itself to avoid crashes.
 ///
 /// ## Example
 ///
@@ -87,6 +95,10 @@ public final class Undoable<Base>: Buffer where Base: Buffer {
         self.init(base) {
             return undoManager
         }
+    }
+
+    deinit {
+        undoManager.removeAllActions(withTarget: self)
     }
 
     public func lineRange(for range: Base.Range) -> Base.Range {
