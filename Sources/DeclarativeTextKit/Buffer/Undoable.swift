@@ -98,7 +98,7 @@ public final class Undoable<Base>: Buffer where Base: Buffer {
     }
 
     deinit {
-        undoManager.removeAllActions(withTarget: self)
+        undoManager?.removeAllActions(withTarget: self)
     }
 
     public func lineRange(for range: Base.Range) -> Base.Range {
