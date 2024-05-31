@@ -1,0 +1,22 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'README.md'
+      - 'LICENSE'
+      - '.spi.yml'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Test
+    runs-on: macOS-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test
+        run: set -o pipefail && swift test | xcbeautify --renderer github-actions

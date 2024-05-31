@@ -1,6 +1,6 @@
 # Declarative Text Kit
 
-<!-- [![Build Status][build status badge]][build status] -->
+[![Build Status][build status badge]][build status]
 [![Platforms][platforms badge]][platforms]
 [![Documentation][documentation badge]][documentation]
 
