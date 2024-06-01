@@ -139,16 +139,15 @@ public final class Undoable<Base>: Buffer where Base: Buffer {
         else { preconditionFailure("Undoable buffer used without UndoManager") }
 
         let oldContent = try base.content(in: deletedRange)
-        let oldSelection = base.selectedRange
-        let oldSelectionRestoration = self.isRestoringSelection
+        let oldSelection = self.isRestoringSelection ? base.selectedRange : nil
 
         try base.delete(in: deletedRange)
 
         undoManager.beginUndoGrouping()
         undoManager.registerUndo(withTarget: self) { undoableBuffer in
             try? undoableBuffer.insert(oldContent, at: deletedRange.location)
-            if oldSelectionRestoration {
-                undoableBuffer.withSelectionRestoration(oldSelectionRestoration) {
+            if let oldSelection {
+                undoableBuffer.withSelectionRestoration(true) {
                     undoableBuffer.select(oldSelection)
                 }
             }
@@ -161,8 +160,7 @@ public final class Undoable<Base>: Buffer where Base: Buffer {
         else { preconditionFailure("Undoable buffer used without UndoManager") }
 
         let oldContent = try base.content(in: replacementRange)
-        let oldSelection = base.selectedRange
-        let oldSelectionRestoration = self.isRestoringSelection
+        let oldSelection = self.isRestoringSelection ? base.selectedRange : nil
 
         try base.replace(range: replacementRange, with: content)
 
@@ -170,8 +168,8 @@ public final class Undoable<Base>: Buffer where Base: Buffer {
         undoManager.beginUndoGrouping()
         undoManager.registerUndo(withTarget: self) { undoableBuffer in
             try? undoableBuffer.replace(range: newRange, with: oldContent)
-            if oldSelectionRestoration {
-                undoableBuffer.withSelectionRestoration(oldSelectionRestoration) {
+            if let oldSelection {
+                undoableBuffer.withSelectionRestoration(true) {
                     undoableBuffer.select(oldSelection)
                 }
             }
@@ -183,8 +181,7 @@ public final class Undoable<Base>: Buffer where Base: Buffer {
         guard let undoManager
         else { preconditionFailure("Undoable buffer used without UndoManager") }
 
-        let oldSelection = base.selectedRange
-        let oldSelectionRestoration = self.isRestoringSelection
+        let oldSelection = self.isRestoringSelection ? base.selectedRange : nil
 
         try base.insert(content, at: location)
 
@@ -192,8 +189,8 @@ public final class Undoable<Base>: Buffer where Base: Buffer {
         undoManager.beginUndoGrouping()
         undoManager.registerUndo(withTarget: self) { undoableBuffer in
             try? undoableBuffer.delete(in: newRange)
-            if oldSelectionRestoration {
-                undoableBuffer.withSelectionRestoration(oldSelectionRestoration) {
+            if let oldSelection {
+                undoableBuffer.withSelectionRestoration(true) {
                     undoableBuffer.select(oldSelection)
                 }
             }
