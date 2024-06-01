@@ -114,11 +114,8 @@ public final class Undoable<Base>: Buffer where Base: Buffer {
     }
 
     public func delete(in deletedRange: Base.Range) throws {
-        guard let undoManager else {
-            assertionFailure("Undoable buffer used without UndoManager")
-            try base.delete(in: deletedRange)
-            return
-        }
+        guard let undoManager
+        else { preconditionFailure("Undoable buffer used without UndoManager") }
 
         let oldContent = try base.content(in: deletedRange)
         let oldSelection = base.selectedRange
@@ -134,11 +131,8 @@ public final class Undoable<Base>: Buffer where Base: Buffer {
     }
 
     public func replace(range replacementRange: Base.Range, with content: Base.Content) throws {
-        guard let undoManager else {
-            assertionFailure("Undoable buffer used without UndoManager")
-            try base.replace(range: replacementRange, with: content)
-            return
-        }
+        guard let undoManager
+        else { preconditionFailure("Undoable buffer used without UndoManager") }
 
         let oldContent = try base.content(in: replacementRange)
         let oldSelection = base.selectedRange
@@ -155,11 +149,8 @@ public final class Undoable<Base>: Buffer where Base: Buffer {
     }
 
     public func insert(_ content: Base.Content, at location: Base.Location) throws {
-        guard let undoManager else {
-            assertionFailure("Undoable buffer used without UndoManager")
-            try base.insert(content, at: location)
-            return
-        }
+        guard let undoManager
+        else { preconditionFailure("Undoable buffer used without UndoManager") }
 
         let oldSelection = base.selectedRange
 
