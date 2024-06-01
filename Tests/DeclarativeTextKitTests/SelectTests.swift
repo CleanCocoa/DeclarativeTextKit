@@ -21,6 +21,14 @@ This is a test.
         self.textViewBuffer = nil
     }
 
+    func testEvaluateBlockCompatibility() throws {
+        // The actual success criterion is that this compiles without error as a base-level DSL block.
+        let changeInLength = try MutableStringBuffer("").evaluate {
+            Select(0)
+        }
+        XCTAssertEqual(changeInLength.delta, 0)
+    }
+
     func testSelect_DoesNotChangeInLength() throws {
         let buffer = MutableStringBuffer("012")
 

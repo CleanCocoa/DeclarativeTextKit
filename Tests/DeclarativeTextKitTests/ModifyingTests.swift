@@ -4,6 +4,16 @@ import XCTest
 @testable import DeclarativeTextKit
 
 final class ModifyingTests: XCTestCase {
+    func testEvaluateBlockCompatibility() throws {
+        // The actual success criterion is that this compiles without error as a base-level DSL block.
+        let changeInLength = try MutableStringBuffer("").evaluate {
+            Modifying(range: .init(location: 0, length: 0)) { range in
+                Identity()
+            }
+        }
+        XCTAssertEqual(changeInLength.delta, 0)
+    }
+
     func testModifying_InsertionOutsideSelectedBounds_Throws() throws {
         func insertCharacter(at location: UTF16Offset) throws -> ChangeInLength {
             let modification = Modifying(SelectedRange(location: 3, length: 3)) { _ in
