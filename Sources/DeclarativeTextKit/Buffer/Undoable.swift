@@ -101,6 +101,21 @@ public final class Undoable<Base>: Buffer where Base: Buffer {
         undoManager?.removeAllActions(withTarget: self)
     }
 
+    public func select(_ range: Buffer.Range) {
+        guard let undoManager
+        else { preconditionFailure("Undoable buffer used without UndoManager") }
+
+        let oldSelection = base.selectedRange
+
+        base.select(range)
+
+        undoManager.beginUndoGrouping()
+        undoManager.registerUndo(withTarget: self) { undoableBuffer in
+            undoableBuffer.select(oldSelection)
+        }
+        undoManager.endUndoGrouping()
+    }
+
     public func lineRange(for range: Base.Range) -> Base.Range {
         return base.lineRange(for: range)
     }
