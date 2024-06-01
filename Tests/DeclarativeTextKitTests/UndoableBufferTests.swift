@@ -50,22 +50,24 @@ final class UndoableBufferTests: XCTestCase {
 
         assertBufferState(undoable, "hello{^}")
 
-        _ = try Modifying(SelectedRange(buffer.range)) { fullRange in
-            Modifying(fullRange) { fullRange in
-                Insert(fullRange.endLocation) { " you" }
-            }
-
-            Select(location: fullRange.endLocation + 1, length: 3) { selectedRange in
-                Modifying(selectedRange) { selectedRange in
-                    Delete(selectedRange)
+        _ = try undoable.evaluate {
+            Modifying(SelectedRange(buffer.range)) { fullRange in
+                Modifying(fullRange) { fullRange in
+                    Insert(fullRange.endLocation) { " you" }
                 }
 
-                Modifying(selectedRange) { selectedRange in
-                    Insert(selectedRange.endLocation) { "world" }
-                    Insert(selectedRange.endLocation) { "!" }
+                Select(location: fullRange.endLocation + 1, length: 3) { selectedRange in
+                    Modifying(selectedRange) { selectedRange in
+                        Delete(selectedRange)
+                    }
+
+                    Modifying(selectedRange) { selectedRange in
+                        Insert(selectedRange.endLocation) { "world" }
+                        Insert(selectedRange.endLocation) { "!" }
+                    }
                 }
             }
-        }.evaluate(in: undoable)
+        }
 
         assertBufferState(undoable, "hello world!{^}")
 
@@ -74,5 +76,33 @@ final class UndoableBufferTests: XCTestCase {
 
         undoable.redo()
         assertBufferState(undoable, "hello world!{^}")
+    }
+
+    func testUndoingSelection() throws {
+        let buffer = MutableStringBuffer("0123456789")
+        buffer.insertionLocation = 0
+        let undoable = Undoable(buffer)
+
+        assertBufferState(undoable, "{^}0123456789")
+
+        undoable.insertionLocation += 1
+        assertBufferState(undoable, "0{^}123456789")
+        undoable.undo()
+        assertBufferState(undoable, "0{^}123456789")
+
+        undoable.undoGrouping { undoable.insertionLocation += 1 }
+        assertBufferState(undoable, "01{^}23456789")
+        undoable.undo()
+        assertBufferState(undoable, "01{^}23456789")
+
+        undoable.undoGrouping(undoingSelectionChanges: false) { undoable.insertionLocation += 1 }
+        assertBufferState(undoable, "012{^}3456789")
+        undoable.undo()
+        assertBufferState(undoable, "012{^}3456789")
+
+        undoable.undoGrouping(undoingSelectionChanges: true) { undoable.insertionLocation += 1 }
+        assertBufferState(undoable, "0123{^}456789")
+        undoable.undo()
+        assertBufferState(undoable, "012{^}3456789")
     }
 }

@@ -52,7 +52,22 @@ public final class Undoable<Base>: Buffer where Base: Buffer {
     public var range: Base.Range { base.range }
     public var selectedRange: Base.Range {
         get { base.selectedRange }
-        set { base.selectedRange = newValue }
+        set {
+            guard let undoManager
+            else { preconditionFailure("Undoable buffer used without UndoManager") }
+
+            let oldSelection = base.selectedRange
+
+            base.selectedRange = newValue
+
+            guard undoSelectionChanges else { return }
+
+            undoManager.beginUndoGrouping()
+            undoManager.registerUndo(withTarget: self) { undoableBuffer in
+                undoableBuffer.selectedRange = oldSelection
+            }
+            undoManager.endUndoGrouping()
+        }
     }
 
     /// Whether inverse of `select(_:)` commands should also be added to the undo stack.
@@ -103,23 +118,6 @@ public final class Undoable<Base>: Buffer where Base: Buffer {
 
     deinit {
         undoManager?.removeAllActions(withTarget: self)
-    }
-
-    public func select(_ range: Buffer.Range) {
-        guard let undoManager
-        else { preconditionFailure("Undoable buffer used without UndoManager") }
-
-        let oldSelection = base.selectedRange
-
-        base.select(range)
-
-        guard undoSelectionChanges else { return }
-
-        undoManager.beginUndoGrouping()
-        undoManager.registerUndo(withTarget: self) { undoableBuffer in
-            undoableBuffer.select(oldSelection)
-        }
-        undoManager.endUndoGrouping()
     }
 
     public func lineRange(for range: Base.Range) -> Base.Range {
@@ -241,7 +239,7 @@ extension Undoable {
         }
 
         let oldUndoSelectionChanges = self.undoSelectionChanges
-        self.undoSelectionChanges = true
+        self.undoSelectionChanges = undoingSelectionChanges
         defer { self.undoSelectionChanges = oldUndoSelectionChanges }
 
         return try block()
