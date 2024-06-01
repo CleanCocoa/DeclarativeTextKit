@@ -34,19 +34,21 @@ If you want to modify a piece of a text in multiple places at once, the index re
 Expand the user's selection to full lines, then wrap the text in GitHub-flavored Markdown fenced code blocks and put the insertion point after the opening triple backticks:
 
 ```swift
-// Expand selection to the whole block (full lines).
-Select(LineRange(selectedRange)) { lineRange in
-    // In that range, attempt to wrap the selected text
-    // in two lines to make it a code block.
-    // (Abort if the text view doesn't permit changes.)
-    Modifying(lineRange) { rangeToWrap in
-        Insert(rangeToWrap.location) { Line("```") }
-        Insert(rangeToWrap.endLocation) { Line("```") }
-    }
+buffer.evaluate {
+    // Expand selection to the whole block (full lines).
+    Select(LineRange(selectedRange)) { lineRange in
+        // In that range, attempt to wrap the selected text
+        // in two lines to make it a code block.
+        // (Abort if the text view doesn't permit changes.)
+        Modifying(lineRange) { rangeToWrap in
+            Insert(rangeToWrap.location) { Line("```") }
+            Insert(rangeToWrap.endLocation) { Line("```") }
+        }
 
-    // Move insertion point to the
-    // position after the opening backticks
-    Select(lineRange.location + length(of: "```"))
+        // Move insertion point to the
+        // position after the opening backticks
+        Select(lineRange.location + length(of: "```"))
+    }
 }
 ```
 

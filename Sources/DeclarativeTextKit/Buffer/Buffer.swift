@@ -70,6 +70,33 @@ public protocol Buffer: AnyObject {
     ///
     /// - Throws: ``BufferAccessFailure`` if changes to `affectedRange` are not permitted.
     func modifying<T>(affectedRange: Range, _ block: () -> T) throws -> T
+
+    /// Entry point into the Domain-Specific Language to run ``Expression``s on the buffer.
+    ///
+    /// Conforming types can provide refinements to this process to bundle changes in e.g. undoable action groups.
+    ///
+    /// Builds `expression` and evaluates it on `self` so you can write a block directly like so:
+    ///
+    /// ```swift
+    /// buffer.evaluate {
+    ///     Modifying(buffer.selectedRange) { range in
+    ///         Insert(range.location) { "> " }
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// An alternative way would be to separate the command from its evaluation in a procedural style:
+    ///
+    /// ```swift
+    /// let command = Modifying(buffer.selectedRange) { range in
+    ///     Insert(range.location) { "> " }
+    /// }
+    /// let changeInLength = try command.evaluate(in: buffer)
+    /// ```
+    @discardableResult
+    func evaluate(
+        @ModificationBuilder _ expression: () throws -> ModificationSequence
+    ) throws -> ChangeInLength
 }
 
 import Foundation // For inlining isSelectingText as long as Buffer.Range is a typealias
@@ -107,5 +134,13 @@ extension Buffer {
         }
         // Overwriting rules are the same as deletion rules.
         return self.range.contains(range)
+    }
+
+    @inlinable @inline(__always)
+    @discardableResult
+    public func evaluate(
+        @ModificationBuilder _ expression: () throws -> ModificationSequence
+    ) throws -> ChangeInLength {
+        return try expression().evaluate(in: self)
     }
 }

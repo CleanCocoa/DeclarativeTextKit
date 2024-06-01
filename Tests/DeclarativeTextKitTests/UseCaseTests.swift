@@ -26,25 +26,30 @@ not} a lot of text.
 But it is nice.
 
 """)
+        if #available(macOS 14.4, *) {
+            XCTAssertEqual(buffer.undoManager?.undoCount, 0)
+        }
 
         // MARK: 1) Perform modification with the DSL
 
-        let commandCascade = Select(LineRange(selectedRange)) { lineRange in
-            // Wrap selected text in code block
-            Modifying(lineRange) { rangeToWrap in
-                Insert(rangeToWrap.location) { Line("```") }
-                Insert(rangeToWrap.endLocation) { Line("```") }
-            }
+        let changeInLength = try buffer.evaluate {
+            Select(LineRange(selectedRange)) { lineRange in
+                // Wrap selected text in code block
+                Modifying(lineRange) { rangeToWrap in
+                    Insert(rangeToWrap.location) { Line("```") }
+                    Insert(rangeToWrap.endLocation) { Line("```") }
+                }
 
-            // Move insertion point to the position after the opening backticks
-            Select(lineRange.location + length(of: "```"))
-        }
-        let changeInLength = try buffer.undoGrouping {
-            try commandCascade.evaluate(in: buffer)
+                // Move insertion point to the position after the opening backticks
+                Select(lineRange.location + length(of: "```"))
+            }
         }
 
         XCTAssertEqual(changeInLength.delta, 2 * length(of: "```") + 2 /* newlines */)
         XCTAssertEqual(buffer.selectedRange, Buffer.Range(location: 14, length: 0))
+        if #available(macOS 14.4, *) {
+            XCTAssertEqual(buffer.undoManager?.undoCount, 1)
+        }
 
         // MARK: 2) "Type" on behalf of the user
 
@@ -61,6 +66,9 @@ not a lot of text.
 But it is nice.
 
 """)
+        if #available(macOS 14.4, *) {
+            XCTAssertEqual(buffer.undoManager?.undoCount, 2)
+        }
 
         // MARK: 3) Undo typing
 

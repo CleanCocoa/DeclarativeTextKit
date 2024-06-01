@@ -19,24 +19,26 @@ The following code snippet will
 3. then put the insertion point after the opening triple backticks:
 
 ```swift
-// Expand selection to the whole block (full lines).
-Select(LineRange(selectedRange)) { lineRange in
-    // In that range, attempt to wrap the selected text
-    // in two lines to make it a code block.
-    // (Abort if the text view doesn't permit changes.)
-    Modifying(lineRange) { rangeToWrap in
-        // Insert triple backticks on isolated lines, in
-        // a "Do What I Mean" (DWIM) style: it does the
-        // right thing, preserving and reusing existing
-        // line breaks if possible, adding new "\n" line
-        // breaks as needed to keep its guarantee.
-        Insert(rangeToWrap.location) { Line("```") }
-        Insert(rangeToWrap.endLocation) { Line("```") }
-    }
+buffer.evaluate {
+    // Expand selection to the whole block (full lines).
+    Select(LineRange(selectedRange)) { lineRange in
+        // In that range, attempt to wrap the selected text
+        // in two lines to make it a code block.
+        // (Abort if the text view doesn't permit changes.)
+        Modifying(lineRange) { rangeToWrap in
+            // Insert triple backticks on isolated lines, in
+            // a "Do What I Mean" (DWIM) style: it does the
+            // right thing, preserving and reusing existing
+            // line breaks if possible, adding new "\n" line
+            // breaks as needed to keep its guarantee.
+            Insert(rangeToWrap.location) { Line("```") }
+            Insert(rangeToWrap.endLocation) { Line("```") }
+        }
 
-    // Move insertion point to the
-    // position after the opening backticks
-    Select(lineRange.location + length(of: "```"))
+        // Move insertion point to the
+        // position after the opening backticks
+        Select(lineRange.location + length(of: "```"))
+    }
 }
 ```
 
@@ -46,7 +48,7 @@ If the affected text buffer supports undo/redo (like the default text views do),
 
 ### Buffers
 
-A `Buffer` is an abstraction of textual content and a selection.
+A `Buffer` is an abstraction of textual content and a selection. Its ``Buffer/evaluate(_:)-7jmtt`` is the simplest entry point to the DSL.
 
 - ``Buffer``
 - ``InMemoryBuffer``

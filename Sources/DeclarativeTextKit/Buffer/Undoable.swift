@@ -55,6 +55,10 @@ public final class Undoable<Base>: Buffer where Base: Buffer {
         set { base.selectedRange = newValue }
     }
 
+    /// Whether inverse of `select(_:)` commands should also be added to the undo stack.
+    @usableFromInline
+    var undoSelectionChanges: Bool = false
+
     /// Lazy `UndoManager` access. Required to support `NSTextView`'s default behavior of not shipping with its own `UndoManager`, but delegating to the window or document.
     @usableFromInline
     let getUndoManager: () -> UndoManager?
@@ -108,6 +112,8 @@ public final class Undoable<Base>: Buffer where Base: Buffer {
         let oldSelection = base.selectedRange
 
         base.select(range)
+
+        guard undoSelectionChanges else { return }
 
         undoManager.beginUndoGrouping()
         undoManager.registerUndo(withTarget: self) { undoableBuffer in
@@ -190,6 +196,20 @@ public final class Undoable<Base>: Buffer where Base: Buffer {
             return try base.modifying(affectedRange: affectedRange, block)
         }
     }
+
+    /// Wrapping evaluation of `expression` in an undo group to make its evaluation undoable.
+    ///
+    /// Treats `block` as a single undoable action group. See ``undoGrouping(actionName:_:)``
+    ///
+    /// - Throws: ``BufferAccessFailure`` emitted during evaluation of `expression`.
+    @inlinable @discardableResult
+    public func evaluate(
+        @ModificationBuilder _ expression: () throws -> ModificationSequence
+    ) throws -> ChangeInLength {
+        return try undoGrouping(undoingSelectionChanges: true) {
+            return try expression().evaluate(in: self)
+        }
+    }
 }
 
 // MARK: - Undo/Redo
@@ -200,11 +220,13 @@ extension Undoable {
     /// Wraps the execution of `block` in `UndoManager`  `beginUndoGrouping()`/`endUndoGrouping()` calls to achieve the grouping.
     ///
     /// - Parameters:
+    ///   - undoingSelectionChanges: Whether inverse of `select(_:)` commands should also be added to the undo stack during execution of `block`. By default, that's not what users expect on the undo stack as they move the insertion point around. For complex buffer modifications, restoring the original context including the selection is desirable, though.
     ///   - actionName: User-facing action name to set. Can be shown in the Undo/Redo main menu items. `nil` doesn't set any and preserves action names set elsewhere (default).
     ///   - block: Actions to run inside an undo group.
     @inlinable
     public func undoGrouping<T>(
         actionName: String? = nil,
+        undoingSelectionChanges: Bool = false,
         _ block: () throws -> T
     ) rethrows -> T {
         guard let undoManager else {
@@ -217,6 +239,11 @@ extension Undoable {
         if let actionName {
             undoManager.setActionName(actionName)
         }
+
+        let oldUndoSelectionChanges = self.undoSelectionChanges
+        self.undoSelectionChanges = true
+        defer { self.undoSelectionChanges = oldUndoSelectionChanges }
+
         return try block()
     }
 
