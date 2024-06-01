@@ -98,5 +98,33 @@ not} a lot of text.
 But it is nice.
 
 """)
+
+        // MARK: 5) Redo transformation (checking that the undo of the undo works)
+
+        buffer.redo()
+
+        assertBufferState(buffer, """
+# Heading
+
+```{^}
+Text here. It is
+not a lot of text.
+```
+
+But it is nice.
+
+""")
+
+        buffer.undo()
+
+        assertBufferState(buffer, """
+# Heading
+
+Text here{. It is
+not} a lot of text.
+
+But it is nice.
+
+""")
     }
 }

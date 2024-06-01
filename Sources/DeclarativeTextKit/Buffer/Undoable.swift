@@ -60,11 +60,13 @@ public final class Undoable<Base>: Buffer where Base: Buffer {
 
             base.selectedRange = newValue
 
-            guard undoSelectionChanges else { return }
+            guard isRestoringSelection else { return }
 
             undoManager.beginUndoGrouping()
             undoManager.registerUndo(withTarget: self) { undoableBuffer in
-                undoableBuffer.selectedRange = oldSelection
+                undoableBuffer.withSelectionRestoration(true) {
+                    undoableBuffer.selectedRange = oldSelection
+                }
             }
             undoManager.endUndoGrouping()
         }
@@ -72,7 +74,7 @@ public final class Undoable<Base>: Buffer where Base: Buffer {
 
     /// Whether inverse of `select(_:)` commands should also be added to the undo stack.
     @usableFromInline
-    var undoSelectionChanges: Bool = false
+    var isRestoringSelection: Bool = false
 
     /// Lazy `UndoManager` access. Required to support `NSTextView`'s default behavior of not shipping with its own `UndoManager`, but delegating to the window or document.
     @usableFromInline
@@ -138,13 +140,18 @@ public final class Undoable<Base>: Buffer where Base: Buffer {
 
         let oldContent = try base.content(in: deletedRange)
         let oldSelection = base.selectedRange
+        let oldSelectionRestoration = self.isRestoringSelection
 
         try base.delete(in: deletedRange)
 
         undoManager.beginUndoGrouping()
         undoManager.registerUndo(withTarget: self) { undoableBuffer in
             try? undoableBuffer.insert(oldContent, at: deletedRange.location)
-            undoableBuffer.select(oldSelection)
+            if oldSelectionRestoration {
+                undoableBuffer.withSelectionRestoration(oldSelectionRestoration) {
+                    undoableBuffer.select(oldSelection)
+                }
+            }
         }
         undoManager.endUndoGrouping()
     }
@@ -155,6 +162,7 @@ public final class Undoable<Base>: Buffer where Base: Buffer {
 
         let oldContent = try base.content(in: replacementRange)
         let oldSelection = base.selectedRange
+        let oldSelectionRestoration = self.isRestoringSelection
 
         try base.replace(range: replacementRange, with: content)
 
@@ -162,7 +170,11 @@ public final class Undoable<Base>: Buffer where Base: Buffer {
         undoManager.beginUndoGrouping()
         undoManager.registerUndo(withTarget: self) { undoableBuffer in
             try? undoableBuffer.replace(range: newRange, with: oldContent)
-            undoableBuffer.select(oldSelection)
+            if oldSelectionRestoration {
+                undoableBuffer.withSelectionRestoration(oldSelectionRestoration) {
+                    undoableBuffer.select(oldSelection)
+                }
+            }
         }
         undoManager.endUndoGrouping()
     }
@@ -172,6 +184,7 @@ public final class Undoable<Base>: Buffer where Base: Buffer {
         else { preconditionFailure("Undoable buffer used without UndoManager") }
 
         let oldSelection = base.selectedRange
+        let oldSelectionRestoration = self.isRestoringSelection
 
         try base.insert(content, at: location)
 
@@ -179,7 +192,11 @@ public final class Undoable<Base>: Buffer where Base: Buffer {
         undoManager.beginUndoGrouping()
         undoManager.registerUndo(withTarget: self) { undoableBuffer in
             try? undoableBuffer.delete(in: newRange)
-            undoableBuffer.select(oldSelection)
+            if oldSelectionRestoration {
+                undoableBuffer.withSelectionRestoration(oldSelectionRestoration) {
+                    undoableBuffer.select(oldSelection)
+                }
+            }
         }
         undoManager.endUndoGrouping()
     }
@@ -238,10 +255,20 @@ extension Undoable {
             undoManager.setActionName(actionName)
         }
 
-        let oldUndoSelectionChanges = self.undoSelectionChanges
-        self.undoSelectionChanges = undoingSelectionChanges
-        defer { self.undoSelectionChanges = oldUndoSelectionChanges }
+        return try withSelectionRestoration(undoingSelectionChanges) {
+            return try block()
+        }
+    }
 
+    /// Run` block` with `isRestoringSelection` enabled or disabled, depending on `isEnabled`.
+    @usableFromInline
+    func withSelectionRestoration<T>(
+        _ isEnabled: Bool,
+        _ block: () throws -> T
+    ) rethrows -> T {
+        let oldSelectionRestoration = self.isRestoringSelection
+        self.isRestoringSelection = isEnabled
+        defer { self.isRestoringSelection = oldSelectionRestoration }
         return try block()
     }
 

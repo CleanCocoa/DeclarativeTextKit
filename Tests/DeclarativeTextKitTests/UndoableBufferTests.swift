@@ -1,10 +1,10 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
 import XCTest
-import DeclarativeTextKit
+@testable import DeclarativeTextKit
 
 final class UndoableBufferTests: XCTestCase {
-    func testInsertOverSelection() throws {
+    func testInsertOverSelection_WithoutSelectionRestoration() throws {
         let buffer = MutableStringBuffer("hello")
         buffer.insertionLocation = length(of: "hello")
         let undoable = Undoable(buffer)
@@ -19,12 +19,55 @@ final class UndoableBufferTests: XCTestCase {
         assertBufferState(undoable, "hello world{^}")
 
         undoable.undo()
-        assertBufferState(undoable, "hello {you}")
+        assertBufferState(undoable, "hello you{^}")
 
         undoable.redo()
         assertBufferState(undoable, "hello world{^}")
 
         try undoable.insert("!")
+        assertBufferState(undoable, "hello world!{^}")
+
+        undoable.undo()
+        assertBufferState(undoable, "hello world{^}")
+
+        undoable.undo()
+        assertBufferState(undoable, "hello you{^}")
+
+        undoable.redo()
+        assertBufferState(undoable, "hello world{^}")
+
+        undoable.undo()
+        assertBufferState(undoable, "hello you{^}")
+
+        undoable.undo()
+        assertBufferState(undoable, "hello{^}")
+    }
+
+    func testInsertOverSelection_WithSelectionRestoration() throws {
+        let buffer = MutableStringBuffer("hello")
+        buffer.insertionLocation = length(of: "hello")
+        let undoable = Undoable(buffer)
+
+        assertBufferState(undoable, "hello{^}")
+
+        try undoable.insert(" you")
+        buffer.select(.init(location: length(of: "hello "), length: 3))
+        assertBufferState(undoable, "hello {you}")
+
+        try undoable.withSelectionRestoration(true) {
+            try undoable.insert("world")
+        }
+        assertBufferState(undoable, "hello world{^}")
+
+        undoable.undo()
+        assertBufferState(undoable, "hello {you}")
+
+        undoable.redo()
+        assertBufferState(undoable, "hello world{^}")
+
+        try undoable.withSelectionRestoration(true) {
+            try undoable.insert("!")
+        }
         assertBufferState(undoable, "hello world!{^}")
 
         undoable.undo()
