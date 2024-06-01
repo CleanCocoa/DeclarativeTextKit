@@ -21,6 +21,6 @@ jobs:
       - name: Xcode Select Version
         uses: mobiledevops/xcode-select-version-action@v1
         with:
-          xcode-select-version: 14.5
+          xcode-select-version: 15.4
       - name: Test
         run: set -o pipefail && swift test | xcbeautify --renderer github-actions
