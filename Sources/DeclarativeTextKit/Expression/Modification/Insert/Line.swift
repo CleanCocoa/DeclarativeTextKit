@@ -4,6 +4,9 @@ import Foundation
 
 /// Ensures its ``content`` is enclosed by newline characters left and right upon insertion.
 public struct Line: Insertable {
+    @inlinable
+    static var `break`: Buffer.Content { String.newline }
+
     public let content: Buffer.Content
 
     /// Whether to insert a newline at the end of a ``Buffer``.

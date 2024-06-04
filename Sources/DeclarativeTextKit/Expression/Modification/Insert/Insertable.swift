@@ -34,7 +34,7 @@ public struct InsertableBuilder {
         accumulated: Line,
         next: Line
     ) -> Line {
-        return Line(accumulated.content + .newline + next.content)
+        return Line(accumulated.content + Line.break + next.content)
     }
 
     // MARK: Reducing consecutive Strings
@@ -54,7 +54,7 @@ public struct InsertableBuilder {
         accumulated: String,
         next: Line
     ) -> Line.EndsWithNewlineIfNeeded {
-        return .init(accumulated + .newline + next.content)
+        return .init(accumulated + Line.break + next.content)
     }
 
     @inlinable
@@ -62,7 +62,7 @@ public struct InsertableBuilder {
         accumulated: Line,
         next: String
     ) -> Line.StartsWithNewlineIfNeeded {
-        return .init(accumulated.content + .newline + next)
+        return .init(accumulated.content + Line.break + next)
     }
 
     @inlinable
@@ -70,7 +70,7 @@ public struct InsertableBuilder {
         accumulated: Line.EndsWithNewlineIfNeeded,
         next: String
     ) -> String {
-        return .init(accumulated.content + .newline + next)
+        return .init(accumulated.content + Line.break + next)
     }
 
     @inlinable
@@ -78,7 +78,7 @@ public struct InsertableBuilder {
         accumulated: Line.EndsWithNewlineIfNeeded,
         next: Line
     ) -> Line.EndsWithNewlineIfNeeded {
-        return .init(accumulated.content + .newline + next.content)
+        return .init(accumulated.content + Line.break + next.content)
     }
 
     @inlinable
@@ -94,6 +94,6 @@ public struct InsertableBuilder {
         accumulated: Line.StartsWithNewlineIfNeeded,
         next: Line
     ) -> Line {
-        return .init(accumulated.content + .newline + next.content)
+        return .init(accumulated.content + Line.break + next.content)
     }
 }
