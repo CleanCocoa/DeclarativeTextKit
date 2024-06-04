@@ -26,6 +26,18 @@ public protocol Buffer: AnyObject {
     /// Change selected range in receiver.
     func select(_ range: Range)
 
+    /// Expanded `range` to conver whole lines. Chained calls returns the same line range, i.e. does not expand line by line.
+    ///
+    /// Quoting from `Foundation.NSString.lineRange(for:)` (as of 2024-06-04, Xcode 15.4):
+    ///
+    /// > NSString: A line is delimited by any of these characters, the longest possible sequence being preferred to any shorter:
+    /// >
+    /// > - `U+000A` Unicode Character 'LINE FEED (LF)' (`\n`)
+    /// > - `U+000D` Unicode Character 'CARRIAGE RETURN (CR)' (`\r`)
+    /// > - `U+0085` Unicode Character 'NEXT LINE (NEL)'
+    /// > - `U+2028` Unicode Character 'LINE SEPARATOR'
+    /// > - `U+2029` Unicode Character 'PARAGRAPH SEPARATOR'
+    /// > - `\r\n`, in that order (also known as `CRLF`)
     func lineRange(for range: Range) -> Range
 
     /// - Returns: A character-wide slice of ``content`` at `location`.
