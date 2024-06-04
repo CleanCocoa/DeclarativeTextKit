@@ -17,6 +17,16 @@ public struct InsertableBuilder {
         return first
     }
 
+    // MARK: Reducing consecutive Words
+
+    @inlinable
+    public static func buildPartialBlock(
+        accumulated: Word,
+        next: Word
+    ) -> Word {
+        return Word(accumulated.content + Word.space + next.content)
+    }
+
     // MARK: Reducing consecutive Lines
 
     @inlinable

@@ -6,7 +6,9 @@ import DeclarativeTextKit
 final class InsertTests: XCTestCase {
     var buffer = MutableStringBuffer("")
 
-    func testInsertString() throws {
+    // MARK: - String
+
+    func testInsert_String() throws {
         let insert = Insert(0) {
             "Hello,"
             " "
@@ -19,6 +21,33 @@ final class InsertTests: XCTestCase {
         XCTAssertEqual(buffer.content, "Hello, World!")
         XCTAssertEqual(changeInLength.delta, 13)
     }
+
+    // MARK: - Word
+
+    func testInsert_Word_InEmptyDocument() throws {
+        let insert = Insert(0) {
+            Word("Hi")
+        }
+
+        let changeInLength = try insert.evaluate(in: buffer)
+
+        XCTAssertEqual(buffer.content, "Hi")
+        XCTAssertEqual(changeInLength.delta, 2)
+    }
+
+    func testInsert_MultipleWords_InEmptyDocument() throws {
+        let insert = Insert(0) {
+            Word("Hi")
+            Word("there")
+        }
+
+        let changeInLength = try insert.evaluate(in: buffer)
+
+        XCTAssertEqual(buffer.content, "Hi there")
+        XCTAssertEqual(changeInLength.delta, 8)
+    }
+
+    // MARK: - Line
 
     func testInsert_Lines_InEmptyDocument() throws {
         let insert = Insert(0) {
@@ -55,6 +84,8 @@ final class InsertTests: XCTestCase {
             """)
         XCTAssertEqual(changeInLength.delta, 14)
     }
+
+    // MARK: - Line and String
 
     func testInsert_Line_And_String() throws {
         let insert = Insert(0) {
@@ -161,6 +192,8 @@ final class InsertTests: XCTestCase {
             """)
         XCTAssertEqual(changeInLength.delta, 24)
     }
+
+    // MARK: - Mixing naturally
 
     func testInsertMixed() throws {
         let insert = Insert(0) {

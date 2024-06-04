@@ -21,7 +21,7 @@ public struct Line: Insertable {
     }
 
     public func insert(
-        in buffer: Buffer,
+        in buffer: any Buffer,
         at location: UTF16Offset
     ) throws -> ChangeInLength {
         let newlineBefore = location > buffer.range.lowerBound
