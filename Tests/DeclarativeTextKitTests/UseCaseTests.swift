@@ -4,28 +4,28 @@ import XCTest
 import DeclarativeTextKit
 
 final class UseCaseTests: XCTestCase {
-    func testWrapSelectionInLines() throws {
+    func testWrapSelectionInFencedCodeBlock() throws {
         let buffer = Undoable(MutableStringBuffer("""
-# Heading
+            # Heading
 
-Text here. It is
-not a lot of text.
+            Text here. It is
+            not a lot of text.
 
-But it is nice.
+            But it is nice.
 
-"""))
+            """))
         let selectedRange = Buffer.Range(location: 20, length: 11) // From line 3, "here", up to the next line.
         buffer.selectedRange = selectedRange
 
         assertBufferState(buffer, """
-# Heading
+            # Heading
 
-Text here{. It is
-not} a lot of text.
+            Text here{. It is
+            not} a lot of text.
 
-But it is nice.
+            But it is nice.
 
-""")
+            """)
         if #available(macOS 14.4, *) {
             XCTAssertEqual(buffer.undoManager?.undoCount, 0)
         }
@@ -56,16 +56,16 @@ But it is nice.
         try buffer.insert("raw")  // Simulate typing at the selection
 
         assertBufferState(buffer, """
-# Heading
+            # Heading
 
-```raw{^}
-Text here. It is
-not a lot of text.
-```
+            ```raw{^}
+            Text here. It is
+            not a lot of text.
+            ```
 
-But it is nice.
+            But it is nice.
 
-""")
+            """)
         if #available(macOS 14.4, *) {
             XCTAssertEqual(buffer.undoManager?.undoCount, 2)
         }
@@ -74,57 +74,57 @@ But it is nice.
 
         buffer.undo()
         assertBufferState(buffer, """
-# Heading
+            # Heading
 
-```{^}
-Text here. It is
-not a lot of text.
-```
+            ```{^}
+            Text here. It is
+            not a lot of text.
+            ```
 
-But it is nice.
+            But it is nice.
 
-""")
+            """)
 
         // MARK: 4) Undo transformation including the initial selection
 
         buffer.undo()
 
         assertBufferState(buffer, """
-# Heading
+            # Heading
 
-Text here{. It is
-not} a lot of text.
+            Text here{. It is
+            not} a lot of text.
 
-But it is nice.
+            But it is nice.
 
-""")
+            """)
 
         // MARK: 5) Redo transformation (checking that the undo of the undo works)
 
         buffer.redo()
 
         assertBufferState(buffer, """
-# Heading
+            # Heading
 
-```{^}
-Text here. It is
-not a lot of text.
-```
+            ```{^}
+            Text here. It is
+            not a lot of text.
+            ```
 
-But it is nice.
+            But it is nice.
 
-""")
+            """)
 
         buffer.undo()
 
         assertBufferState(buffer, """
-# Heading
+            # Heading
 
-Text here{. It is
-not} a lot of text.
+            Text here{. It is
+            not} a lot of text.
 
-But it is nice.
+            But it is nice.
 
-""")
+            """)
     }
 }

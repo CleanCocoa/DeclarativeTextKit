@@ -9,11 +9,11 @@ final class SelectTests: XCTestCase {
     override func setUp() async throws {
         await MainActor.run {
             self.textViewBuffer = textView("""
-Hello!
+                Hello!
 
-This is a test.
+                This is a test.
 
-""")
+                """)
         }
     }
 
@@ -100,63 +100,63 @@ This is a test.
 
     func testSelect_RepeatedLineRange() {
         let buffer = MutableStringBuffer("""
-Lorem ipsum
-dolor sit amet,
-consectetur adipisicing.
-""")
+            Lorem ipsum
+            dolor sit amet,
+            consectetur adipisicing.
+            """)
 
         assertBufferState(buffer, """
-{^}Lorem ipsum
-dolor sit amet,
-consectetur adipisicing.
-""")
-
-        buffer.select(LineRange(buffer.selectedRange))
-        assertBufferState(buffer, """
-{Lorem ipsum
-}dolor sit amet,
-consectetur adipisicing.
-""")
+            {^}Lorem ipsum
+            dolor sit amet,
+            consectetur adipisicing.
+            """)
 
         buffer.select(LineRange(buffer.selectedRange))
         assertBufferState(buffer, """
-{Lorem ipsum
-}dolor sit amet,
-consectetur adipisicing.
-""", "Selecting the same line again 'as a line' does not expand selection.")
+            {Lorem ipsum
+            }dolor sit amet,
+            consectetur adipisicing.
+            """)
+
+        buffer.select(LineRange(buffer.selectedRange))
+        assertBufferState(buffer, """
+            {Lorem ipsum
+            }dolor sit amet,
+            consectetur adipisicing.
+            """, "Selecting the same line again 'as a line' does not expand selection.")
     }
 
     func testSelect_LineRangeInRealDocument() throws {
         let buffer = MutableStringBuffer("""
-# Heading
+            # Heading
 
-Text here. It is
-not a lot of text.
+            Text here. It is
+            not a lot of text.
 
-But it is nice.
+            But it is nice.
 
-""")
+            """)
         let selectedRange = Buffer.Range(location: 20, length: 11)
         buffer.select(selectedRange)
         assertBufferState(buffer, """
-# Heading
+            # Heading
 
-Text here{. It is
-not} a lot of text.
+            Text here{. It is
+            not} a lot of text.
 
-But it is nice.
+            But it is nice.
 
-""")
+            """)
 
         _ = try Select(LineRange(selectedRange)).evaluate(in: buffer)
         assertBufferState(buffer, """
-# Heading
+            # Heading
 
-{Text here. It is
-not a lot of text.
-}
-But it is nice.
+            {Text here. It is
+            not a lot of text.
+            }
+            But it is nice.
 
-""")
+            """)
     }
 }
