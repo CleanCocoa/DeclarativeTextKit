@@ -35,6 +35,30 @@ final class InsertTests: XCTestCase {
         XCTAssertEqual(changeInLength.delta, 2)
     }
 
+    func testInsert_Word_InSequenceOfSpaces() throws {
+        buffer = MutableStringBuffer(String(repeating: " ", count: 8))
+        let insert = Insert(4) {
+            Word("Hi")
+        }
+
+        let changeInLength = try insert.evaluate(in: buffer)
+
+        XCTAssertEqual(buffer.content, "    Hi    ")
+        XCTAssertEqual(changeInLength.delta, 2)
+    }
+
+    func testInsert_Word_BetweenNewlines() throws {
+        buffer = MutableStringBuffer(String(repeating: "\n", count: 4))
+        let insert = Insert(2) {
+            Word("Hi")
+        }
+
+        let changeInLength = try insert.evaluate(in: buffer)
+
+        XCTAssertEqual(buffer.content, "\n\nHi\n\n")
+        XCTAssertEqual(changeInLength.delta, 2)
+    }
+
     func testInsert_MultipleWords_InEmptyDocument() throws {
         let insert = Insert(0) {
             Word("Hi")
@@ -45,6 +69,44 @@ final class InsertTests: XCTestCase {
 
         XCTAssertEqual(buffer.content, "Hi there")
         XCTAssertEqual(changeInLength.delta, 8)
+    }
+
+    func testInsert_MultipleWords_InsideLongWord() throws {
+        buffer = MutableStringBuffer("Delicious")
+
+        let insert = Insert(length(of: "Deli")) {
+            Word("ad")
+            Word("break")
+        }
+
+        let changeInLength = try insert.evaluate(in: buffer)
+
+        XCTAssertEqual(buffer.content, "Deli ad break cious")
+        XCTAssertEqual(changeInLength.delta, 10)
+    }
+
+    func testInsert_MultipleWords_BetweenWords_ReusesExistingWhitespace() throws {
+        let string = "we hate"
+        let insertBeforeSpace = Insert(length(of: "we")) {
+            Word("ad")
+            Word("break")
+        }
+        let insertAfterSpace = Insert(length(of: "we ")) {
+            Word("ad")
+            Word("break")
+        }
+
+        let expectedString = "we ad break hate"
+
+        buffer = MutableStringBuffer(string)
+        let changeInLengthBeforeSpace = try insertBeforeSpace.evaluate(in: buffer)
+        XCTAssertEqual(buffer.content, expectedString)
+        XCTAssertEqual(changeInLengthBeforeSpace.delta, 9)
+
+        buffer = MutableStringBuffer(string)
+        let changeInLengthAfterSpace = try insertAfterSpace.evaluate(in: buffer)
+        XCTAssertEqual(buffer.content, expectedString)
+        XCTAssertEqual(changeInLengthAfterSpace.delta, 9)
     }
 
     // MARK: - Line
