@@ -40,6 +40,10 @@ public protocol Buffer: AnyObject {
     /// > - `\r\n`, in that order (also known as `CRLF`)
     func lineRange(for range: Range) -> Range
 
+    /// Expanded `baseRange` to conver whole words. Chained calls returns the same line range, i.e. does not expand line by line.
+    /// - Throws: ``BufferAccessFailure`` if `subrange` exceeds ``range``.
+    func wordRange(for range: Range) throws -> Range
+
     /// - Returns: A character-wide slice of ``content`` at `location`.
     /// - Throws: ``BufferAccessFailure`` if `location` exceeds ``range``.
     func character(at location: Location) throws -> Content
@@ -154,5 +158,51 @@ extension Buffer {
         @ModificationBuilder _ expression: () throws -> ModificationSequence
     ) throws -> ChangeInLength {
         return try expression().evaluate(in: self)
+    }
+}
+
+// MARK: - Word Range
+
+@usableFromInline
+let wordBoundary: CharacterSet = .whitespacesAndNewlines
+    .union(.punctuationCharacters)
+    .union(.symbols)
+    .union(.illegalCharacters)  // Not tested
+
+extension Buffer {
+    @inlinable
+    public func wordRange(
+        for baseRange: Buffer.Range
+    ) throws -> Buffer.Range {
+
+        guard self.contains(range: baseRange)
+        else { throw BufferAccessFailure.outOfRange(requested: baseRange, available: self.range) }
+
+        var start = baseRange.location
+        while start >= self.range.location {
+            guard start < baseRange.endLocation else {
+                start -= 1
+                continue
+            }
+            let character = self.unsafeCharacter(at: start) as NSString
+            if character.rangeOfCharacter(from: wordBoundary) == NSRange(location: 0, length: character.length) {
+                start += character.length
+                break
+            }
+            start -= 1
+        }
+        start = max(start, 0)
+
+        var end = baseRange.endLocation
+        while end < (self.range.endLocation - 1) {
+            let character = self.unsafeCharacter(at: end) as NSString
+            if character.rangeOfCharacter(from: wordBoundary) == NSRange(location: 0, length: character.length) {
+                break
+            }
+            end += character.length
+        }
+        end = max(end, 0)
+
+        return .init(location: start, length: end - start)
     }
 }

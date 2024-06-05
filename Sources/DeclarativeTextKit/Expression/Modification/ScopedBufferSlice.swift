@@ -35,6 +35,11 @@ where Base: Buffer {
         self.scopedRange = scopedRange
     }
 
+    func wordRange(for range: Buffer.Range) throws -> Buffer.Range {
+        fatalError("Not implemented with scope range check") // FIXME: Implement/test scoped word range
+        return try base.wordRange(for: range)
+    }
+
     func lineRange(for range: Base.Range) -> Base.Range {
         return base.lineRange(for: range)
     }
