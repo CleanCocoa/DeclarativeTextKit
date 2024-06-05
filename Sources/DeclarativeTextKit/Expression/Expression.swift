@@ -18,6 +18,15 @@ extension Expression {
 extension Expression where Failure == Never {
     @inlinable @inline(__always)
     public func evaluate(in buffer: Buffer) -> Evaluation {
-        try! self.evaluate(in: buffer).get()
+        return self.evaluate(in: buffer).get()
+    }
+}
+
+extension Swift.Result where Failure == Never {
+    @usableFromInline
+    func get() -> Success {
+        switch self {
+        case .success(let value): return value
+        }
     }
 }
