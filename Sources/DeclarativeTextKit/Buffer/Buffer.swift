@@ -181,6 +181,10 @@ extension Buffer {
         // This bridging overhead isn't ideal while we operate on `Swift.String` as the `Buffer.Content`. It makes NSRange-based string enumeration easier. As long as `wordRange(for:)` is used to apply commands on the user's behalf via DeclarativeTextKit, we should be okay in practice even for longer document. Repeated calls to this function, e.g. in loops, could be a disaster, though. See commit d434030e6d9366941c5cc3fa9c6de860afb74710 for an approach that uses two while loops instead.
         let nsContent = (self.content as NSString)
 
+        func isWordSeparator(_ characterSequence: NSString) -> Bool {
+            return characterSequence.rangeOfCharacter(from: wordBoundary) == NSRange(location: 0, length: characterSequence.length)
+        }
+
         var start = self.range.location
         nsContent.enumerateSubstrings(
             in: Buffer.Range(
@@ -191,7 +195,7 @@ extension Buffer {
         ) { characterSequence, characterSequenceRange, enclosingRange, stop in
             guard let characterSequence = characterSequence as? NSString
             else { assertionFailure(); return }
-            if characterSequence.rangeOfCharacter(from: wordBoundary) == NSRange(location: 0, length: characterSequence.length) {
+            if isWordSeparator(characterSequence) {
                 start = characterSequenceRange.endLocation
                 stop.pointee = true
             }
@@ -207,7 +211,7 @@ extension Buffer {
         ) { characterSequence, characterSequenceRange, enclosingRange, stop in
             guard let characterSequence = characterSequence as? NSString
             else { assertionFailure(); return }
-            if characterSequence.rangeOfCharacter(from: wordBoundary) == NSRange(location: 0, length: characterSequence.length) {
+            if isWordSeparator(characterSequence) {
                 end = characterSequenceRange.location
                 stop.pointee = true
             }
