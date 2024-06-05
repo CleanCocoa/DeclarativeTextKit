@@ -178,31 +178,44 @@ extension Buffer {
         guard self.contains(range: baseRange)
         else { throw BufferAccessFailure.outOfRange(requested: baseRange, available: self.range) }
 
-        var start = baseRange.location
-        while start >= self.range.location {
-            guard start < baseRange.endLocation else {
-                start -= 1
-                continue
-            }
-            let character = self.unsafeCharacter(at: start) as NSString
-            if character.rangeOfCharacter(from: wordBoundary) == NSRange(location: 0, length: character.length) {
-                start += character.length
-                break
-            }
-            start -= 1
-        }
-        start = max(start, 0)
+        // This bridging overhead isn't ideal while we operate on `Swift.String` as the `Buffer.Content`. It makes NSRange-based string enumeration easier. As long as `wordRange(for:)` is used to apply commands on the user's behalf via DeclarativeTextKit, we should be okay in practice even for longer document. Repeated calls to this function, e.g. in loops, could be a disaster, though. See commit d434030e6d9366941c5cc3fa9c6de860afb74710 for an approach that uses two while loops instead.
+        let nsContent = (self.content as NSString)
 
-        var end = baseRange.endLocation
-        while end < (self.range.endLocation - 1) {
-            let character = self.unsafeCharacter(at: end) as NSString
-            if character.rangeOfCharacter(from: wordBoundary) == NSRange(location: 0, length: character.length) {
-                break
+        var start = self.range.location
+        nsContent.enumerateSubstrings(
+            in: Buffer.Range(
+                location: self.range.location,
+                length: baseRange.location
+            ),
+            options: [.byComposedCharacterSequences, .reverse]
+        ) { characterSequence, characterSequenceRange, enclosingRange, stop in
+            guard let characterSequence = characterSequence as? NSString
+            else { assertionFailure(); return }
+            if characterSequence.rangeOfCharacter(from: wordBoundary) == NSRange(location: 0, length: characterSequence.length) {
+                start = characterSequenceRange.endLocation
+                stop.pointee = true
             }
-            end += character.length
         }
-        end = max(end, 0)
 
-        return .init(location: start, length: end - start)
+        var end = self.range.endLocation
+        nsContent.enumerateSubstrings(
+            in: Buffer.Range(
+                location: baseRange.endLocation,
+                length: self.range.length - baseRange.endLocation
+            ),
+            options: [.byComposedCharacterSequences]
+        ) { characterSequence, characterSequenceRange, enclosingRange, stop in
+            guard let characterSequence = characterSequence as? NSString
+            else { assertionFailure(); return }
+            if characterSequence.rangeOfCharacter(from: wordBoundary) == NSRange(location: 0, length: characterSequence.length) {
+                end = characterSequenceRange.location
+                stop.pointee = true
+            }
+        }
+
+        return Buffer.Range(
+            location: start,
+            length: end - start
+        )
     }
 }
