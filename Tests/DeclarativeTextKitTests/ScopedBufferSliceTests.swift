@@ -112,11 +112,12 @@ final class ScopedBufferSliceTests: XCTestCase {
     func testLineRange_InsideBounds() throws {
         let scopedSlice = createScopedBufferSlice()
 
+        let expectedLineRange = Buffer.Range(location: 0, length: 10)
         for locationInBounds in (availableRange.location ... availableRange.endLocation) {
             let searchRange = Buffer.Range(location: locationInBounds, length: 0)
             let lineRange = try scopedSlice.lineRange(for: searchRange)
-            XCTAssertEqual(lineRange, availableRange,
-                           "Scoped buffer ranges should not exceed scope")
+            XCTAssertEqual(lineRange, expectedLineRange,
+                           "Range finding may extend beyond scope for action chaining")
         }
     }
 
@@ -368,6 +369,26 @@ final class ScopedBufferSliceTests: XCTestCase {
 }
 
 extension ScopedBufferSliceTests {
+    func testExpandingSelectionRangeBeyondScope() throws {
+        let baseBuffer = try buffer("""
+            first
+            se{co}nd
+            third
+            """)
+
+        try baseBuffer.evaluate {
+            Modifying(SelectedRange(baseBuffer.selectedRange)) { scopedRange in
+                Select(LineRange(scopedRange.value))
+            }
+        }
+
+        assertBufferState(baseBuffer, """
+            first
+            {second
+            }third
+            """)
+    }
+
     func testModifying_DelegatesToBaseAndProtectsScope() throws {
         class Delegate: NSObject, NSTextViewDelegate {
             var shouldChangeText = false

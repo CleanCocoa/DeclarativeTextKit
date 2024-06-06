@@ -42,15 +42,7 @@ where Base: Buffer {
                 available: scopedRange
             )
         }
-        // TODO: Consider not trimming the line range. From a scoped buffer, expanding the selection might be desirable.
-        let lineRange = try base.lineRange(for: searchRange)
-        guard let trimmedLineRange = lineRange.intersection(scopedRange) else {
-            throw BufferAccessFailure.outOfRange(
-                requested: searchRange,
-                available: scopedRange
-            )
-        }
-        return trimmedLineRange
+        return try base.lineRange(for: searchRange)
     }
 
     func content(in subrange: UTF16Range) throws -> Base.Content {
