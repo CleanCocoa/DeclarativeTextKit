@@ -90,6 +90,36 @@ final class ScopedBufferSliceTests: XCTestCase {
         }
     }
 
+    func testLineRange_OutsideBounds() throws {
+        let scopedSlice = createScopedBufferSlice()
+
+        let rangesOutOfBounds: [Buffer.Range] = [
+            .init(location: 1, length: 8),
+            .init(location: 2, length: 4),
+            .init(location: 4, length: 4),
+        ]
+        for rangeOutOfBound in rangesOutOfBounds {
+            assertThrows(
+                try scopedSlice.lineRange(for: rangeOutOfBound),
+                error: BufferAccessFailure.outOfRange(
+                    requested: rangeOutOfBound,
+                    available: availableRange
+                )
+            )
+        }
+    }
+
+    func testLineRange_InsideBounds() throws {
+        let scopedSlice = createScopedBufferSlice()
+
+        for locationInBounds in (availableRange.location ... availableRange.endLocation) {
+            let searchRange = Buffer.Range(location: locationInBounds, length: 0)
+            let lineRange = try scopedSlice.lineRange(for: searchRange)
+            XCTAssertEqual(lineRange, availableRange,
+                           "Scoped buffer ranges should not exceed scope")
+        }
+    }
+
     func testCharacterAtLocation() throws {
         let scopedSlice = createScopedBufferSlice()
 
