@@ -76,7 +76,7 @@ final class SelectTests: XCTestCase {
 
         XCTAssertEqual(try Select(location: 0, length: 3).evaluate(in: buffer).delta, 0)
 
-        XCTAssertEqual(try Select(LineRange(.init(location: 0, length: 1))).evaluate(in: buffer).delta, 0)
+        XCTAssertEqual(try Select(LineRange(location: 0, length: 1)).evaluate(in: buffer).delta, 0)
     }
 
     func testSelect_BufferLocations() throws {
@@ -185,7 +185,7 @@ final class SelectTests: XCTestCase {
             try assertLineRanges(location: location)
         }
 
-        _ = try Select(LineRange(.init(location: 2, length: 10))).evaluate(in: buffer)
+        _ = try Select(LineRange(location: 2, length: 10)).evaluate(in: buffer)
         XCTAssertEqual(buffer.selectedRange, buffer.range)
     }
 

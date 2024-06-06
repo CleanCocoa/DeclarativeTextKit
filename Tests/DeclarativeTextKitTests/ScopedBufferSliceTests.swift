@@ -376,7 +376,7 @@ extension ScopedBufferSliceTests {
 
         try baseBuffer.evaluate {
             Modifying(SelectedRange(baseBuffer.selectedRange)) { scopedRange in
-                Select(WordRange(scopedRange.value))
+                Select(WordRange(scopedRange))
             }
         }
 
@@ -392,7 +392,7 @@ extension ScopedBufferSliceTests {
 
         try baseBuffer.evaluate {
             Modifying(SelectedRange(baseBuffer.selectedRange)) { scopedRange in
-                Select(LineRange(scopedRange.value))
+                Select(LineRange(scopedRange))
             }
         }
 
