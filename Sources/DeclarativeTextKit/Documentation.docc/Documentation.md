@@ -73,9 +73,16 @@ Text Kit's text views behave as buffers, but offer a much wider surface API to 
 
 - ``Select-struct``
 
-### Range Finders
+### Semantic Selections: Range Finders
 
 "Range finders" are used to expand a buffer's selected range to common semantic units. The are used as parameter for ``Select`` commands. 
 
 - ``WordRange``
 - ``LineRange``
+
+### Semantic Insertions
+
+``Insertable``s are used to express expectations about the buffer's resulting state after an insertion.
+
+- ``Line``
+- ``Word``
