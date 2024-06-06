@@ -4,6 +4,52 @@ import XCTest
 import DeclarativeTextKit
 
 final class UseCaseTests: XCTestCase {
+    func testWrapSelectionInStrongEmphasis() throws {
+        let buffer = Undoable(MutableStringBuffer("""
+            Welcome, fellow traveller, to these barren lands!
+            """))
+        buffer.selectedRange = Buffer.Range(
+            location: length(of: "Welcome, fel"),
+            length: length(of: "low travel")
+        )
+
+        assertBufferState(buffer, """
+            Welcome, fel{low travel}ler, to these barren lands!
+            """)
+
+        // MARK: Perform change to word range
+
+        let changeInLength = try buffer.evaluate {
+            Select(WordRange(buffer.selectedRange)) { wordRange in
+                Modifying(wordRange) { rangeToWrap in
+                    Insert(rangeToWrap.location) { Word.LeftPadded("**") }
+                    Insert(rangeToWrap.endLocation) { Word.RightPadded("**") }
+                }
+
+                Select(wordRange)
+            }
+        }
+        XCTAssertEqual(changeInLength.delta, 4)
+
+        assertBufferState(buffer, """
+            Welcome, {**fellow traveller**}, to these barren lands!
+            """)
+
+        // MARK: Undo
+
+        buffer.undo()
+        assertBufferState(buffer, """
+            Welcome, fel{low travel}ler, to these barren lands!
+            """)
+
+        // MARK: Redo
+
+        buffer.redo()
+        assertBufferState(buffer, """
+            Welcome, {**fellow traveller**}, to these barren lands!
+            """)
+    }
+
     func testWrapSelectionInFencedCodeBlock() throws {
         let buffer = Undoable(MutableStringBuffer("""
             # Heading
