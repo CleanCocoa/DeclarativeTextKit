@@ -245,6 +245,7 @@ extension Buffer {
                 }
                 searchRange = Buffer.Range(
                     location: self.range.location,
+                    // TODO: In ScopedSliceBuffer, this may fail because `length: location` assumes `self.range` starts from 0. See range checks below. Haven't found a failing case for this yet, though.
                     length: location
                 )
             } else {
@@ -253,6 +254,7 @@ extension Buffer {
                 }
                 searchRange = Buffer.Range(
                     location: location,
+                    // TODO: In ScopedSliceBuffer, this may fail because `self.range.length - location` assumes `self.range` starts from the 0 location. See range checks below. Haven't found a failing case for this yet, though.
                     length: self.range.length - location
                 )
             }

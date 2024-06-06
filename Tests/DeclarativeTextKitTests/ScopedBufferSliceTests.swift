@@ -7,8 +7,7 @@ final class ScopedBufferSliceTests: XCTestCase {
     let availableRange = Buffer.Range(location: 3, length: 3)
 
     func createScopedBufferSlice() -> ScopedBufferSlice<MutableStringBuffer> {
-        let base = MutableStringBuffer("0123456789")
-        base.insertionLocation = 8
+        let base = try! buffer("01234567{^}89")
         let scopedSlice = try! ScopedBufferSlice(base: base, scopedRange: availableRange)
         return scopedSlice
     }
@@ -80,13 +79,17 @@ final class ScopedBufferSliceTests: XCTestCase {
     }
 
     func testWordRange_InsideBounds() throws {
-        let scopedSlice = createScopedBufferSlice()
+        let baseBuffer = try buffer("foo b{ar}f baz")
+        let scopedSlice = try ScopedBufferSlice(base: baseBuffer, scopedRange: baseBuffer.selectedRange)
 
-        for locationInBounds in (availableRange.location ..< availableRange.endLocation) {
+        let expectedWordRange = Buffer.Range(
+            location: length(of: "foo "),
+            length: length(of: "barf")
+        )
+        for locationInBounds in (scopedSlice.scopedRange.location ..< scopedSlice.scopedRange.endLocation) {
             let searchRange = Buffer.Range(location: locationInBounds, length: 0)
-            let wordRange = try scopedSlice.wordRange(for: searchRange)
-            XCTAssertEqual(wordRange, availableRange,
-                           "Scoped buffer ranges should not exceed scope")
+            XCTAssertEqual(try scopedSlice.wordRange(for: searchRange), expectedWordRange,
+                           "Range finding may extend beyond scope for action chaining")
         }
     }
 
@@ -369,7 +372,19 @@ final class ScopedBufferSliceTests: XCTestCase {
 }
 
 extension ScopedBufferSliceTests {
-    func testExpandingSelectionRangeBeyondScope() throws {
+    func testExpandingSelectionRangeBeyondScope_ByWord() throws {
+        let baseBuffer = try buffer("foo ba{r fiz}z buzz")
+
+        try baseBuffer.evaluate {
+            Modifying(SelectedRange(baseBuffer.selectedRange)) { scopedRange in
+                Select(WordRange(scopedRange.value))
+            }
+        }
+
+        assertBufferState(baseBuffer, "foo {bar fizz} buzz")
+    }
+
+    func testExpandingSelectionRangeBeyondScope_ByLine() throws {
         let baseBuffer = try buffer("""
             first
             se{co}nd
