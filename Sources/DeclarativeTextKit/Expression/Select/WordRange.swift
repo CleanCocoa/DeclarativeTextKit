@@ -11,6 +11,15 @@ public struct WordRange<Base: BufferRangeExpression> {
     }
 }
 
+extension WordRange where Base == Buffer.Range {
+    public init(
+        location: Buffer.Location,
+        length: Buffer.Length = 0
+    ) {
+        self.init(Buffer.Range(location: location, length: length))
+    }
+}
+
 extension WordRange: BufferRangeExpression {
     public typealias Evaluation = WordRangeInBuffer
     public typealias Failure = Never
