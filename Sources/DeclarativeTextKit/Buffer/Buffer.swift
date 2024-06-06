@@ -26,7 +26,7 @@ public protocol Buffer: AnyObject {
     /// Change selected range in receiver.
     func select(_ range: Range)
 
-    /// Expanded `range` to conver whole lines. Chained calls returns the same line range, i.e. does not expand line by line.
+    /// Expanded `searchRange` to conver whole lines. Chained calls returns the same line range, i.e. does not expand line by line.
     ///
     /// Quoting from `Foundation.NSString.lineRange(for:)` (as of 2024-06-04, Xcode 15.4):
     ///
@@ -38,7 +38,7 @@ public protocol Buffer: AnyObject {
     /// > - `U+2028` Unicode Character 'LINE SEPARATOR'
     /// > - `U+2029` Unicode Character 'PARAGRAPH SEPARATOR'
     /// > - `\r\n`, in that order (also known as `CRLF`)
-    func lineRange(for range: Range) -> Range
+    func lineRange(for searchRange: Range) throws -> Range
 
     /// Expanded `baseRange` to conver whole words. Chained calls returns the same line range, i.e. does not expand line by line.
     /// - Throws: ``BufferAccessFailure`` if `subrange` exceeds ``range``.

@@ -157,7 +157,7 @@ final class SelectTests: XCTestCase {
 
             _ = try Select(LineRange(range)).evaluate(in: buffer)
 
-            let expectedRange = buffer.lineRange(for: range)
+            let expectedRange = try buffer.lineRange(for: range)
             XCTAssertEqual(buffer.selectedRange, expectedRange, file: file, line: line)
         }
 

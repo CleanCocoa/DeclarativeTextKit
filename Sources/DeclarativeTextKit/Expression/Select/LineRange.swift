@@ -17,7 +17,7 @@ extension LineRange: BufferRangeExpression {
         let inputRange: Buffer.Range
 
         public func bufferRange() throws -> Buffer.Range {
-            return buffer.lineRange(for: inputRange)
+            return try buffer.lineRange(for: inputRange)
         }
     }
 

@@ -45,8 +45,14 @@ where Base: Buffer {
         return try base.wordRange(for: range)
     }
 
-    func lineRange(for range: Base.Range) -> Base.Range {
-        return base.lineRange(for: range)
+    func lineRange(for searchRange: Base.Range) throws -> Base.Range {
+        guard contains(range: searchRange) else {
+            throw BufferAccessFailure.outOfRange(
+                requested: searchRange,
+                available: scopedRange
+            )
+        }
+        return try base.lineRange(for: searchRange)
     }
 
     func content(in subrange: UTF16Range) throws -> Base.Content {

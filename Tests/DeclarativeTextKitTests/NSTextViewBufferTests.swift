@@ -157,14 +157,41 @@ final class NSTextViewBufferTests: XCTestCase {
         let buffer = textView("aa\nbb\ncc")
 
         // Individual lines
-        XCTAssertEqual(buffer.lineRange(for: .init(location: 0, length: 0)), .init(location: 0, length: 3))
-        XCTAssertEqual(buffer.lineRange(for: .init(location: 3, length: 0)), .init(location: 3, length: 3))
-        XCTAssertEqual(buffer.lineRange(for: .init(location: 6, length: 0)), .init(location: 6, length: 2))
+        XCTAssertEqual(try buffer.lineRange(for: .init(location: 0, length: 0)), .init(location: 0, length: 3))
+        XCTAssertEqual(try buffer.lineRange(for: .init(location: 3, length: 0)), .init(location: 3, length: 3))
+        XCTAssertEqual(try buffer.lineRange(for: .init(location: 6, length: 0)), .init(location: 6, length: 2))
 
         // Wrapping lines
-        XCTAssertEqual(buffer.lineRange(for: .init(location: 1, length: 3)), .init(location: 0, length: 6))
-        XCTAssertEqual(buffer.lineRange(for: .init(location: 4, length: 3)), .init(location: 3, length: 5))
-        XCTAssertEqual(buffer.lineRange(for: .init(location: 1, length: 7)), buffer.range)
+        XCTAssertEqual(try buffer.lineRange(for: .init(location: 1, length: 3)), .init(location: 0, length: 6))
+        XCTAssertEqual(try buffer.lineRange(for: .init(location: 4, length: 3)), .init(location: 3, length: 5))
+        XCTAssertEqual(try buffer.lineRange(for: .init(location: 1, length: 7)), buffer.range)
+    }
+
+    func testLineRange_OutOfBounds() {
+        let buffer = textView("aa\nbb\ncc")
+
+        let invalidRanges: [Buffer.Range] = [
+            .init(location: -1, length: 999),
+            .init(location: -1, length: 1),
+            .init(location: -1, length: 0),
+            .init(location: 9, length: -2),
+            .init(location: 9, length: -1),
+            .init(location: 1, length: 999),
+            .init(location: 9, length: 1),
+            .init(location: 10, length: 0),
+            .init(location: 100, length: 999),
+        ]
+        let expectedAvailableRange = Buffer.Range(location: 0, length: 8)
+        for invalidRange in invalidRanges {
+            assertThrows(
+                try buffer.lineRange(for: invalidRange),
+                error: BufferAccessFailure.outOfRange(
+                    requested: invalidRange,
+                    available: expectedAvailableRange
+                ),
+                "Accessing line range in \(invalidRange)"
+            )
+        }
     }
 
     func testDelete() throws {
