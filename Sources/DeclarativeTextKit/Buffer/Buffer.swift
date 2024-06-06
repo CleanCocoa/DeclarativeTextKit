@@ -42,7 +42,7 @@ public protocol Buffer: AnyObject {
 
     /// Expanded `baseRange` to conver whole words. Chained calls returns the same line range, i.e. does not expand line by line.
     /// - Throws: ``BufferAccessFailure`` if `subrange` exceeds ``range``.
-    func wordRange(for range: Range) throws -> Range
+    func wordRange(for searchRange: Range) throws -> Range
 
     /// - Returns: A character-wide slice of ``content`` at `location`.
     /// - Throws: ``BufferAccessFailure`` if `location` exceeds ``range``.
