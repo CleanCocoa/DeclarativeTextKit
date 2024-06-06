@@ -61,11 +61,46 @@ final class BufferWordRangeTests: XCTestCase {
 extension BufferWordRangeTests {
     func testWordRange_ValidCases() throws {
         var samples: [String : String] = [:]
+        samples << [ // Empty buffer maintains selection
+            "{^}"                  : "{^}",
+            "  {^}  "              : "  {^}  ",
+            " \n\t {^} \n\t "      : " \n\t {^} \n\t ",
+            " \n\t { \t\n } \n\t " : " \n\t { \t\n } \n\t ",
+        ]
+        samples << [ // Direct selection of adjacent, sole non-boundary character
+            "a{^}"    : "{a}",
+            "{a}"     : "{a}",
+            "foo{^}"  : "{foo}",
+            "{foo}"   : "{foo}",
+            "{^}foo"  : "{foo}",
+            "你{^}"    : "{你}",
+            "你好{^}"  : "{你好}",
+        ]
+        samples << [ // Skipping whitespace to find next word forward
+            "{^}  \n\t\r  foo  " : "  \n\t\r  {foo}  ",
+            "  \n\t\r  foo  {^}" : "  \n\t\r  {foo}  ",
+            "foo {^} \n\t bar"   : "foo  \n\t {bar}",
+            "你  {^}  好"         : "你    {好}",
+        ]
+        samples << [ // Maintain existing whitespace from selection
+            "  {   foo   }  "      : "  {   foo   }  ",
+            "  {   foo   }  bar  " : "  {   foo   }  bar  ",  // It could be argued that this should select up to "bar", but that's not a static word range finder, but a "select next word" algorithm
+        ]
+        samples << [ // Selecting symbols, too, if that's all there is adjacent to insertion point
+            "?{^}"   : "{?}",
+            "{^}?"   : "{?}",
+            "{?}"    : "{?}",
+            "a!{^}"  : "{a!}",
+            "a{!}"   : "{a!}",
+            "{^},b"  : "{,b}",
+            "{,}b"   : "{,b}",
+        ]
         samples << [
-            "a{^}"         : "{a}",
-            "{a}"          : "{a}",
-            "你{^}"         : "{你}",
-            "你好{^}"       : "{你好}",
+            "{^}(foo bar)" : "{(foo} bar)",
+            "{^}(foo) bar" : "{(foo)} bar",
+            "(foo){^} bar" : "{(foo)} bar",
+            "(foo bar){^}" : "(foo {bar)}",
+            "foo (bar){^}" : "foo {(bar)}",
         ]
         samples << [
             "⭐️{^}"       : "{⭐️}",
@@ -123,7 +158,7 @@ extension BufferWordRangeTests {
             )
             XCTAssertEqual(
                 buf.description, expectedOutput,
-                "Given \"\(sanitized(input))\" expected \"\(sanitized(expectedOutput))\""
+                "Given \"\(sanitized(input))\""
             )
         }
     }

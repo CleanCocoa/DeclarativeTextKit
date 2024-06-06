@@ -181,40 +181,106 @@ extension Buffer {
         // This bridging overhead isn't ideal while we operate on `Swift.String` as the `Buffer.Content`. It makes NSRange-based string enumeration easier. As long as `wordRange(for:)` is used to apply commands on the user's behalf via DeclarativeTextKit, we should be okay in practice even for longer document. Repeated calls to this function, e.g. in loops, could be a disaster, though. See commit d434030e6d9366941c5cc3fa9c6de860afb74710 for an approach that uses two while loops instead.
         let nsContent = (self.content as NSString)
 
-        func isWordSeparator(_ characterSequence: NSString) -> Bool {
+        func isWordSeparator(
+            _ characterSequence: NSString,
+            wordBoundary: CharacterSet
+        ) -> Bool {
             return characterSequence.rangeOfCharacter(from: wordBoundary) == NSRange(location: 0, length: characterSequence.length)
         }
 
-        var start = self.range.location
-        nsContent.enumerateSubstrings(
-            in: Buffer.Range(
-                location: self.range.location,
-                length: baseRange.location
-            ),
-            options: [.byComposedCharacterSequences, .reverse]
-        ) { characterSequence, characterSequenceRange, enclosingRange, stop in
-            guard let characterSequence = characterSequence as? NSString
-            else { assertionFailure(); return }
-            if isWordSeparator(characterSequence) {
-                start = characterSequenceRange.endLocation
-                stop.pointee = true
+        func matchedRange(
+            in searchRange: NSRange,
+            wordBoundary: CharacterSet
+        ) -> (start: Buffer.Location, end: Buffer.Location) {
+            var start = searchRange.location
+            nsContent.enumerateSubstrings(
+                in: Buffer.Range(
+                    location: self.range.location,
+                    length: searchRange.location
+                ),
+                options: [.byComposedCharacterSequences, .reverse]
+            ) { characterSequence, characterSequenceRange, enclosingRange, stop in
+                guard let characterSequence = characterSequence as? NSString
+                else { assertionFailure(); return }
+                if isWordSeparator(characterSequence, wordBoundary: wordBoundary) {
+                    stop.pointee = true
+                } else {
+                    start = characterSequenceRange.location
+                }
             }
+
+            var end = searchRange.endLocation
+            nsContent.enumerateSubstrings(
+                in: Buffer.Range(
+                    location: searchRange.endLocation,
+                    length: self.range.length - searchRange.endLocation
+                ),
+                options: [.byComposedCharacterSequences]
+            ) { characterSequence, characterSequenceRange, enclosingRange, stop in
+                guard let characterSequence = characterSequence as? NSString
+                else { assertionFailure(); return }
+                if isWordSeparator(characterSequence, wordBoundary: wordBoundary) {
+                    stop.pointee = true
+                } else {
+                    end = characterSequenceRange.endLocation
+                }
+            }
+
+            return (start, end)
         }
 
-        var end = self.range.endLocation
-        nsContent.enumerateSubstrings(
-            in: Buffer.Range(
-                location: baseRange.endLocation,
-                length: self.range.length - baseRange.endLocation
-            ),
-            options: [.byComposedCharacterSequences]
-        ) { characterSequence, characterSequenceRange, enclosingRange, stop in
-            guard let characterSequence = characterSequence as? NSString
-            else { assertionFailure(); return }
-            if isWordSeparator(characterSequence) {
-                end = characterSequenceRange.location
-                stop.pointee = true
+        func firstNonSkippable(
+            location: Buffer.Location,
+            wordBoundary: CharacterSet,
+            reverse: Bool
+        ) -> Buffer.Location? {
+            var options: NSString.EnumerationOptions = [.byComposedCharacterSequences]
+            let searchRange: Buffer.Range
+            if reverse {
+                options.insert(.reverse)
+                if location < self.range.location {
+                    return nil  // at beginning of buffer
+                }
+                searchRange = Buffer.Range(
+                    location: self.range.location,
+                    length: location
+                )
+            } else {
+                if location >= self.range.endLocation {
+                    return nil // at end of buffer
+                }
+                searchRange = Buffer.Range(
+                    location: location,
+                    length: self.range.length - location
+                )
             }
+
+            var result: Buffer.Location? = nil
+            nsContent.enumerateSubstrings(
+                in: searchRange,
+                options: options
+            ) { characterSequence, characterSequenceRange, enclosingRange, stop in
+                guard let characterSequence = characterSequence as? NSString
+                else { assertionFailure(); return }
+                if isWordSeparator(characterSequence, wordBoundary: wordBoundary) {
+                    // Skip whitespace
+                } else {
+                    result = reverse
+                    ? characterSequenceRange.endLocation  // skip up to *after* the match coming from right
+                    : characterSequenceRange.location
+                    stop.pointee = true
+                }
+            }
+            return result
+        }
+
+        var (start, end) = matchedRange(in: baseRange, wordBoundary: wordBoundary)
+
+        // If the result is an empty range, characters adjacent to the location were all `wordBoundary` characters. Then we need to try again with relaxed conditions, skipping over whitespace first. Try forward search, then backward.
+        if start == end,
+           let location = firstNonSkippable(location: start, wordBoundary: .whitespacesAndNewlines, reverse: false)
+            ?? firstNonSkippable(location: start, wordBoundary: .whitespacesAndNewlines, reverse: true) {
+            (start, end) = matchedRange(in: .init(location: location, length: 0), wordBoundary: .whitespacesAndNewlines)
         }
 
         return Buffer.Range(
