@@ -4,6 +4,10 @@ import Foundation
 
 /// Ensures its ``content`` is enclosed by newline characters left and right upon insertion.
 public struct Line: Insertable {
+    /// Linebreak character inserted around ``content`` as needed.
+    @inlinable
+    static var `break`: Buffer.Content { String.newline }
+
     public let content: Buffer.Content
 
     /// Whether to insert a newline at the end of a ``Buffer``.
@@ -21,28 +25,28 @@ public struct Line: Insertable {
     }
 
     public func insert(
-        in buffer: Buffer,
+        in buffer: any Buffer,
         at location: UTF16Offset
     ) throws -> ChangeInLength {
         let newlineBefore = location > buffer.range.lowerBound
-            ? buffer.newline(at: location - 1)
+            ? buffer.lineBreak(at: location - 1)
             : true  // Favor not adding a newline at the start of a file
         let newlineAfter = location < buffer.range.upperBound
-            ? buffer.newline(at: location)
+            ? buffer.lineBreak(at: location)
             : !insertFinalNewline
 
         var changeInLength = ChangeInLength()
 
         if !newlineAfter {
-            try buffer.insert(.newline, at: location)
-            changeInLength += ChangeInLength(.newline)
+            try buffer.insert(Line.break, at: location)
+            changeInLength += ChangeInLength(Line.break)
         }
 
         changeInLength += try content.insert(in: buffer, at: location)
 
         if !newlineBefore {
-            try buffer.insert(.newline, at: location)
-            changeInLength += ChangeInLength(.newline)
+            try buffer.insert(Line.break, at: location)
+            changeInLength += ChangeInLength(Line.break)
         }
 
         return changeInLength
@@ -69,7 +73,7 @@ extension Line {
             at location: UTF16Offset
         ) throws -> ChangeInLength {
             let newlineBefore = location > buffer.range.lowerBound
-                ? buffer.newline(at: location - 1)
+                ? buffer.lineBreak(at: location - 1)
                 : true  // Favor not adding a newline at the start of a file
 
             var changeInLength = ChangeInLength()
@@ -77,8 +81,8 @@ extension Line {
             changeInLength += try content.insert(in: buffer, at: location)
 
             if !newlineBefore {
-                try buffer.insert(.newline, at: location)
-                changeInLength += ChangeInLength(.newline)
+                try buffer.insert(Line.break, at: location)
+                changeInLength += ChangeInLength(Line.break)
             }
 
             return changeInLength
@@ -107,15 +111,16 @@ extension Line {
             at location: UTF16Offset
         ) throws -> ChangeInLength {
             let newlineAfter = location < buffer.range.upperBound
-                ? buffer.newline(at: location)
+                ? buffer.lineBreak(at: location)
                 : !insertFinalNewline
 
             var changeInLength = ChangeInLength()
 
             if !newlineAfter {
-                try buffer.insert(.newline, at: location)
-                changeInLength += ChangeInLength(.newline)
+                try buffer.insert(Line.break, at: location)
+                changeInLength += ChangeInLength(Line.break)
             }
+
             changeInLength += try content.insert(in: buffer, at: location)
 
             return changeInLength
@@ -130,7 +135,7 @@ extension String {
 
 extension Buffer {
     @usableFromInline
-    func newline(at location: UTF16Offset) -> Bool {
-        return unsafeCharacter(at: location) == .newline
+    func lineBreak(at location: UTF16Offset) -> Bool {
+        return unsafeCharacter(at: location) == Line.break
     }
 }

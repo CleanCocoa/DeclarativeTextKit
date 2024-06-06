@@ -26,7 +26,23 @@ public protocol Buffer: AnyObject {
     /// Change selected range in receiver.
     func select(_ range: Range)
 
-    func lineRange(for range: Range) -> Range
+    /// Expanded `searchRange` to conver whole lines. Chained calls returns the same line range, i.e. does not expand line by line.
+    ///
+    /// Quoting from `Foundation.NSString.lineRange(for:)` (as of 2024-06-04, Xcode 15.4):
+    ///
+    /// > NSString: A line is delimited by any of these characters, the longest possible sequence being preferred to any shorter:
+    /// >
+    /// > - `U+000A` Unicode Character 'LINE FEED (LF)' (`\n`)
+    /// > - `U+000D` Unicode Character 'CARRIAGE RETURN (CR)' (`\r`)
+    /// > - `U+0085` Unicode Character 'NEXT LINE (NEL)'
+    /// > - `U+2028` Unicode Character 'LINE SEPARATOR'
+    /// > - `U+2029` Unicode Character 'PARAGRAPH SEPARATOR'
+    /// > - `\r\n`, in that order (also known as `CRLF`)
+    func lineRange(for searchRange: Range) throws -> Range
+
+    /// Expanded `baseRange` to conver whole words. Chained calls returns the same line range, i.e. does not expand line by line.
+    /// - Throws: ``BufferAccessFailure`` if `subrange` exceeds ``range``.
+    func wordRange(for searchRange: Range) throws -> Range
 
     /// - Returns: A character-wide slice of ``content`` at `location`.
     /// - Throws: ``BufferAccessFailure`` if `location` exceeds ``range``.
@@ -142,5 +158,173 @@ extension Buffer {
         @ModificationBuilder _ expression: () throws -> ModificationSequence
     ) throws -> ChangeInLength {
         return try expression().evaluate(in: self)
+    }
+}
+
+// MARK: - Word Range
+
+@usableFromInline
+let wordBoundary: CharacterSet = .whitespacesAndNewlines
+    .union(.punctuationCharacters)
+    .union(.symbols)
+    .union(.illegalCharacters)  // Not tested
+
+extension Buffer {
+    @inlinable
+    public func wordRange(
+        for baseRange: Buffer.Range
+    ) throws -> Buffer.Range {
+
+        guard self.contains(range: baseRange)
+        else { throw BufferAccessFailure.outOfRange(requested: baseRange, available: self.range) }
+
+        // This bridging overhead isn't ideal while we operate on `Swift.String` as the `Buffer.Content`. It makes NSRange-based string enumeration easier. As long as `wordRange(for:)` is used to apply commands on the user's behalf via DeclarativeTextKit, we should be okay in practice even for longer document. Repeated calls to this function, e.g. in loops, could be a disaster, though. See commit d434030e6d9366941c5cc3fa9c6de860afb74710 for an approach that uses two while loops instead.
+        let nsContent = (self.content as NSString)
+
+        func isWordSeparator(
+            _ characterSequence: NSString,
+            wordBoundary: CharacterSet
+        ) -> Bool {
+            return characterSequence.rangeOfCharacter(from: wordBoundary) == NSRange(location: 0, length: characterSequence.length)
+        }
+
+        func matchedRange(
+            in searchRange: NSRange,
+            wordBoundary: CharacterSet
+        ) -> (start: Buffer.Location, end: Buffer.Location) {
+            var start = searchRange.location
+            nsContent.enumerateSubstrings(
+                in: Buffer.Range(
+                    location: self.range.location,
+                    // Account for start locations >0 (e.g. in ScopedBufferSlice) in length calculation
+                    length: searchRange.location - self.range.location
+                ),
+                options: [.byComposedCharacterSequences, .reverse]
+            ) { characterSequence, characterSequenceRange, enclosingRange, stop in
+                guard let characterSequence = characterSequence as? NSString
+                else { assertionFailure(); return }
+                if isWordSeparator(characterSequence, wordBoundary: wordBoundary) {
+                    stop.pointee = true
+                } else {
+                    start = characterSequenceRange.location
+                }
+            }
+
+            var end = searchRange.endLocation
+            nsContent.enumerateSubstrings(
+                in: Buffer.Range(
+                    location: searchRange.endLocation,
+                    // Account for start locations >0 (e.g. in ScopedBufferSlice) in length calculation
+                    length: self.range.endLocation - searchRange.endLocation
+                ),
+                options: [.byComposedCharacterSequences]
+            ) { characterSequence, characterSequenceRange, enclosingRange, stop in
+                guard let characterSequence = characterSequence as? NSString
+                else { assertionFailure(); return }
+                if isWordSeparator(characterSequence, wordBoundary: wordBoundary) {
+                    stop.pointee = true
+                } else {
+                    end = characterSequenceRange.endLocation
+                }
+            }
+
+            return (start, end)
+        }
+
+        func firstNonSkippable(
+            location: Buffer.Location,
+            wordBoundary: CharacterSet,
+            reverse: Bool
+        ) -> Buffer.Location? {
+            var options: NSString.EnumerationOptions = [.byComposedCharacterSequences]
+            let searchRange: Buffer.Range
+            if reverse {
+                options.insert(.reverse)
+                if location < self.range.location {
+                    return nil  // at beginning of buffer
+                }
+                searchRange = Buffer.Range(
+                    location: self.range.location,
+                    // TODO: In ScopedSliceBuffer, this may fail because `length: location` assumes `self.range` starts from 0. See range checks below. Haven't found a failing case for this yet, though.
+                    length: location
+                )
+            } else {
+                if location >= self.range.endLocation {
+                    return nil // at end of buffer
+                }
+                searchRange = Buffer.Range(
+                    location: location,
+                    // TODO: In ScopedSliceBuffer, this may fail because `self.range.length - location` assumes `self.range` starts from the 0 location. See range checks below. Haven't found a failing case for this yet, though.
+                    length: self.range.length - location
+                )
+            }
+
+            var result: Buffer.Location? = nil
+            nsContent.enumerateSubstrings(
+                in: searchRange,
+                options: options
+            ) { characterSequence, characterSequenceRange, enclosingRange, stop in
+                guard let characterSequence = characterSequence as? NSString
+                else { assertionFailure(); return }
+                if isWordSeparator(characterSequence, wordBoundary: wordBoundary) {
+                    // Skip whitespace
+                } else {
+                    result = reverse
+                    ? characterSequenceRange.endLocation  // skip up to *after* the match coming from right
+                    : characterSequenceRange.location
+                    stop.pointee = true
+                }
+            }
+            return result
+        }
+
+        var searchRange = baseRange
+
+        // Trim trailing whitespace first, favoring upstream selection affinity, e.g. if `baseRange` is all whitespace.
+        if searchRange.length > 0 {
+            searchRange.endLocation = firstNonSkippable(
+                location: searchRange.endLocation,
+                wordBoundary: .whitespacesAndNewlines,
+                reverse: true
+            ) ?? baseRange.endLocation
+        }
+        // Trim leading whitespace
+        if searchRange.length > 0 {
+            searchRange.location = firstNonSkippable(
+                location: searchRange.location,
+                wordBoundary: .whitespacesAndNewlines,
+                reverse: false
+            ) ?? baseRange.location
+            searchRange.length -= (searchRange.location - baseRange.location)
+        }
+
+        var (start, end) = matchedRange(in: searchRange, wordBoundary: wordBoundary)
+
+        // If the result is an empty range, characters adjacent to the location were all `wordBoundary` characters. Then we need to try again with relaxed conditions, skipping over whitespace first. Try forward search, then backward.
+        if start == end {
+            let downstreamNonWhitespaceLocation = firstNonSkippable(location: start, wordBoundary: .whitespacesAndNewlines, reverse: false)
+            let upstreamNonWhitespaceLocation = firstNonSkippable(location: start, wordBoundary: .whitespacesAndNewlines, reverse: true)
+            // Prioritize look-behind over look-ahead *only* of the point is left-adjacent to non-whitespace character and the look-ahead is further away.
+            if let upstreamNonWhitespaceLocation,
+               let downstreamNonWhitespaceLocation,
+               (upstreamNonWhitespaceLocation ..< start).count == 0,
+               (start ..< downstreamNonWhitespaceLocation).count > 0 {
+                (start, end) = matchedRange(in: .init(location: upstreamNonWhitespaceLocation, length: 0), wordBoundary: .whitespacesAndNewlines)
+            } else if let location = downstreamNonWhitespaceLocation ?? upstreamNonWhitespaceLocation {
+                (start, end) = matchedRange(in: .init(location: location, length: 0), wordBoundary: .whitespacesAndNewlines)
+            }
+        }
+
+        let result = Buffer.Range(
+            location: start,
+            length: end - start
+        )
+
+        // When the input range covered only whitespace and nothing was found, discard the resulting empty range in favor of the original.
+        if result.length == 0, result != baseRange {
+            return baseRange
+        }
+
+        return result
     }
 }

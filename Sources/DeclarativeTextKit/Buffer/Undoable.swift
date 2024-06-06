@@ -122,8 +122,8 @@ public final class Undoable<Base>: Buffer where Base: Buffer {
         undoManager?.removeAllActions(withTarget: self)
     }
 
-    public func lineRange(for range: Base.Range) -> Base.Range {
-        return base.lineRange(for: range)
+    public func lineRange(for searchRange: Base.Range) throws -> Base.Range {
+        return try base.lineRange(for: searchRange)
     }
 
     public func content(in range: UTF16Range) throws -> Base.Content {

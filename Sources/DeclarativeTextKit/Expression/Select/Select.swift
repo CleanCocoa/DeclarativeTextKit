@@ -87,11 +87,15 @@ extension Select where RangeExpr == Buffer.Range {
 extension Select: Modification {
     @_disfavoredOverload  // Favor the throwing alternative of the protocol extension
     public func evaluate(in buffer: Buffer) -> Result<ChangeInLength, BufferAccessFailure> {
-        let selectedRange = SelectedRange(range.evaluate(in: buffer).bufferRange())
+        do {
+            let selectedRange = SelectedRange(try range.evaluate(in: buffer).bufferRange())
 
-        buffer.select(selectedRange)
+            try buffer.select(selectedRange)
 
-        let commandInSelectionContext = body(selectedRange)
-        return commandInSelectionContext.evaluate(in: buffer)
+            let commandInSelectionContext = body(selectedRange)
+            return commandInSelectionContext.evaluate(in: buffer)
+        } catch {
+            return .failure(.wrap(error))
+        }
     }
 }

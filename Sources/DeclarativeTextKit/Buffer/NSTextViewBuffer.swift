@@ -50,14 +50,23 @@ open class NSTextViewBuffer: Buffer {
     }
 
     @inlinable
-    open func lineRange(for range: Buffer.Range) -> Buffer.Range {
-        return textView.nsMutableString.lineRange(for: range)
+    open func lineRange(for searchRange: Buffer.Range) throws -> Buffer.Range {
+        guard contains(range: searchRange) else {
+            throw BufferAccessFailure.outOfRange(
+                requested: searchRange,
+                available: self.range
+            )
+        }
+        return textView.nsMutableString.lineRange(for: searchRange)
     }
 
     @inlinable
     open func content(in subrange: UTF16Range) throws -> Buffer.Content {
         guard contains(range: subrange) else {
-            throw BufferAccessFailure.outOfRange(requested: subrange, available: range)
+            throw BufferAccessFailure.outOfRange(
+                requested: subrange,
+                available: self.range
+            )
         }
 
         return textView.nsMutableString.unsafeContent(in: subrange)
@@ -72,7 +81,10 @@ open class NSTextViewBuffer: Buffer {
     @inlinable
     open func insert(_ content: Buffer.Content, at location: Location) throws {
         guard contains(range: .init(location: location, length: 0)) else {
-            throw BufferAccessFailure.outOfRange(location: location, available: range)
+            throw BufferAccessFailure.outOfRange(
+                location: location,
+                available: self.range
+            )
         }
 
         wrapAsEditing {
@@ -83,7 +95,10 @@ open class NSTextViewBuffer: Buffer {
     @inlinable
     open func delete(in deletedRange: Buffer.Range) throws {
         guard contains(range: deletedRange) else {
-            throw BufferAccessFailure.outOfRange(requested: deletedRange, available: range)
+            throw BufferAccessFailure.outOfRange(
+                requested: deletedRange,
+                available: self.range
+            )
         }
 
         wrapAsEditing {
@@ -94,7 +109,7 @@ open class NSTextViewBuffer: Buffer {
     @inlinable
     open func replace(range replacementRange: Buffer.Range, with content: Buffer.Content) throws {
         guard contains(range: replacementRange) else {
-            throw BufferAccessFailure.outOfRange(requested: replacementRange, available: range)
+            throw BufferAccessFailure.outOfRange(requested: replacementRange, available: self.range)
         }
 
         let selectedRange = self.selectedRange

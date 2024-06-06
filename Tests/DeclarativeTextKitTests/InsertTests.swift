@@ -6,7 +6,9 @@ import DeclarativeTextKit
 final class InsertTests: XCTestCase {
     var buffer = MutableStringBuffer("")
 
-    func testInsertString() throws {
+    // MARK: - String
+
+    func testInsert_String() throws {
         let insert = Insert(0) {
             "Hello,"
             " "
@@ -19,6 +21,95 @@ final class InsertTests: XCTestCase {
         XCTAssertEqual(buffer.content, "Hello, World!")
         XCTAssertEqual(changeInLength.delta, 13)
     }
+
+    // MARK: - Word
+
+    func testInsert_Word_InEmptyDocument() throws {
+        let insert = Insert(0) {
+            Word("Hi")
+        }
+
+        let changeInLength = try insert.evaluate(in: buffer)
+
+        XCTAssertEqual(buffer.content, "Hi")
+        XCTAssertEqual(changeInLength.delta, 2)
+    }
+
+    func testInsert_Word_InSequenceOfSpaces() throws {
+        buffer = MutableStringBuffer(String(repeating: " ", count: 8))
+        let insert = Insert(4) {
+            Word("Hi")
+        }
+
+        let changeInLength = try insert.evaluate(in: buffer)
+
+        XCTAssertEqual(buffer.content, "    Hi    ")
+        XCTAssertEqual(changeInLength.delta, 2)
+    }
+
+    func testInsert_Word_BetweenNewlines() throws {
+        buffer = MutableStringBuffer(String(repeating: "\n", count: 4))
+        let insert = Insert(2) {
+            Word("Hi")
+        }
+
+        let changeInLength = try insert.evaluate(in: buffer)
+
+        XCTAssertEqual(buffer.content, "\n\nHi\n\n")
+        XCTAssertEqual(changeInLength.delta, 2)
+    }
+
+    func testInsert_MultipleWords_InEmptyDocument() throws {
+        let insert = Insert(0) {
+            Word("Hi")
+            Word("there")
+        }
+
+        let changeInLength = try insert.evaluate(in: buffer)
+
+        XCTAssertEqual(buffer.content, "Hi there")
+        XCTAssertEqual(changeInLength.delta, 8)
+    }
+
+    func testInsert_MultipleWords_InsideLongWord() throws {
+        buffer = MutableStringBuffer("Delicious")
+
+        let insert = Insert(length(of: "Deli")) {
+            Word("ad")
+            Word("break")
+        }
+
+        let changeInLength = try insert.evaluate(in: buffer)
+
+        XCTAssertEqual(buffer.content, "Deli ad break cious")
+        XCTAssertEqual(changeInLength.delta, 10)
+    }
+
+    func testInsert_MultipleWords_BetweenWords_ReusesExistingWhitespace() throws {
+        let string = "we hate"
+        let insertBeforeSpace = Insert(length(of: "we")) {
+            Word("ad")
+            Word("break")
+        }
+        let insertAfterSpace = Insert(length(of: "we ")) {
+            Word("ad")
+            Word("break")
+        }
+
+        let expectedString = "we ad break hate"
+
+        buffer = MutableStringBuffer(string)
+        let changeInLengthBeforeSpace = try insertBeforeSpace.evaluate(in: buffer)
+        XCTAssertEqual(buffer.content, expectedString)
+        XCTAssertEqual(changeInLengthBeforeSpace.delta, 9)
+
+        buffer = MutableStringBuffer(string)
+        let changeInLengthAfterSpace = try insertAfterSpace.evaluate(in: buffer)
+        XCTAssertEqual(buffer.content, expectedString)
+        XCTAssertEqual(changeInLengthAfterSpace.delta, 9)
+    }
+
+    // MARK: - Line
 
     func testInsert_Lines_InEmptyDocument() throws {
         let insert = Insert(0) {
@@ -55,6 +146,8 @@ final class InsertTests: XCTestCase {
             """)
         XCTAssertEqual(changeInLength.delta, 14)
     }
+
+    // MARK: - Line and String
 
     func testInsert_Line_And_String() throws {
         let insert = Insert(0) {
@@ -161,6 +254,8 @@ final class InsertTests: XCTestCase {
             """)
         XCTAssertEqual(changeInLength.delta, 24)
     }
+
+    // MARK: - Mixing naturally
 
     func testInsertMixed() throws {
         let insert = Insert(0) {

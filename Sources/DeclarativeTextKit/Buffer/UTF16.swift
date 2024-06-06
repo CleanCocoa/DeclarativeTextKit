@@ -7,8 +7,15 @@ public typealias UTF16Offset = Int
 public typealias UTF16Length = Int
 
 extension UTF16Range {
+    /// > Warning: Produces a runtime exception if you try to set `endLocation` to a value lower than `location`, which would produce a negative `length`.
     @inlinable
-    public var endLocation: UTF16Offset { upperBound }
+    public var endLocation: UTF16Offset {
+        get { upperBound }
+        set {
+            precondition(location <= newValue)
+            length = newValue - location
+        }
+    }
 }
 
 public func length(of string: NSString) -> UTF16Length {

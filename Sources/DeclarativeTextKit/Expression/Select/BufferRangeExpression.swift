@@ -1,10 +1,11 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
 public protocol BufferRangeEvaluation {
-    func bufferRange() -> Buffer.Range
+    func bufferRange() throws -> Buffer.Range
 }
 
-public protocol BufferRangeExpression: Expression 
+/// "Range Finder" that is used by ``Select``.
+public protocol BufferRangeExpression: Expression
 where Evaluation: BufferRangeEvaluation, Failure == Never {
     func evaluate(in buffer: Buffer) -> Evaluation
 }

@@ -1,7 +1,11 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
+/// View into a ``Buffer`` that ensures all read and write operations work on the scoped subrange.
+///
+/// > Note: Range finders like ``lineRange(for:)`` and ``wordRange(for:)`` are limiting the input to the scoped subrange as well, but the result may exceed the scoped range and extend to content from the base buffer. This ensures that ``Select`` as a terminal command with a scope of ``LineRange`` or ``WordRange`` work as expected.
 final class ScopedBufferSlice<Base>: Buffer
 where Base: Buffer {
+    /// Create a ``ScopedBufferSlice`` that is scoped to the end of the `base` buffer, allowing appending (insertion at the end location) only.
     static func appending(to base: Base) throws -> ScopedBufferSlice<Base> {
         return try self.init(
             base: base,
@@ -35,8 +39,26 @@ where Base: Buffer {
         self.scopedRange = scopedRange
     }
 
-    func lineRange(for range: Base.Range) -> Base.Range {
-        return base.lineRange(for: range)
+    /// > Note: The resulting range may exceed ``scopedRange``. This is necessary to ensure that you can select a word range at the end of a more narrowly scoped mutation.
+    func wordRange(for searchRange: Base.Range) throws -> Base.Range {
+        guard contains(range: searchRange) else {
+            throw BufferAccessFailure.outOfRange(
+                requested: searchRange,
+                available: scopedRange
+            )
+        }
+        return try base.wordRange(for: searchRange)
+    }
+
+    /// > Note: The resulting range may exceed ``scopedRange``. This is necessary to ensure that you can select a line range at the end of a more narrowly scoped mutation.
+    func lineRange(for searchRange: Base.Range) throws -> Base.Range {
+        guard contains(range: searchRange) else {
+            throw BufferAccessFailure.outOfRange(
+                requested: searchRange,
+                available: scopedRange
+            )
+        }
+        return try base.lineRange(for: searchRange)
     }
 
     func content(in subrange: UTF16Range) throws -> Base.Content {

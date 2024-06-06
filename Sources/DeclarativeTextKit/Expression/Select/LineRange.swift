@@ -1,5 +1,8 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
+/// A ``Buffer/Range`` finder that expands its input range to full lines.
+///
+/// Word boundaries are detected according to the rules of ``Buffer/lineRange(for:)``.
 public struct LineRange {
     let inputRange: Buffer.Range
 
@@ -16,8 +19,8 @@ extension LineRange: BufferRangeExpression {
         let buffer: Buffer
         let inputRange: Buffer.Range
 
-        public func bufferRange() -> Buffer.Range {
-            return buffer.lineRange(for: inputRange)
+        public func bufferRange() throws -> Buffer.Range {
+            return try buffer.lineRange(for: inputRange)
         }
     }
 
