@@ -3,6 +3,32 @@
 import XCTest
 import DeclarativeTextKit
 
+/// Operator to declare multiple occurrences of `string` as an array.
+fileprivate func * (
+    amount: Int,
+    string: String
+) -> [String] {
+    return (0 ..< amount).map { _ in string }
+}
+
+fileprivate func dump(_ diff: CollectionDifference<String>) -> String {
+    var expecteds: [String] = [ "Expected:" ]
+    var unexpecteds: [String] = [ "Unexpected:" ]
+    for change in diff {
+        switch change {
+        case let .insert(offset: index, element: element, associatedWith: nil):
+            expecteds.append("- \(element) at \(index)")
+        case let .insert(offset: index, element: element, associatedWith: association):
+            expecteds.append("- \(element) at \(index) (\(association!))")
+        case let .remove(offset: index, element: element, associatedWith: nil):
+            unexpecteds.append("- \(element) at \(index)")
+        case let .remove(offset: index, element: element, associatedWith: association):
+            unexpecteds.append("- \(element) at \(index) (\(association!))")
+        }
+    }
+    return expecteds.joined(separator: "\n") + "\n" + unexpecteds.joined(separator: "\n")
+}
+
 final class SelectTests: XCTestCase {
     var buffer: Buffer!
 
@@ -75,6 +101,51 @@ final class SelectTests: XCTestCase {
         _ = try Select(Buffer.Range(location: -10, length: 1)).evaluate(in: buffer)
         XCTAssertEqual(buffer.selectedRange, .init(location: buffer.range.upperBound, length: 0),
                        "Negative ranges wrap around (in text views)")
+    }
+
+    func testSelect_WordRanges() throws {
+        buffer = MutableStringBuffer("Lorem ipsum\ndolor (sit amet) mkay?")
+
+        let collectedWords: [String] = try (buffer.range.lowerBound ... buffer.range.upperBound)
+            .reduce([]) { partialResult, location in
+                let range = Buffer.Range(location: location, length: 0)
+                XCTAssertNoThrow(try Select(WordRange(range)).evaluate(in: buffer))
+                return partialResult + [try buffer.content(in: buffer.selectedRange)]
+            }
+
+        // For each word, there are WORD_LENGTH + 1 locations where it will be matched. The string " foo " with spaces around has these matching locations:
+        // 1. " {^}foo "
+        // 2. " f{^}oo "
+        // 3. " fo{^}o "
+        // 4. " foo{^} "
+        let expectedSelections: [String] = [
+            6 * "Lorem",
+            6 * "ipsum",
+            6 * "dolor",
+            1 * "(sit",
+            4 * "sit",
+            5 * "amet",
+            1 * "amet)",
+            5 * "mkay",
+            1 * "mkay?",
+        ].flatMap { $0 }
+
+        let diff = expectedSelections.difference(from: collectedWords).inferringMoves()
+        XCTAssertEqual(collectedWords, expectedSelections, "\(dump(diff))")
+    }
+
+    func testSelect_RepeatedWordRange() throws {
+        buffer = MutableStringBuffer("Lorem ipsum dolor.")
+        buffer.insertionLocation = length(of: "Lorem ")
+
+        assertBufferState(buffer, "Lorem {^}ipsum dolor.")
+
+        try buffer.select(WordRange(buffer.selectedRange))
+        assertBufferState(buffer, "Lorem {ipsum} dolor.")
+
+        try buffer.select(WordRange(buffer.selectedRange))
+        assertBufferState(buffer, "Lorem {ipsum} dolor.",
+                          "Selecting the same word again does not expand selection.")
     }
 
     func testSelect_LineRanges() throws {
