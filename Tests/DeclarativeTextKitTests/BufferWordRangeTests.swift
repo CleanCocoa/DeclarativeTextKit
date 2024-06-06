@@ -67,7 +67,7 @@ extension BufferWordRangeTests {
             " \n\t {^} \n\t "      : " \n\t {^} \n\t ",
             " \n\t { \t\n } \n\t " : " \n\t { \t\n } \n\t ",
         ]
-        samples << [ // Direct selection of adjacent, sole non-boundary character
+        samples << [ // Direct selection of adjacent, non-boundary word
             "a{^}"    : "{a}",
             "{a}"     : "{a}",
             "foo{^}"  : "{foo}",
@@ -81,6 +81,12 @@ extension BufferWordRangeTests {
             "  \n\t\r  foo  {^}" : "  \n\t\r  {foo}  ",
             "foo {^} \n\t bar"   : "foo  \n\t {bar}",
             "你  {^}  好"         : "你    {好}",
+        ]
+        samples << [ // Upstream selection affinity (towards beginning). Prioritize 'word' right before insertion point rather than lookahead, offsetting forward whitespace skipping.
+            "(foo){^} bar"        : "{(foo)} bar",
+            "(foo barf!?){^} baz" : "(foo {barf!?)} baz",
+            "(foo){  }   bar"     : "{(foo)}     bar",  // "bar" is farther than "(foo)"
+            "(foo){  } bar"       : "{(foo)}   bar",    // bar is closer than "(foo)"
         ]
         samples << [ // Trim whitespace from selection
             "  {   foo   }  "           : "     {foo}     ",

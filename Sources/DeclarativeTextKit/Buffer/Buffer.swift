@@ -276,6 +276,14 @@ extension Buffer {
 
         var searchRange = baseRange
 
+        // Trim trailing whitespace first, favoring upstream selection affinity, e.g. if `baseRange` is all whitespace.
+        if searchRange.length > 0 {
+            searchRange.endLocation = firstNonSkippable(
+                location: searchRange.endLocation,
+                wordBoundary: .whitespacesAndNewlines,
+                reverse: true
+            ) ?? baseRange.endLocation
+        }
         // Trim leading whitespace
         if searchRange.length > 0 {
             searchRange.location = firstNonSkippable(
@@ -285,22 +293,22 @@ extension Buffer {
             ) ?? baseRange.location
             searchRange.length -= (searchRange.location - baseRange.location)
         }
-        // Trim trailing whitespace
-        if searchRange.length > 0 {
-            searchRange.endLocation = firstNonSkippable(
-                location: searchRange.endLocation,
-                wordBoundary: .whitespacesAndNewlines,
-                reverse: true
-            ) ?? baseRange.endLocation
-        }
 
         var (start, end) = matchedRange(in: searchRange, wordBoundary: wordBoundary)
 
         // If the result is an empty range, characters adjacent to the location were all `wordBoundary` characters. Then we need to try again with relaxed conditions, skipping over whitespace first. Try forward search, then backward.
-        if start == end,
-           let location = firstNonSkippable(location: start, wordBoundary: .whitespacesAndNewlines, reverse: false)
-            ?? firstNonSkippable(location: start, wordBoundary: .whitespacesAndNewlines, reverse: true) {
-            (start, end) = matchedRange(in: .init(location: location, length: 0), wordBoundary: .whitespacesAndNewlines)
+        if start == end {
+            let downstreamNonWhitespaceLocation = firstNonSkippable(location: start, wordBoundary: .whitespacesAndNewlines, reverse: false)
+            let upstreamNonWhitespaceLocation = firstNonSkippable(location: start, wordBoundary: .whitespacesAndNewlines, reverse: true)
+            // Prioritize look-behind over look-ahead *only* of the point is left-adjacent to non-whitespace character and the look-ahead is further away.
+            if let upstreamNonWhitespaceLocation,
+               let downstreamNonWhitespaceLocation,
+               (upstreamNonWhitespaceLocation ..< start).count == 0,
+               (start ..< downstreamNonWhitespaceLocation).count > 0 {
+                (start, end) = matchedRange(in: .init(location: upstreamNonWhitespaceLocation, length: 0), wordBoundary: .whitespacesAndNewlines)
+            } else if let location = downstreamNonWhitespaceLocation ?? upstreamNonWhitespaceLocation {
+                (start, end) = matchedRange(in: .init(location: location, length: 0), wordBoundary: .whitespacesAndNewlines)
+            }
         }
 
         let result = Buffer.Range(
