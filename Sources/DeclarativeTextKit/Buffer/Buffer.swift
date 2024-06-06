@@ -196,7 +196,8 @@ extension Buffer {
             nsContent.enumerateSubstrings(
                 in: Buffer.Range(
                     location: self.range.location,
-                    length: searchRange.location
+                    // Account for start locations >0 (e.g. in ScopedBufferSlice) in length calculation
+                    length: searchRange.location - self.range.location
                 ),
                 options: [.byComposedCharacterSequences, .reverse]
             ) { characterSequence, characterSequenceRange, enclosingRange, stop in
@@ -213,7 +214,8 @@ extension Buffer {
             nsContent.enumerateSubstrings(
                 in: Buffer.Range(
                     location: searchRange.endLocation,
-                    length: self.range.length - searchRange.endLocation
+                    // Account for start locations >0 (e.g. in ScopedBufferSlice) in length calculation
+                    length: self.range.endLocation - searchRange.endLocation
                 ),
                 options: [.byComposedCharacterSequences]
             ) { characterSequence, characterSequenceRange, enclosingRange, stop in

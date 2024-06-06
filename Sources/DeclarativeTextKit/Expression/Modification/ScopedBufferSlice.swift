@@ -35,16 +35,6 @@ where Base: Buffer {
         self.scopedRange = scopedRange
     }
 
-    func wordRange(for range: Buffer.Range) throws -> Buffer.Range {
-        guard contains(range: range) else {
-            throw BufferAccessFailure.outOfRange(
-                requested: range,
-                available: scopedRange
-            )
-        }
-        return try base.wordRange(for: range)
-    }
-
     func lineRange(for searchRange: Base.Range) throws -> Base.Range {
         guard contains(range: searchRange) else {
             throw BufferAccessFailure.outOfRange(
