@@ -39,9 +39,8 @@ final class ScopedBufferSliceTests: XCTestCase {
     }
 
     func testInit_Appending() throws {
-        let buffer = MutableStringBuffer("abc")
-        buffer.insertionLocation = 1
-        let scopedSlice = try ScopedBufferSlice.appending(to: buffer)
+        let baseBuffer = try buffer("a{^}bc")
+        let scopedSlice = try ScopedBufferSlice.appending(to: baseBuffer)
 
         assertBufferState(scopedSlice, "a{^}bc")
         XCTAssertEqual(scopedSlice.scopedRange, .init(location: 3, length: 0))

@@ -73,6 +73,9 @@ Text Kit's text views behave as buffers, but offer a much wider surface API to 
 
 - ``Select-struct``
 
-### Basic Types
+### Range Finders
 
-- ``SelectedRange``
+"Range finders" are used to expand a buffer's selected range to common semantic units. The are used as parameter for ``Select`` commands. 
+
+- ``WordRange``
+- ``LineRange``
