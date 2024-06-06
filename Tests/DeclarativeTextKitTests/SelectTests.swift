@@ -4,11 +4,11 @@ import XCTest
 import DeclarativeTextKit
 
 final class SelectTests: XCTestCase {
-    var textViewBuffer: Buffer!
+    var buffer: Buffer!
 
     override func setUp() async throws {
         await MainActor.run {
-            self.textViewBuffer = textView("""
+            self.buffer = textView("""
                 Hello!
 
                 This is a test.
@@ -18,7 +18,7 @@ final class SelectTests: XCTestCase {
     }
 
     override func tearDown() async throws {
-        self.textViewBuffer = nil
+        self.buffer = nil
     }
 
     func testEvaluateBlockCompatibility() throws {
@@ -30,7 +30,7 @@ final class SelectTests: XCTestCase {
     }
 
     func testSelect_DoesNotChangeInLength() throws {
-        let buffer = MutableStringBuffer("012")
+        buffer = MutableStringBuffer("012")
 
         XCTAssertEqual(try Select(0).evaluate(in: buffer).delta, 0)
         XCTAssertEqual(try Select(1).evaluate(in: buffer).delta, 0)
@@ -54,26 +54,26 @@ final class SelectTests: XCTestCase {
     }
 
     func testSelect_BufferLocations() throws {
-        _ = try Select(0).evaluate(in: textViewBuffer)
-        XCTAssertEqual(textViewBuffer.selectedRange, .init(location: 0, length: 0))
+        _ = try Select(0).evaluate(in: buffer)
+        XCTAssertEqual(buffer.selectedRange, .init(location: 0, length: 0))
 
-        _ = try Select(10).evaluate(in: textViewBuffer)
-        XCTAssertEqual(textViewBuffer.selectedRange, .init(location: 10, length: 0))
+        _ = try Select(10).evaluate(in: buffer)
+        XCTAssertEqual(buffer.selectedRange, .init(location: 10, length: 0))
 
-        _ = try Select(-10).evaluate(in: textViewBuffer)
-        XCTAssertEqual(textViewBuffer.selectedRange, .init(location: textViewBuffer.range.upperBound, length: 0),
+        _ = try Select(-10).evaluate(in: buffer)
+        XCTAssertEqual(buffer.selectedRange, .init(location: buffer.range.upperBound, length: 0),
                        "Negative ranges wrap around (in text views)")
     }
 
     func testSelect_BufferRanges() throws {
-        _ = try Select(Buffer.Range(location: 0, length: 0)).evaluate(in: textViewBuffer)
-        XCTAssertEqual(textViewBuffer.selectedRange, .init(location: 0, length: 0))
+        _ = try Select(Buffer.Range(location: 0, length: 0)).evaluate(in: buffer)
+        XCTAssertEqual(buffer.selectedRange, .init(location: 0, length: 0))
 
-        _ = try Select(Buffer.Range(location: 10, length: 2)).evaluate(in: textViewBuffer)
-        XCTAssertEqual(textViewBuffer.selectedRange, .init(location: 10, length: 2))
+        _ = try Select(Buffer.Range(location: 10, length: 2)).evaluate(in: buffer)
+        XCTAssertEqual(buffer.selectedRange, .init(location: 10, length: 2))
 
-        _ = try Select(Buffer.Range(location: -10, length: 1)).evaluate(in: textViewBuffer)
-        XCTAssertEqual(textViewBuffer.selectedRange, .init(location: textViewBuffer.range.upperBound, length: 0),
+        _ = try Select(Buffer.Range(location: -10, length: 1)).evaluate(in: buffer)
+        XCTAssertEqual(buffer.selectedRange, .init(location: buffer.range.upperBound, length: 0),
                        "Negative ranges wrap around (in text views)")
     }
 
@@ -84,21 +84,21 @@ final class SelectTests: XCTestCase {
         ) throws {
             let range = Buffer.Range(location: location, length: 0)
 
-            _ = try Select(LineRange(range)).evaluate(in: textViewBuffer)
+            _ = try Select(LineRange(range)).evaluate(in: buffer)
 
-            let expectedRange = textViewBuffer.lineRange(for: range)
-            XCTAssertEqual(textViewBuffer.selectedRange, expectedRange, file: file, line: line)
+            let expectedRange = buffer.lineRange(for: range)
+            XCTAssertEqual(buffer.selectedRange, expectedRange, file: file, line: line)
         }
 
-        for location in (textViewBuffer.range.lowerBound ..< textViewBuffer.range.upperBound) {
+        for location in (buffer.range.lowerBound ..< buffer.range.upperBound) {
             try assertLineRanges(location: location)
         }
 
-        _ = try Select(LineRange(.init(location: 2, length: 10))).evaluate(in: textViewBuffer)
-        XCTAssertEqual(textViewBuffer.selectedRange, textViewBuffer.range)
+        _ = try Select(LineRange(.init(location: 2, length: 10))).evaluate(in: buffer)
+        XCTAssertEqual(buffer.selectedRange, buffer.range)
     }
 
-    func testSelect_RepeatedLineRange() {
+    func testSelect_RepeatedLineRange() throws {
         let buffer = MutableStringBuffer("""
             Lorem ipsum
             dolor sit amet,
@@ -111,14 +111,14 @@ final class SelectTests: XCTestCase {
             consectetur adipisicing.
             """)
 
-        buffer.select(LineRange(buffer.selectedRange))
+        try buffer.select(LineRange(buffer.selectedRange))
         assertBufferState(buffer, """
             {Lorem ipsum
             }dolor sit amet,
             consectetur adipisicing.
             """)
 
-        buffer.select(LineRange(buffer.selectedRange))
+        try buffer.select(LineRange(buffer.selectedRange))
         assertBufferState(buffer, """
             {Lorem ipsum
             }dolor sit amet,
