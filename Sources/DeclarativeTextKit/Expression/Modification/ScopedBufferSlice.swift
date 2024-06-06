@@ -36,7 +36,12 @@ where Base: Buffer {
     }
 
     func wordRange(for range: Buffer.Range) throws -> Buffer.Range {
-        fatalError("Not implemented with scope range check") // FIXME: Implement/test scoped word range
+        guard contains(range: range) else {
+            throw BufferAccessFailure.outOfRange(
+                requested: range,
+                available: scopedRange
+            )
+        }
         return try base.wordRange(for: range)
     }
 

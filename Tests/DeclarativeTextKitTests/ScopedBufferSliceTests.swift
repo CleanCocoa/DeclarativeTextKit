@@ -60,6 +60,25 @@ final class ScopedBufferSliceTests: XCTestCase {
         )
     }
 
+    func testWordRange_OutOfBounds() throws {
+        let scopedSlice = createScopedBufferSlice()
+
+        let rangesOutOfBounds: [Buffer.Range] = [
+            .init(location: 1, length: 8),
+            .init(location: 2, length: 4),
+            .init(location: 4, length: 4),
+        ]
+        for rangesOutOfBound in rangesOutOfBounds {
+            assertThrows(
+                try scopedSlice.wordRange(for: rangesOutOfBound),
+                error: BufferAccessFailure.outOfRange(
+                    requested: rangesOutOfBound,
+                    available: availableRange
+                )
+            )
+        }
+    }
+
     func testCharacterAtLocation() throws {
         let scopedSlice = createScopedBufferSlice()
 
