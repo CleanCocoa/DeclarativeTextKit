@@ -274,7 +274,27 @@ extension Buffer {
             return result
         }
 
-        var (start, end) = matchedRange(in: baseRange, wordBoundary: wordBoundary)
+        var searchRange = baseRange
+
+        // Trim leading whitespace
+        if searchRange.length > 0 {
+            searchRange.location = firstNonSkippable(
+                location: searchRange.location,
+                wordBoundary: .whitespacesAndNewlines,
+                reverse: false
+            ) ?? baseRange.location
+            searchRange.length -= (searchRange.location - baseRange.location)
+        }
+        // Trim trailing whitespace
+        if searchRange.length > 0 {
+            searchRange.endLocation = firstNonSkippable(
+                location: searchRange.endLocation,
+                wordBoundary: .whitespacesAndNewlines,
+                reverse: true
+            ) ?? baseRange.endLocation
+        }
+
+        var (start, end) = matchedRange(in: searchRange, wordBoundary: wordBoundary)
 
         // If the result is an empty range, characters adjacent to the location were all `wordBoundary` characters. Then we need to try again with relaxed conditions, skipping over whitespace first. Try forward search, then backward.
         if start == end,
@@ -283,9 +303,16 @@ extension Buffer {
             (start, end) = matchedRange(in: .init(location: location, length: 0), wordBoundary: .whitespacesAndNewlines)
         }
 
-        return Buffer.Range(
+        let result = Buffer.Range(
             location: start,
             length: end - start
         )
+
+        // When the input range covered only whitespace and nothing was found, discard the resulting empty range in favor of the original.
+        if result.length == 0, result != baseRange {
+            return baseRange
+        }
+
+        return result
     }
 }

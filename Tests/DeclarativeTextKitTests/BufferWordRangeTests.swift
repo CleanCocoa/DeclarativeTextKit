@@ -82,9 +82,12 @@ extension BufferWordRangeTests {
             "foo {^} \n\t bar"   : "foo  \n\t {bar}",
             "你  {^}  好"         : "你    {好}",
         ]
-        samples << [ // Maintain existing whitespace from selection
-            "  {   foo   }  "      : "  {   foo   }  ",
-            "  {   foo   }  bar  " : "  {   foo   }  bar  ",  // It could be argued that this should select up to "bar", but that's not a static word range finder, but a "select next word" algorithm
+        samples << [ // Trim whitespace from selection
+            "  {   foo   }  "           : "     {foo}     ",
+            " foo  {  bar  }  baz  "    : " foo    {bar}    baz  ",
+            " foo  {  bar !  }  baz  "  : " foo    {bar !}    baz  ",
+            " foo  {  ba rr  }  baz  "  : " foo    {ba rr}    baz  ",
+            " fo{o    ba rr  }  baz  "  : " {foo    ba rr}    baz  ",
         ]
         samples << [ // Selecting symbols, too, if that's all there is adjacent to insertion point
             "?{^}"   : "{?}",
