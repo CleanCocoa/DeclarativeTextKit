@@ -22,8 +22,8 @@ final class UseCaseTests: XCTestCase {
         let changeInLength = try buffer.evaluate {
             Select(WordRange(buffer.selectedRange)) { wordRange in
                 Modifying(wordRange) { rangeToWrap in
-                    Insert(rangeToWrap.location) { Word.LeftPadded("**") }
-                    Insert(rangeToWrap.endLocation) { Word.RightPadded("**") }
+                    Insert(rangeToWrap.location) { Word.Prepending("**") }
+                    Insert(rangeToWrap.endLocation) { Word.Appending("**") }
                 }
 
                 Select(wordRange)

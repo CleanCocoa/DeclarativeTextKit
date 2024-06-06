@@ -46,9 +46,9 @@ public struct Word: Insertable {
 
 extension Word {
     /// Makes sure to pad the left-hand side with a space (if needed) as word separator.
-    public typealias LeftPadded = StartsWithSpaceIfNeeded
+    public typealias Prepending = StartsWithSpaceIfNeeded
     /// Makes sure to pad the right-hand side with a space (if needed) as word separator.
-    public typealias RightPadded = EndsWithSpaceIfNeeded
+    public typealias Appending = EndsWithSpaceIfNeeded
 
     /// Ensures its ``content`` is preceded by any whitespace characters (to the left), otherwise inserting a ``Word/space`` character.
     ///
