@@ -3,11 +3,11 @@
 /// A ``Buffer/Range`` finder that expands its input range to word boundaries.
 ///
 /// Word boundaries are detected according to the rules of ``Buffer/wordRange(for:)``.
-public struct WordRange {
-    let inputRange: Buffer.Range
+public struct WordRange<Base: BufferRangeExpression> {
+    let baseRange: Base
 
-    public init(_ inputRange: Buffer.Range) {
-        self.inputRange = inputRange
+    public init(_ baseRange: Base) {
+        self.baseRange = baseRange
     }
 }
 
@@ -17,14 +17,17 @@ extension WordRange: BufferRangeExpression {
 
     public struct WordRangeInBuffer: BufferRangeEvaluation {
         let buffer: Buffer
-        let inputRange: Buffer.Range
+        let inputRange: BufferRangeEvaluation
 
         public func bufferRange() throws -> Buffer.Range {
-            return try buffer.wordRange(for: inputRange)
+            return try buffer.wordRange(for: inputRange.bufferRange())
         }
     }
 
     public func evaluate(in buffer: Buffer) -> WordRangeInBuffer {
-        return WordRangeInBuffer(buffer: buffer, inputRange: inputRange)
+        return WordRangeInBuffer(
+            buffer: buffer,
+            inputRange: baseRange.evaluate(in: buffer)
+        )
     }
 }

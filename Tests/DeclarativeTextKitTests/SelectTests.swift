@@ -148,6 +148,26 @@ final class SelectTests: XCTestCase {
                           "Selecting the same word again does not expand selection.")
     }
 
+
+    func testSelect_WordRangeFromModification() throws {
+        buffer = MutableStringBuffer("makewordshere")
+
+        try buffer.evaluate {
+            Select(
+                location: length(of: "make"),
+                length: length(of: "words")
+            ) { selectedRange in
+                Modifying(selectedRange) { wrappedRange in
+                    Insert(wrappedRange.location) { " " }
+                    Insert(wrappedRange.endLocation) { " " }
+                }
+                Select(WordRange(selectedRange))
+            }
+        }
+
+        assertBufferState(buffer, "make {words} here")
+    }
+
     func testSelect_LineRanges() throws {
         func assertLineRanges(
             location: Buffer.Location,
