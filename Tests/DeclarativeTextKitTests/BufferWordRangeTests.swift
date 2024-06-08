@@ -16,13 +16,13 @@ fileprivate func << <Key, Value>(
 final class BufferWordRangeTests: XCTestCase {
     func twoWords(separatedBy separator: Character) -> [String : String] {
         return [
-            "start word\(separator)word{^} end" : "start word\(separator){word} end",
-            "start word\(separator){^}word end" : "start word\(separator){word} end",
-            "start word\(separator){word} end"  : "start word\(separator){word} end",
-            "start word{^}\(separator)word end" : "start {word}\(separator)word end",
-            "start {word}\(separator)word end"  : "start {word}\(separator)word end",
-            "start wo{rd\(separator)wo}rd end"  : "start {word\(separator)word} end",
-            "start {word\(separator)word} end"  : "start {word\(separator)word} end",
+            "start word\(separator)wordˇ end" : "start word\(separator)«word» end",
+            "start word\(separator)ˇword end" : "start word\(separator)«word» end",
+            "start word\(separator)«word» end"  : "start word\(separator)«word» end",
+            "start wordˇ\(separator)word end" : "start «word»\(separator)word end",
+            "start «word»\(separator)word end"  : "start «word»\(separator)word end",
+            "start wo«rd\(separator)wo»rd end"  : "start «word\(separator)word» end",
+            "start «word\(separator)word» end"  : "start «word\(separator)word» end",
         ]
     }
 
@@ -35,9 +35,9 @@ final class BufferWordRangeTests: XCTestCase {
 
         func addPair(_ lhs: Character, _ rhs: Character) {
             samples << [
-                "a punc\(lhs)tu{^}at\(rhs)ion z" : "a punc\(lhs){tuat}\(rhs)ion z",
-                "a punc\(lhs)t{ua}t\(rhs)ion z"  : "a punc\(lhs){tuat}\(rhs)ion z",
-                "a punc\(lhs){tuat}\(rhs)ion z"  : "a punc\(lhs){tuat}\(rhs)ion z",
+                "a punc\(lhs)tuˇat\(rhs)ion z" : "a punc\(lhs)«tuat»\(rhs)ion z",
+                "a punc\(lhs)t«ua»t\(rhs)ion z"  : "a punc\(lhs)«tuat»\(rhs)ion z",
+                "a punc\(lhs)«tuat»\(rhs)ion z"  : "a punc\(lhs)«tuat»\(rhs)ion z",
             ]
         }
 
@@ -62,62 +62,62 @@ extension BufferWordRangeTests {
     func testWordRange_ValidCases() throws {
         var samples: [String : String] = [:]
         samples << [ // Empty buffer maintains selection
-            "{^}"                  : "{^}",
-            "  {^}  "              : "  {^}  ",
-            " \n\t {^} \n\t "      : " \n\t {^} \n\t ",
-            " \n\t { \t\n } \n\t " : " \n\t { \t\n } \n\t ",
+            "ˇ"                    : "ˇ",
+            "  ˇ  "                : "  ˇ  ",
+            " \n\t ˇ \n\t "        : " \n\t ˇ \n\t ",
+            " \n\t « \t\n » \n\t " : " \n\t « \t\n » \n\t ",
         ]
         samples << [ // Direct selection of adjacent, non-boundary word
-            "a{^}"    : "{a}",
-            "{a}"     : "{a}",
-            "foo{^}"  : "{foo}",
-            "{foo}"   : "{foo}",
-            "{^}foo"  : "{foo}",
-            "你{^}"    : "{你}",
-            "你好{^}"  : "{你好}",
+            "aˇ"    : "«a»",
+            "«a»"   : "«a»",
+            "fooˇ"  : "«foo»",
+            "«foo»" : "«foo»",
+            "ˇfoo"  : "«foo»",
+            "你ˇ"    : "«你»",
+            "你好ˇ"  : "«你好»",
         ]
         samples << [ // Skipping whitespace to find next word forward
-            "{^}  \n\t\r  foo  " : "  \n\t\r  {foo}  ",
-            "  \n\t\r  foo  {^}" : "  \n\t\r  {foo}  ",
-            "foo {^} \n\t bar"   : "foo  \n\t {bar}",
-            "你  {^}  好"         : "你    {好}",
+            "ˇ  \n\t\r  foo  " : "  \n\t\r  «foo»  ",
+            "  \n\t\r  foo  ˇ" : "  \n\t\r  «foo»  ",
+            "foo ˇ \n\t bar"   : "foo  \n\t «bar»",
+            "你  ˇ  好"         : "你    «好»",
         ]
         samples << [ // Upstream selection affinity (towards beginning). Prioritize 'word' right before insertion point rather than lookahead, offsetting forward whitespace skipping.
-            "(foo){^} bar"        : "{(foo)} bar",
-            "(foo barf!?){^} baz" : "(foo {barf!?)} baz",
-            "(foo){  }   bar"     : "{(foo)}     bar",  // "bar" is farther than "(foo)"
-            "(foo){  } bar"       : "{(foo)}   bar",    // bar is closer than "(foo)"
+            "(foo)ˇ bar"          : "«(foo)» bar",
+            "(foo barf!?)ˇ baz"   : "(foo «barf!?)» baz",
+            "(foo)«  »   bar"     : "«(foo)»     bar",  // "bar" is farther than "(foo)"
+            "(foo)«  » bar"       : "«(foo)»   bar",    // bar is closer than "(foo)"
         ]
         samples << [ // Trim whitespace from selection
-            "  {   foo   }  "           : "     {foo}     ",
-            " foo  {  bar  }  baz  "    : " foo    {bar}    baz  ",
-            " foo  {  bar !  }  baz  "  : " foo    {bar !}    baz  ",
-            " foo  {  ba rr  }  baz  "  : " foo    {ba rr}    baz  ",
-            " fo{o    ba rr  }  baz  "  : " {foo    ba rr}    baz  ",
+            "  «   foo   »  "           : "     «foo»     ",
+            " foo  «  bar  »  baz  "    : " foo    «bar»    baz  ",
+            " foo  «  bar !  »  baz  "  : " foo    «bar !»    baz  ",
+            " foo  «  ba rr  »  baz  "  : " foo    «ba rr»    baz  ",
+            " fo«o    ba rr  »  baz  "  : " «foo    ba rr»    baz  ",
         ]
         samples << [ // Selecting symbols, too, if that's all there is adjacent to insertion point
-            "?{^}"   : "{?}",
-            "{^}?"   : "{?}",
-            "{?}"    : "{?}",
-            "a!{^}"  : "{a!}",
-            "a{!}"   : "{a!}",
-            "{^},b"  : "{,b}",
-            "{,}b"   : "{,b}",
+            "?ˇ"    : "«?»",
+            "ˇ?"    : "«?»",
+            "«?»"   : "«?»",
+            "a!ˇ"   : "«a!»",
+            "a«!»"  : "«a!»",
+            "ˇ,b"   : "«,b»",
+            "«,»b"  : "«,b»",
         ]
         samples << [
-            "{^}(foo bar)" : "{(foo} bar)",
-            "{^}(foo) bar" : "{(foo)} bar",
-            "(foo){^} bar" : "{(foo)} bar",
-            "(foo bar){^}" : "(foo {bar)}",
-            "foo (bar){^}" : "foo {(bar)}",
+            "ˇ(foo bar)" : "«(foo» bar)",
+            "ˇ(foo) bar" : "«(foo)» bar",
+            "(foo)ˇ bar" : "«(foo)» bar",
+            "(foo bar)ˇ" : "(foo «bar)»",
+            "foo (bar)ˇ" : "foo «(bar)»",
         ]
         samples << [
-            "⭐️{^}"       : "{⭐️}",
-            "⭐️ ⭐️{^}"    : "⭐️ {⭐️}",
-            "⭐️ {⭐️}"     : "⭐️ {⭐️}",
+            "⭐️ˇ"        : "«⭐️»",
+            "⭐️ ⭐️ˇ"     : "⭐️ «⭐️»",
+            "⭐️ «⭐️»"    : "⭐️ «⭐️»",
             // This is actually a skin-color changed female head, but Xcode renders this as a male head with female modifier
-            "👴🏻 👱🏾‍♀️{^}" : "👴🏻 {👱🏾‍♀️}",
-            "👴🏻 {👱🏾‍♀️}" : "👴🏻 {👱🏾‍♀️}",
+            "👴🏻 👱🏾‍♀️ˇ"  : "👴🏻 «👱🏾‍♀️»",
+            "👴🏻 «👱🏾‍♀️»" : "👴🏻 «👱🏾‍♀️»",
         ]
         samples << twoWords(separatedBy: " ")
         samples << twoWords(separatedBy: "　") // IDEOGRAPHIC SPACE
@@ -199,4 +199,3 @@ extension BufferWordRangeTests {
         }
     }
 }
-

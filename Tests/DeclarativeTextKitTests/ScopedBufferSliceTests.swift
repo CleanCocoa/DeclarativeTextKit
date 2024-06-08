@@ -7,7 +7,7 @@ final class ScopedBufferSliceTests: XCTestCase {
     let availableRange = Buffer.Range(location: 3, length: 3)
 
     func createScopedBufferSlice() -> ScopedBufferSlice<MutableStringBuffer> {
-        let base = try! buffer("01234567{^}89")
+        let base = try! buffer("01234567ˇ89")
         let scopedSlice = try! ScopedBufferSlice(base: base, scopedRange: availableRange)
         return scopedSlice
     }
@@ -31,7 +31,7 @@ final class ScopedBufferSliceTests: XCTestCase {
         for rangeInBounds in allRangesInBounds {
             let scopedSlice = try ScopedBufferSlice(base: buffer, scopedRange: rangeInBounds)
 
-            assertBufferState(scopedSlice, "a{^}bc")
+            assertBufferState(scopedSlice, "aˇbc")
             XCTAssertEqual(scopedSlice.scopedRange, rangeInBounds)
             XCTAssertEqual(scopedSlice.range, rangeInBounds,
                            "Reports the scoped range to be all there is")
@@ -39,10 +39,10 @@ final class ScopedBufferSliceTests: XCTestCase {
     }
 
     func testInit_Appending() throws {
-        let baseBuffer = try buffer("a{^}bc")
+        let baseBuffer = try buffer("aˇbc")
         let scopedSlice = try ScopedBufferSlice.appending(to: baseBuffer)
 
-        assertBufferState(scopedSlice, "a{^}bc")
+        assertBufferState(scopedSlice, "aˇbc")
         XCTAssertEqual(scopedSlice.scopedRange, .init(location: 3, length: 0))
     }
 
@@ -78,7 +78,7 @@ final class ScopedBufferSliceTests: XCTestCase {
     }
 
     func testWordRange_InsideBounds() throws {
-        let baseBuffer = try buffer("foo b{ar}f baz")
+        let baseBuffer = try buffer("foo b«ar»f baz")
         let scopedSlice = try ScopedBufferSlice(base: baseBuffer, scopedRange: baseBuffer.selectedRange)
 
         let expectedWordRange = Buffer.Range(
@@ -221,12 +221,12 @@ final class ScopedBufferSliceTests: XCTestCase {
         base.insertionLocation = 10
         let scopedSlice = try ScopedBufferSlice(base: base, scopedRange: .init(location: 7, length: 3))
 
-        assertBufferState(scopedSlice, "0123456789{^}")
+        assertBufferState(scopedSlice, "0123456789ˇ")
 
         XCTAssertNoThrow(try scopedSlice.insert("xxx"))
 
         // Postcondition
-        assertBufferState(scopedSlice, "0123456789xxx{^}")
+        assertBufferState(scopedSlice, "0123456789xxxˇ")
         XCTAssertEqual(scopedSlice.scopedRange, .init(location: 7, length: 6), "Insertion should expand range")
     }
 
@@ -357,22 +357,22 @@ final class ScopedBufferSliceTests: XCTestCase {
             )
         )
 
-        assertBufferState(scopedSlice, "01234567{^}89")
+        assertBufferState(scopedSlice, "01234567ˇ89")
         XCTAssertEqual(scopedSlice.scopedRange, .init(location: 3, length: 3))
 
         try scopedSlice.replace(range: availableRange, with: "longness")
-        assertBufferState(scopedSlice, "012longness67{^}89")
+        assertBufferState(scopedSlice, "012longness67ˇ89")
         XCTAssertEqual(scopedSlice.scopedRange, .init(location: 3, length: 8))
 
         try scopedSlice.replace(range: .init(location: 6, length: 2), with: "gestn")
-        assertBufferState(scopedSlice, "012longestness67{^}89")
+        assertBufferState(scopedSlice, "012longestness67ˇ89")
         XCTAssertEqual(scopedSlice.scopedRange, .init(location: 3, length: 11))
     }
 }
 
 extension ScopedBufferSliceTests {
     func testExpandingSelectionRangeBeyondScope_ByWord() throws {
-        let baseBuffer = try buffer("foo ba{r fiz}z buzz")
+        let baseBuffer = try buffer("foo ba«r fiz»z buzz")
 
         try baseBuffer.evaluate {
             Modifying(SelectedRange(baseBuffer.selectedRange)) { scopedRange in
@@ -380,13 +380,13 @@ extension ScopedBufferSliceTests {
             }
         }
 
-        assertBufferState(baseBuffer, "foo {bar fizz} buzz")
+        assertBufferState(baseBuffer, "foo «bar fizz» buzz")
     }
 
     func testExpandingSelectionRangeBeyondScope_ByLine() throws {
         let baseBuffer = try buffer("""
             first
-            se{co}nd
+            se«co»nd
             third
             """)
 
@@ -398,8 +398,8 @@ extension ScopedBufferSliceTests {
 
         assertBufferState(baseBuffer, """
             first
-            {second
-            }third
+            «second
+            »third
             """)
     }
 

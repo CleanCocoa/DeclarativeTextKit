@@ -114,10 +114,10 @@ final class SelectTests: XCTestCase {
             }
 
         // For each word, there are WORD_LENGTH + 1 locations where it will be matched. The string " foo " with spaces around has these matching locations:
-        // 1. " {^}foo "
-        // 2. " f{^}oo "
-        // 3. " fo{^}o "
-        // 4. " foo{^} "
+        // 1. " ˇfoo "
+        // 2. " fˇoo "
+        // 3. " foˇo "
+        // 4. " fooˇ "
         let expectedSelections: [String] = [
             6 * "Lorem",
             6 * "ipsum",
@@ -138,13 +138,13 @@ final class SelectTests: XCTestCase {
         buffer = MutableStringBuffer("Lorem ipsum dolor.")
         buffer.insertionLocation = length(of: "Lorem ")
 
-        assertBufferState(buffer, "Lorem {^}ipsum dolor.")
+        assertBufferState(buffer, "Lorem ˇipsum dolor.")
 
         try buffer.select(WordRange(buffer.selectedRange))
-        assertBufferState(buffer, "Lorem {ipsum} dolor.")
+        assertBufferState(buffer, "Lorem «ipsum» dolor.")
 
         try buffer.select(WordRange(buffer.selectedRange))
-        assertBufferState(buffer, "Lorem {ipsum} dolor.",
+        assertBufferState(buffer, "Lorem «ipsum» dolor.",
                           "Selecting the same word again does not expand selection.")
     }
 
@@ -165,7 +165,7 @@ final class SelectTests: XCTestCase {
             }
         }
 
-        assertBufferState(buffer, "make {words} here")
+        assertBufferState(buffer, "make «words» here")
     }
 
     func testSelect_LineRanges() throws {
@@ -197,22 +197,22 @@ final class SelectTests: XCTestCase {
             """)
 
         assertBufferState(buffer, """
-            {^}Lorem ipsum
+            ˇLorem ipsum
             dolor sit amet,
             consectetur adipisicing.
             """)
 
         try buffer.select(LineRange(buffer.selectedRange))
         assertBufferState(buffer, """
-            {Lorem ipsum
-            }dolor sit amet,
+            «Lorem ipsum
+            »dolor sit amet,
             consectetur adipisicing.
             """)
 
         try buffer.select(LineRange(buffer.selectedRange))
         assertBufferState(buffer, """
-            {Lorem ipsum
-            }dolor sit amet,
+            «Lorem ipsum
+            »dolor sit amet,
             consectetur adipisicing.
             """, "Selecting the same line again 'as a line' does not expand selection.")
     }
@@ -232,8 +232,8 @@ final class SelectTests: XCTestCase {
         assertBufferState(buffer, """
             # Heading
 
-            Text here{. It is
-            not} a lot of text.
+            Text here«. It is
+            not» a lot of text.
 
             But it is nice.
 
@@ -243,9 +243,9 @@ final class SelectTests: XCTestCase {
         assertBufferState(buffer, """
             # Heading
 
-            {Text here. It is
+            «Text here. It is
             not a lot of text.
-            }
+            »
             But it is nice.
 
             """)

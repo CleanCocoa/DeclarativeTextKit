@@ -50,13 +50,13 @@ final class ModifyingTests: XCTestCase {
 
         XCTAssertEqual(selectedRange, .init(location: 6, length: 5),
                        "SelectedRange box is unchanged before evaluation")
-        assertBufferState(buffer, "Lorem ip{^}sum.",
+        assertBufferState(buffer, "Lorem ipˇsum.",
                           "Content and selection is unchanged before evaluation")
 
         let changeInLength = try modify.evaluate(in: buffer)
 
         XCTAssertEqual(changeInLength.delta, 7)
-        assertBufferState(buffer, "Lorem deip{^}sumesque.")
+        assertBufferState(buffer, "Lorem deipˇsumesque.")
         XCTAssertEqual(selectedRange, .init(location: 6, length: 12))
     }
 
@@ -74,14 +74,14 @@ final class ModifyingTests: XCTestCase {
 
         XCTAssertEqual(fullRange, .init(buffer.range),
                        "SelectedRange box is unchanged before evaluation")
-        assertBufferState(buffer, "012345{^}6789",
+        assertBufferState(buffer, "012345ˇ6789",
                           "Content and selection is unchanged before evaluation")
 
         let changeInLength = try modify.evaluate(in: buffer)
 
         XCTAssertEqual(changeInLength.delta, 5)
         XCTAssertEqual(fullRange, .init(location: 0, length: 15))
-        assertBufferState(buffer, "x01x23x45x{^}67x89")
+        assertBufferState(buffer, "x01x23x45xˇ67x89")
     }
 
 
@@ -96,13 +96,13 @@ final class ModifyingTests: XCTestCase {
 
         XCTAssertEqual(fullRange, .init(buffer.range),
                        "SelectedRange box is unchanged before evaluation")
-        assertBufferState(buffer, "{^}Lorem ipsum dolor sit.",
+        assertBufferState(buffer, "ˇLorem ipsum dolor sit.",
                           "Content and selection is unchanged before evaluation")
 
         let changeInLength = try modify.evaluate(in: buffer)
 
         XCTAssertEqual(changeInLength.delta, -15)
-        assertBufferState(buffer, "{^}Lipsum.")
+        assertBufferState(buffer, "ˇLipsum.")
         XCTAssertEqual(fullRange, .init(location: 0, length: 7))
     }
 
@@ -120,14 +120,14 @@ final class ModifyingTests: XCTestCase {
 
         XCTAssertEqual(fullRange, .init(buffer.range),
                        "SelectedRange box is unchanged before evaluation")
-        assertBufferState(buffer, "012345{^}6789",
+        assertBufferState(buffer, "012345ˇ6789",
                           "Content and selection is unchanged before evaluation")
 
         let changeInLength = try modify.evaluate(in: buffer)
 
         XCTAssertEqual(changeInLength.delta, -5)
         XCTAssertEqual(fullRange, .init(location: 0, length: 5))
-        assertBufferState(buffer, "5{^}6789")
+        assertBufferState(buffer, "5ˇ6789")
     }
 
     func testModifying_ModificationForbidden() throws {
@@ -144,7 +144,7 @@ final class ModifyingTests: XCTestCase {
         buffer.textView.delegate = delegate
         let selectedRange: SelectedRange = .init(location: 6, length: 5)
 
-        assertBufferState(buffer, "Lorem ipsum.{^}")
+        assertBufferState(buffer, "Lorem ipsum.ˇ")
 
         let modify = Modifying(selectedRange) { affectedRange in
             Insert(affectedRange.location) { "de" }
@@ -162,7 +162,7 @@ final class ModifyingTests: XCTestCase {
         delegate.shouldChangeText = true
         let changeInLength = try modify.evaluate(in: buffer)
         XCTAssertEqual(changeInLength.delta, 7)
-        assertBufferState(buffer, "Lorem deipsumesque.{^}")
+        assertBufferState(buffer, "Lorem deipsumesque.ˇ")
         XCTAssertEqual(selectedRange, .init(location: 6, length: 12))
     }
 
@@ -216,7 +216,7 @@ final class ModifyingTests: XCTestCase {
 
         let changeInLength = try modify.evaluate(in: buffer)
 
-        assertBufferState(buffer, "Lorem {deipsumesque}.")
+        assertBufferState(buffer, "Lorem «deipsumesque».")
         XCTAssertEqual(changeInLength.delta, 7)
         XCTAssertEqual(scopedRange, .init(location: 6, length: 12))
         XCTAssertEqual(buffer.selectedRange, .init(location: 6, length: 12))

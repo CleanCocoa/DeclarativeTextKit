@@ -14,7 +14,7 @@ final class UseCaseTests: XCTestCase {
         )
 
         assertBufferState(buffer, """
-            Welcome, fel{low travel}ler, to these barren lands!
+            Welcome, fel«low travel»ler, to these barren lands!
             """)
 
         // MARK: Perform change to word range
@@ -32,21 +32,21 @@ final class UseCaseTests: XCTestCase {
         XCTAssertEqual(changeInLength.delta, 4)
 
         assertBufferState(buffer, """
-            Welcome, {**fellow traveller**}, to these barren lands!
+            Welcome, «**fellow traveller**», to these barren lands!
             """)
 
         // MARK: Undo
 
         buffer.undo()
         assertBufferState(buffer, """
-            Welcome, fel{low travel}ler, to these barren lands!
+            Welcome, fel«low travel»ler, to these barren lands!
             """)
 
         // MARK: Redo
 
         buffer.redo()
         assertBufferState(buffer, """
-            Welcome, {**fellow traveller**}, to these barren lands!
+            Welcome, «**fellow traveller**», to these barren lands!
             """)
     }
 
@@ -66,8 +66,8 @@ final class UseCaseTests: XCTestCase {
         assertBufferState(buffer, """
             # Heading
 
-            Text here{. It is
-            not} a lot of text.
+            Text here«. It is
+            not» a lot of text.
 
             But it is nice.
 
@@ -104,7 +104,7 @@ final class UseCaseTests: XCTestCase {
         assertBufferState(buffer, """
             # Heading
 
-            ```raw{^}
+            ```rawˇ
             Text here. It is
             not a lot of text.
             ```
@@ -122,7 +122,7 @@ final class UseCaseTests: XCTestCase {
         assertBufferState(buffer, """
             # Heading
 
-            ```{^}
+            ```ˇ
             Text here. It is
             not a lot of text.
             ```
@@ -138,8 +138,8 @@ final class UseCaseTests: XCTestCase {
         assertBufferState(buffer, """
             # Heading
 
-            Text here{. It is
-            not} a lot of text.
+            Text here«. It is
+            not» a lot of text.
 
             But it is nice.
 
@@ -152,7 +152,7 @@ final class UseCaseTests: XCTestCase {
         assertBufferState(buffer, """
             # Heading
 
-            ```{^}
+            ```ˇ
             Text here. It is
             not a lot of text.
             ```
@@ -166,8 +166,8 @@ final class UseCaseTests: XCTestCase {
         assertBufferState(buffer, """
             # Heading
 
-            Text here{. It is
-            not} a lot of text.
+            Text here«. It is
+            not» a lot of text.
 
             But it is nice.
 

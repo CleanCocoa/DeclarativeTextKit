@@ -8,7 +8,7 @@ final class NSTextViewBufferTests: XCTestCase {
         let string = "Test ⭐️ string 🚞 here"
         let buffer = textView(string)
         XCTAssertEqual(buffer.content, string)
-        assertBufferState(buffer, "Test ⭐️ string 🚞 here{^}",
+        assertBufferState(buffer, "Test ⭐️ string 🚞 hereˇ",
                           "NSTextView puts insertion point at end of buffer")
     }
 
@@ -98,23 +98,23 @@ final class NSTextViewBufferTests: XCTestCase {
         let buffer = textView("hello bug!")
         buffer.selectedRange = .init(location: 6, length: 3)
 
-        assertBufferState(buffer, "hello {bug}!")
+        assertBufferState(buffer, "hello «bug»!")
 
         try buffer.insert(" 🐞", at: 5)
 
-        assertBufferState(buffer, "hello 🐞 {bug}!")
+        assertBufferState(buffer, "hello 🐞 «bug»!")
     }
 
     func testInsertToAppend() throws {
         let buffer = textView("")
 
-        assertBufferState(buffer, "{^}")
+        assertBufferState(buffer, "ˇ")
 
         try buffer.insert("hello")
-        assertBufferState(buffer, "hello{^}")
+        assertBufferState(buffer, "helloˇ")
 
         try buffer.insert(" world")
-        assertBufferState(buffer, "hello world{^}")
+        assertBufferState(buffer, "hello worldˇ")
     }
 
     func testInsertOverSelection() throws {
@@ -122,11 +122,11 @@ final class NSTextViewBufferTests: XCTestCase {
         let selectedRange = Buffer.Range(location: 5, length: 10)
         buffer.select(selectedRange)
 
-        assertBufferState(buffer, "fizz {buzz fizz }buzz")
+        assertBufferState(buffer, "fizz «buzz fizz »buzz")
 
         try buffer.insert("foo ")
         XCTAssertFalse(buffer.isSelectingText, "Inserting goes out of selection mode")
-        assertBufferState(buffer, "fizz foo {^}buzz")
+        assertBufferState(buffer, "fizz foo ˇbuzz")
     }
 
     func testInsertOutOfBounds() {
@@ -198,13 +198,13 @@ final class NSTextViewBufferTests: XCTestCase {
         let buffer = textView("Lorem ipsum")
         buffer.insertionLocation = 5
 
-        assertBufferState(buffer, "Lorem{^} ipsum")
+        assertBufferState(buffer, "Loremˇ ipsum")
 
         try buffer.delete(in: .init(location: 0, length: 3))
-        assertBufferState(buffer, "em{^} ipsum")
+        assertBufferState(buffer, "emˇ ipsum")
 
         try buffer.delete(in: .init(location: 0, length: 3))
-        assertBufferState(buffer, "{^}ipsum")
+        assertBufferState(buffer, "ˇipsum")
     }
 
     func testDeleteInRange_EmptyLength() throws {
@@ -247,79 +247,79 @@ final class NSTextViewBufferTests: XCTestCase {
         let buffer = textView("0123456789")
         buffer.insertionLocation = 5
 
-        assertBufferState(buffer, "01234{^}56789")
+        assertBufferState(buffer, "01234ˇ56789")
 
         try buffer.replace(range: .init(location: 1, length: 2), with: "xxxx")
-        assertBufferState(buffer, "0xxxx34{^}56789")
+        assertBufferState(buffer, "0xxxx34ˇ56789")
     }
 
     func testReplace_AtInsertionPoint() throws {
         let buffer = textView("0123456789")
         buffer.insertionLocation = 5
 
-        assertBufferState(buffer, "01234{^}56789")
+        assertBufferState(buffer, "01234ˇ56789")
 
         try buffer.replace(range: .init(location: 5, length: 2), with: "xxxx")
-        assertBufferState(buffer, "01234xxxx{^}789")
+        assertBufferState(buffer, "01234xxxxˇ789")
     }
 
     func testReplace_AfterInsertionPoint() throws {
         let buffer = textView("0123456789")
         buffer.insertionLocation = 5
 
-        assertBufferState(buffer, "01234{^}56789")
+        assertBufferState(buffer, "01234ˇ56789")
 
         try buffer.replace(range: .init(location: 6, length: 2), with: "xxxx")
-        assertBufferState(buffer, "01234{^}5xxxx89")
+        assertBufferState(buffer, "01234ˇ5xxxx89")
     }
 
     func testReplace_BeforeSelectedRange() throws {
         let buffer = textView("0123456789")
         buffer.selectedRange = .init(location: 4, length: 3)
 
-        assertBufferState(buffer, "0123{456}789")
+        assertBufferState(buffer, "0123«456»789")
 
         try buffer.replace(range: .init(location: 1, length: 2), with: "xxxx")
-        assertBufferState(buffer, "0xxxx3{456}789")
+        assertBufferState(buffer, "0xxxx3«456»789")
     }
 
     func testReplace_AfterSelectedRange() throws {
         let buffer = textView("0123456789")
         buffer.selectedRange = .init(location: 4, length: 3)
 
-        assertBufferState(buffer, "0123{456}789")
+        assertBufferState(buffer, "0123«456»789")
 
         try buffer.replace(range: .init(location: 8, length: 1), with: "xxxx")
-        assertBufferState(buffer, "0123{456}7xxxx9")
+        assertBufferState(buffer, "0123«456»7xxxx9")
     }
 
     func testReplaceAroundInsertionPoint() throws {
         let buffer: Buffer = textView("Goodbye, cruel universe!")
         buffer.insertionLocation = length(of: "Goodbye, cruel")
 
-        assertBufferState(buffer, "Goodbye, cruel{^} universe!")
+        assertBufferState(buffer, "Goodbye, cruelˇ universe!")
 
         try buffer.replace(range: .init(location: 9, length: 6), with: "")
-        assertBufferState(buffer, "Goodbye, {^}universe!")
+        assertBufferState(buffer, "Goodbye, ˇuniverse!")
 
         try buffer.replace(range: .init(location: 0, length: 7), with: "Hello")
-        assertBufferState(buffer, "Hello, {^}universe!")
+        assertBufferState(buffer, "Hello, ˇuniverse!")
 
         try buffer.replace(range: .init(location: 7, length: 8), with: "world")
-        assertBufferState(buffer, "Hello, world{^}!")
+        assertBufferState(buffer, "Hello, worldˇ!")
     }
 
     func testReplaceInSelectedRange() throws {
         let buffer: Buffer = textView("Lorem ipsum")
         buffer.selectedRange = .init(location: 3, length: 5)
 
-        assertBufferState(buffer, "Lor{em ip}sum")
+        assertBufferState(buffer, "Lor«em ip»sum")
 
         try buffer.replace(range: .init(location: 0, length: 6), with: "x")
-        assertBufferState(buffer, "x{ip}sum")
+        assertBufferState(buffer, "x«ip»sum")
 
         try buffer.replace(range: .init(location: 0, length: 4), with: "y")
-        assertBufferState(buffer, "y{^}um")
+        assertBufferState(buffer, "yˇum")
     }
 
     func testReplaceOutOfBounds() {

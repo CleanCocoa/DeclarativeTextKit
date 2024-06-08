@@ -152,22 +152,23 @@ extension MutableStringBuffer: Equatable {
 extension MutableStringBuffer: CustomStringConvertible {
     /// A textual representation of this buffer that includes its selection in the output.
     ///
-    /// - Selected ranges will be wrapped in curly braces (`{...}`), while
-    /// - insertion point locations will show as `{^}`.
+    /// - Selected ranges will be wrapped in guillemets (`«...»`, typed on US keyboard via <kbd>⌥|</kbd> and <kbd>⌥⇧|</kbd>), while
+    /// - insertion point locations will show as `ˇ` (<kbd>⌥⇧t</kbd>).
+    ///
     ///
     /// ```swift
-    /// let buffer = MutableStringBuffer("Hello, world!"
-    /// print(buffer) // => "{^}Hello, world!"
+    /// let buffer = MutableStringBuffer("Hello, world!")
+    /// print(buffer) // => "ˇHello, world!"
     /// buffer.select(Buffer.Range(location: 7, length: 5))
-    /// print(buffer) // => "Hello, {world}!"
+    /// print(buffer) // => "Hello, «world»!"
     /// ```
     public var description: String {
         let result = NSMutableString(string: self.content)
         if self.isSelectingText {
-            result.insert("}", at: self.selectedRange.endLocation)
-            result.insert("{", at: self.selectedRange.location)
+            result.insert("»", at: self.selectedRange.endLocation)
+            result.insert("«", at: self.selectedRange.location)
         } else {
-            result.insert("{^}", at: self.selectedRange.location)
+            result.insert("ˇ", at: self.selectedRange.location)
         }
         return result as String
     }

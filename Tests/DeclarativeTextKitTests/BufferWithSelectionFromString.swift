@@ -5,41 +5,41 @@ struct InvalidBufferStringRepresentation: Error {
     let parts: [String]
 }
 
-/// Create ``MutableStringBuffer`` from a string that matches the `debugDescription` format of either `"text {with selection}"` or `"text {^}insertion point"`.
+/// Create ``MutableStringBuffer`` from a string that matches the `debugDescription` format of either `"text «with selection»"` or `"text ˇinsertion point"`.
 /// - Throws: `InvalidBufferStringRepresentation` if `stringRepresentation` is malformed.
 func buffer(_ stringRepresentation: String) throws -> MutableStringBuffer {
     /// Indices:
     /// - `0`: text before
     /// - `1`: text inside
     /// - `2`: text after
-    let parts = stringRepresentation
-        .split(separator: try Regex("[\\{\\}]"), omittingEmptySubsequences: false)
+    let selectionParts = stringRepresentation
+        .split(separator: try Regex("[«»]"), omittingEmptySubsequences: false)
         .map { String($0) }
 
-    switch parts.count {
-    case 1:
-        return MutableStringBuffer(stringRepresentation)
-
-    case 3 where parts[1] == "^":
-        let buffer = MutableStringBuffer(parts[0] + parts[2])
+    if selectionParts.count == 3 {
+        let buffer = MutableStringBuffer(selectionParts.joined(separator: ""))
         buffer.selectedRange = .init(
-            location: length(of: parts[0]),
-            length: 0
+            location: length(of: selectionParts[0]),
+            length: length(of: selectionParts[1])
         )
         return buffer
-
-    case 3:
-        let buffer = MutableStringBuffer(parts.joined(separator: ""))
-        buffer.selectedRange = .init(
-            location: length(of: parts[0]),
-            length: length(of: parts[1])
-        )
-        return buffer
-
-    default:
+    } else if selectionParts.count > 1 {
+        // Nested or half-open selection
         throw InvalidBufferStringRepresentation(
             stringRepresentation: stringRepresentation,
-            parts: parts
+            parts: selectionParts
         )
     }
+
+    let insertionPointParts = stringRepresentation
+        .split(separator: "ˇ", maxSplits: 2, omittingEmptySubsequences: false)
+        .map { String($0) }
+    let buffer = MutableStringBuffer(insertionPointParts.joined(separator: ""))
+    if stringRepresentation.contains("ˇ") {
+        buffer.selectedRange = .init(
+            location: length(of: insertionPointParts[0]),
+            length: 0
+        )
+    }
+    return buffer
 }
