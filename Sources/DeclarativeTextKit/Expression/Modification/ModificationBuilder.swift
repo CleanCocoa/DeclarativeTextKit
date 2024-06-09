@@ -62,4 +62,12 @@ extension ModificationBuilder {
             accumulated.commands + [next]
         )
     }
+
+    public static func buildOptional(_ component: ModificationSequence?) -> ModificationSequence {
+        if let component {
+            return component
+        } else {
+            return .empty
+        }
+    }
 }

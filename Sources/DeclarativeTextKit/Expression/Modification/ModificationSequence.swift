@@ -7,15 +7,21 @@ public protocol ChainableModification { }
 extension Modifying: ChainableModification { }
 extension Select: ChainableModification { }
 extension Identity: ChainableModification { }
+extension ModificationSequence: ChainableModification { }
 
 /// > Note: You don't create ``ModificationSequence``s manually, you use `@ModificationBuilder` blocks instead.
 public struct ModificationSequence {
+    /// An empty modification sequence, obtainable via e.g. `if` with falsy condition, or empty `for` loops.
+    ///
+    /// Internal visibility, like `init`, so users don't add `ModificationSequence.empty` in their blocks.
+    internal static var empty: ModificationSequence { .init([]) }
+
     // In the long term, we could support to chain any modification. At first, sorting out how to mix insertion and deletion isn't worth the trouble, though.
     public typealias Element = Modification & ChainableModification
 
     let commands: [any Element]
 
-    init(_ commands: [any Element]) {
+    internal init(_ commands: [any Element]) {
         self.commands = commands
     }
 }
