@@ -7,7 +7,7 @@ final class ScopedBufferSliceTests: XCTestCase {
     let availableRange = Buffer.Range(location: 3, length: 3)
 
     func createScopedBufferSlice() -> ScopedBufferSlice<MutableStringBuffer> {
-        let base = try! buffer("01234567ˇ89")
+        let base = try! makeBuffer("01234567ˇ89")
         let scopedSlice = try! ScopedBufferSlice(base: base, scopedRange: availableRange)
         return scopedSlice
     }
@@ -39,7 +39,7 @@ final class ScopedBufferSliceTests: XCTestCase {
     }
 
     func testInit_Appending() throws {
-        let baseBuffer = try buffer("aˇbc")
+        let baseBuffer = try makeBuffer("aˇbc")
         let scopedSlice = try ScopedBufferSlice.appending(to: baseBuffer)
 
         assertBufferState(scopedSlice, "aˇbc")
@@ -78,7 +78,7 @@ final class ScopedBufferSliceTests: XCTestCase {
     }
 
     func testWordRange_InsideBounds() throws {
-        let baseBuffer = try buffer("foo b«ar»f baz")
+        let baseBuffer = try makeBuffer("foo b«ar»f baz")
         let scopedSlice = try ScopedBufferSlice(base: baseBuffer, scopedRange: baseBuffer.selectedRange)
 
         let expectedWordRange = Buffer.Range(
@@ -372,7 +372,7 @@ final class ScopedBufferSliceTests: XCTestCase {
 
 extension ScopedBufferSliceTests {
     func testExpandingSelectionRangeBeyondScope_ByWord() throws {
-        let baseBuffer = try buffer("foo ba«r fiz»z buzz")
+        let baseBuffer = try makeBuffer("foo ba«r fiz»z buzz")
 
         try baseBuffer.evaluate {
             Modifying(SelectedRange(baseBuffer.selectedRange)) { scopedRange in
@@ -384,7 +384,7 @@ extension ScopedBufferSliceTests {
     }
 
     func testExpandingSelectionRangeBeyondScope_ByLine() throws {
-        let baseBuffer = try buffer("""
+        let baseBuffer = try makeBuffer("""
             first
             se«co»nd
             third

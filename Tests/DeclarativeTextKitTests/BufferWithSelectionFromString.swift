@@ -7,7 +7,7 @@ struct InvalidBufferStringRepresentation: Error {
 
 /// Create ``MutableStringBuffer`` from a string that matches the `debugDescription` format of either `"text «with selection»"` or `"text ˇinsertion point"`.
 /// - Throws: `InvalidBufferStringRepresentation` if `stringRepresentation` is malformed.
-func buffer(_ stringRepresentation: String) throws -> MutableStringBuffer {
+func makeBuffer(_ stringRepresentation: String) throws -> MutableStringBuffer {
     /// Indices:
     /// - `0`: text before
     /// - `1`: text inside

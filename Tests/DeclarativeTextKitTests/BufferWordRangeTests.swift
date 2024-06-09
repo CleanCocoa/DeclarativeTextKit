@@ -160,7 +160,7 @@ extension BufferWordRangeTests {
         continueAfterFailure = true
 
         for (input, expectedOutput) in samples {
-            let buf = try buffer(input)
+            let buf = try makeBuffer(input)
             XCTAssertNoThrow(
                 buf.select(try buf.wordRange(for: buf.selectedRange)),
                 "Given \"\(sanitized(input))\""
