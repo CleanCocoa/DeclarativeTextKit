@@ -3,7 +3,7 @@
 import XCTest
 import DeclarativeTextKit
 
-final class SelectedRangeTests: XCTestCase {
+final class AffectedRangeTests: XCTestCase {
     func testInit() {
         let range = AffectedRange(location: 10, length: 5)
         XCTAssertEqual(range.value, .init(location: 10, length: 5))
