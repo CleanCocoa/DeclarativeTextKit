@@ -2,7 +2,7 @@
 
 /// Changes the ``Buffer/selectedRange`` on the user's behalf when evaluated. Takes into account changes to buffer length and selection offsets from mutations in the same block, if any.
 ///
-/// When performed after mutations like ``Insert`` and ``Delete``, the range represented by ``SelectedRange`` will reflect any changes appropiately by the time ``Select`` is evaluated.
+/// When performed after mutations like ``Insert`` and ``Delete``, the range represented by ``AffectedRange`` will reflect any changes appropiately by the time ``Select`` is evaluated.
 ///
 /// This means you can work with ranges to express your intent, instead of having to do offset calculations yourself:
 ///
@@ -32,7 +32,7 @@
 public struct Select<RangeExpr>
 where RangeExpr: BufferRangeExpression {
     let range: RangeExpr
-    let body: (_ selectedRange: SelectedRange) -> ModificationSequence
+    let body: (_ selectedRange: AffectedRange) -> ModificationSequence
 }
 
 // MARK: - Selection DSL
@@ -40,7 +40,7 @@ where RangeExpr: BufferRangeExpression {
 extension Select {
     public init(
         _ range: RangeExpr,
-        @ModificationBuilder _ body: @escaping (_ selectedRange: SelectedRange) -> ModificationSequence
+        @ModificationBuilder _ body: @escaping (_ selectedRange: AffectedRange) -> ModificationSequence
     ) {
         self.range = range
         self.body = body
@@ -63,7 +63,7 @@ extension Select where RangeExpr == Buffer.Range {
     public init(
         location: Buffer.Location,
         length: Buffer.Length,
-        @ModificationBuilder _ body: @escaping (_ selectedRange: SelectedRange) -> ModificationSequence
+        @ModificationBuilder _ body: @escaping (_ selectedRange: AffectedRange) -> ModificationSequence
     ) {
         self.init(
             Buffer.Range(location: location, length: length),
@@ -88,7 +88,7 @@ extension Select: Modification {
     @_disfavoredOverload  // Favor the throwing alternative of the protocol extension
     public func evaluate(in buffer: Buffer) -> Result<ChangeInLength, BufferAccessFailure> {
         do {
-            let selectedRange = SelectedRange(try range.evaluate(in: buffer).bufferRange())
+            let selectedRange = AffectedRange(try range.evaluate(in: buffer).bufferRange())
 
             try buffer.select(selectedRange)
 

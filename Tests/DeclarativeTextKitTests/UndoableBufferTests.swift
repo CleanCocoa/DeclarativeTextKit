@@ -94,7 +94,7 @@ final class UndoableBufferTests: XCTestCase {
         assertBufferState(undoable, "helloˇ")
 
         _ = try undoable.evaluate {
-            Modifying(SelectedRange(buffer.range)) { fullRange in
+            Modifying(AffectedRange(buffer.range)) { fullRange in
                 Modifying(fullRange) { fullRange in
                     Insert(fullRange.endLocation) { " you" }
                 }

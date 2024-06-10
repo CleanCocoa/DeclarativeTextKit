@@ -11,7 +11,7 @@ final class ConditionalTests: XCTestCase {
         for i in (0 ..< 5).reversed() {
             try buffer.evaluate {
                 if i % 2 == 0 {
-                    Modifying(SelectedRange(location: i, length: 1)) { charRange in
+                    Modifying(AffectedRange(location: i, length: 1)) { charRange in
                         Delete(charRange)
                     }
                     // This is redundant but shows that the compiler/DSL accepts multiple expressions in the conditional

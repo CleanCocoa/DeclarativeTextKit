@@ -4,7 +4,7 @@ import Foundation
 
 /// A ``Buffer/Range`` value that can be modified over the course of multiple ``Modification``s. Behaves like a reference type under the hood.
 ///
-/// For example, the following will print to the console how a ``SelectedRange`` is being adjusted during the ``Modifying`` block to reflect that the length changed during deletion:
+/// For example, the following will print to the console how a ``AffectedRange`` is being adjusted during the ``Modifying`` block to reflect that the length changed during deletion:
 ///
 /// ```swift
 /// Debug { print("Range before:", someRange)  // => "Range before: {100,50}"
@@ -13,7 +13,7 @@ import Foundation
 /// }
 /// Debug { print("Range after:", someRange)  // => "Range after: {100,25}"
 /// ```
-public struct SelectedRange {
+public struct AffectedRange {
     private final class Box {
         var value: Buffer.Range
 
@@ -41,7 +41,7 @@ public struct SelectedRange {
     }
 }
 
-extension SelectedRange {
+extension AffectedRange {
     public init(
         location: Buffer.Location,
         length: Buffer.Length
@@ -50,13 +50,13 @@ extension SelectedRange {
     }
 }
 
-extension SelectedRange: Equatable {
-    public static func == (lhs: SelectedRange, rhs: SelectedRange) -> Bool {
+extension AffectedRange: Equatable {
+    public static func == (lhs: AffectedRange, rhs: AffectedRange) -> Bool {
         lhs.value == rhs.value
     }
 }
 
-extension SelectedRange: CustomStringConvertible {
+extension AffectedRange: CustomStringConvertible {
     public var description: String {
         "(\(value.location)..<\(value.endLocation))(len=\(value.length))"
     }

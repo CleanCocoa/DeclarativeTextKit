@@ -21,7 +21,7 @@ extension Delete {
         self.init(TextDeletion(range: range))
     }
 
-    public init(_ selectedRange: SelectedRange) {
+    public init(_ selectedRange: AffectedRange) {
         self.init(selectedRange.value)
     }
 

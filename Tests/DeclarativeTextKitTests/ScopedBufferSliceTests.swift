@@ -375,7 +375,7 @@ extension ScopedBufferSliceTests {
         let baseBuffer = try makeBuffer("foo ba«r fiz»z buzz")
 
         try baseBuffer.evaluate {
-            Modifying(SelectedRange(baseBuffer.selectedRange)) { scopedRange in
+            Modifying(AffectedRange(baseBuffer.selectedRange)) { scopedRange in
                 Select(WordRange(scopedRange))
             }
         }
@@ -391,7 +391,7 @@ extension ScopedBufferSliceTests {
             """)
 
         try baseBuffer.evaluate {
-            Modifying(SelectedRange(baseBuffer.selectedRange)) { scopedRange in
+            Modifying(AffectedRange(baseBuffer.selectedRange)) { scopedRange in
                 Select(LineRange(scopedRange))
             }
         }

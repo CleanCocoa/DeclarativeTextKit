@@ -44,9 +44,9 @@
 /// }
 /// ```
 public struct Modifying<Content> {
-    public typealias ModificationBody = (SelectedRange) -> Content
+    public typealias ModificationBody = (AffectedRange) -> Content
 
-    let range: SelectedRange
+    let range: AffectedRange
     let modification: ModificationBody
 }
 
@@ -76,7 +76,7 @@ where Content: Modification {
     }
 
     public init(
-        _ range: SelectedRange,
+        _ range: AffectedRange,
         @ModificationBuilder body: @escaping ModificationBody
     ) {
         self.range = range

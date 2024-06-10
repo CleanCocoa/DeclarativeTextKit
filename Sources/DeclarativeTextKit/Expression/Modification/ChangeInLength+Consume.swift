@@ -1,6 +1,6 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
-extension SelectedRange {
+extension AffectedRange {
     func consume(changeInLength: inout ChangeInLength) {
         self.value.length += changeInLength.consumed()
     }

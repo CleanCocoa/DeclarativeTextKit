@@ -36,7 +36,7 @@ extension WordRange: BufferRangeExpression {
     public func evaluate(in buffer: Buffer) -> WordRangeInBuffer {
         return WordRangeInBuffer(
             buffer: buffer,
-            // Obtain the `baseRange`'s evaluation lazily to be compatible with `SelectedRange` changing during the block's evaluation instead of during its declaration.
+            // Obtain the `baseRange`'s evaluation lazily to be compatible with `AffectedRange` changing during the block's evaluation instead of during its declaration.
             inputRange: baseRange.evaluate(in: buffer)
         )
     }

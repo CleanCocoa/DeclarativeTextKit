@@ -16,7 +16,7 @@ final class ModifyingTests: XCTestCase {
 
     func testModifying_InsertionOutsideSelectedBounds_Throws() throws {
         func insertCharacter(at location: UTF16Offset) throws -> ChangeInLength {
-            let modification = Modifying(SelectedRange(location: 3, length: 3)) { _ in
+            let modification = Modifying(AffectedRange(location: 3, length: 3)) { _ in
                 Insert(location) { "x" }
             }
             // Create new buffer for each iteration to discard mutations from previous runs.
@@ -41,7 +41,7 @@ final class ModifyingTests: XCTestCase {
     func testModifying_InsertionAtBothEnds() throws {
         let buffer: Buffer = MutableStringBuffer("Lorem ipsum.")
         buffer.insertionLocation = 8
-        let selectedRange: SelectedRange = .init(location: 6, length: 5)
+        let selectedRange: AffectedRange = .init(location: 6, length: 5)
 
         let modify = Modifying(selectedRange) { affectedRange in
             Insert(affectedRange.location) { "de" }
@@ -49,7 +49,7 @@ final class ModifyingTests: XCTestCase {
         }
 
         XCTAssertEqual(selectedRange, .init(location: 6, length: 5),
-                       "SelectedRange box is unchanged before evaluation")
+                       "AffectedRange box is unchanged before evaluation")
         assertBufferState(buffer, "Lorem ipˇsum.",
                           "Content and selection is unchanged before evaluation")
 
@@ -63,7 +63,7 @@ final class ModifyingTests: XCTestCase {
     func testModifying_InsertingInLoop() throws {
         let buffer: Buffer = MutableStringBuffer("0123456789")
         buffer.insertionLocation = 6
-        let fullRange = SelectedRange(buffer.range)
+        let fullRange = AffectedRange(buffer.range)
 
         let modify = Modifying(fullRange) { range in
             // Inserting at multiple locations verifies that we can treat locations as absolute without one insertion invalidating the next.
@@ -73,7 +73,7 @@ final class ModifyingTests: XCTestCase {
         }
 
         XCTAssertEqual(fullRange, .init(buffer.range),
-                       "SelectedRange box is unchanged before evaluation")
+                       "AffectedRange box is unchanged before evaluation")
         assertBufferState(buffer, "012345ˇ6789",
                           "Content and selection is unchanged before evaluation")
 
@@ -87,7 +87,7 @@ final class ModifyingTests: XCTestCase {
 
     func testModifying_DeletingMultiplePlaces() throws {
         let buffer: Buffer = MutableStringBuffer("Lorem ipsum dolor sit.")
-        let fullRange = SelectedRange(buffer.range)
+        let fullRange = AffectedRange(buffer.range)
 
         let modify = Modifying(fullRange) { range in
             Delete(location: range.location + 1, length: length(of: "orem "))
@@ -95,7 +95,7 @@ final class ModifyingTests: XCTestCase {
         }
 
         XCTAssertEqual(fullRange, .init(buffer.range),
-                       "SelectedRange box is unchanged before evaluation")
+                       "AffectedRange box is unchanged before evaluation")
         assertBufferState(buffer, "ˇLorem ipsum dolor sit.",
                           "Content and selection is unchanged before evaluation")
 
@@ -109,7 +109,7 @@ final class ModifyingTests: XCTestCase {
     func testModifying_DeletingInLoop() throws {
         let buffer: Buffer = MutableStringBuffer("0123456789")
         buffer.insertionLocation = 6
-        let fullRange = SelectedRange(buffer.range)
+        let fullRange = AffectedRange(buffer.range)
 
         let modify = Modifying(fullRange) { range in
             // Deleting at locations [0,1,2,3,4] tests that we can treat locations as absolute without one deletion invalidating the next.
@@ -119,7 +119,7 @@ final class ModifyingTests: XCTestCase {
         }
 
         XCTAssertEqual(fullRange, .init(buffer.range),
-                       "SelectedRange box is unchanged before evaluation")
+                       "AffectedRange box is unchanged before evaluation")
         assertBufferState(buffer, "012345ˇ6789",
                           "Content and selection is unchanged before evaluation")
 
@@ -142,7 +142,7 @@ final class ModifyingTests: XCTestCase {
         let buffer = textView("Lorem ipsum.")
         let delegate = Delegate()
         buffer.textView.delegate = delegate
-        let selectedRange: SelectedRange = .init(location: 6, length: 5)
+        let selectedRange: AffectedRange = .init(location: 6, length: 5)
 
         assertBufferState(buffer, "Lorem ipsum.ˇ")
 
@@ -169,7 +169,7 @@ final class ModifyingTests: XCTestCase {
     func testNested_ForwardsChangeInLength() throws {
         let buffer: Buffer = MutableStringBuffer("Hello")
 
-        let modify = Modifying(SelectedRange(buffer.range)) { affectedRange in
+        let modify = Modifying(AffectedRange(buffer.range)) { affectedRange in
             Modifying(affectedRange) { affectedRange in
                 Modifying(affectedRange) { affectedRange in
                     Modifying(affectedRange) { affectedRange in
@@ -184,7 +184,7 @@ final class ModifyingTests: XCTestCase {
 
     func testNested_AdjustsSelectedRange() throws {
         let buffer: Buffer = MutableStringBuffer("Hello")
-        let selectedRange = SelectedRange(buffer.range)
+        let selectedRange = AffectedRange(buffer.range)
 
         let modify = Modifying(selectedRange) { affectedRange in
             Modifying(affectedRange) { affectedRange in
@@ -203,7 +203,7 @@ final class ModifyingTests: XCTestCase {
     func testModifying_Nested_UpdatesOuterRange() throws {
         let buffer: Buffer = MutableStringBuffer("Lorem ipsum.")
         buffer.insertionLocation = 8
-        let scopedRange: SelectedRange = .init(location: 6, length: 5)
+        let scopedRange: AffectedRange = .init(location: 6, length: 5)
 
         let modify = Modifying(scopedRange) { affectedRange in
             Modifying(affectedRange) { affectedRange in
