@@ -70,4 +70,12 @@ extension ModificationBuilder {
             return .empty
         }
     }
+
+    public static func buildEither(first component: ModificationSequence) -> ModificationSequence {
+        return component
+    }
+
+    public static func buildEither(second component: ModificationSequence) -> ModificationSequence {
+        return component
+    }
 }
