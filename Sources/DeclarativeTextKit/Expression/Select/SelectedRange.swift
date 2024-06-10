@@ -3,6 +3,16 @@
 import Foundation
 
 /// A ``Buffer/Range`` value that can be modified over the course of multiple ``Modification``s. Behaves like a reference type under the hood.
+///
+/// For example, the following will print to the console how a ``SelectedRange`` is being adjusted during the ``Modifying`` block to reflect that the length changed during deletion:
+///
+/// ```swift
+/// Debug { print("Range before:", someRange)  // => "Range before: {100,50}"
+/// Modifying(someRange) {
+///     Delete(location: someRange.location, length: someRange.length / 2)
+/// }
+/// Debug { print("Range after:", someRange)  // => "Range after: {100,25}"
+/// ```
 public struct SelectedRange {
     private final class Box {
         var value: Buffer.Range
