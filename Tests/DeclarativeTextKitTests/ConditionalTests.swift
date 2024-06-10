@@ -3,6 +3,7 @@
 import XCTest
 import DeclarativeTextKit
 
+
 final class ConditionalTests: XCTestCase {
     func testConditionalSequences() throws {
         let buffer = try makeBuffer("Helloˇ")
@@ -10,7 +11,7 @@ final class ConditionalTests: XCTestCase {
         var collectedStates: [String] = []
         for i in (0 ..< 5).reversed() {
             try buffer.evaluate(location: i, length: 1) { charRange in
-                if i % 2 == 0 {
+                If(i % 2 == 0) {
                     Modifying(charRange) { charRange in
                         Delete(charRange)
                     }
@@ -44,11 +45,11 @@ final class ConditionalTests: XCTestCase {
                 location: length(of: "Text: ") + i,
                 length: 0
             ) { charRange in
-                if i % 2 == 0 {
+                If (i % 2 == 0) {
                     Modifying(charRange) { charRange in
                         Insert(charRange.location) { String(letters[i]) }
                     }
-                } else {
+                } else: {
                     Modifying(charRange) { charRange in
                         Insert(charRange.location) { String(numbers[i]) }
                     }

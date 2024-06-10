@@ -62,20 +62,4 @@ extension ModificationBuilder {
             accumulated.commands + [next]
         )
     }
-
-    public static func buildOptional(_ component: ModificationSequence?) -> ModificationSequence {
-        if let component {
-            return component
-        } else {
-            return .empty
-        }
-    }
-
-    public static func buildEither(first component: ModificationSequence) -> ModificationSequence {
-        return component
-    }
-
-    public static func buildEither(second component: ModificationSequence) -> ModificationSequence {
-        return component
-    }
 }
