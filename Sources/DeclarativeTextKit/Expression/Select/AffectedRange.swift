@@ -50,12 +50,6 @@ extension AffectedRange {
     }
 }
 
-extension AffectedRange: Equatable {
-    public static func == (lhs: AffectedRange, rhs: AffectedRange) -> Bool {
-        lhs.value == rhs.value
-    }
-}
-
 extension AffectedRange: CustomStringConvertible {
     public var description: String {
         "(\(value.location)..<\(value.endLocation))(len=\(value.length))"
