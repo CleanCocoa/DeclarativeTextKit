@@ -37,7 +37,7 @@ final class ConditionalTests: XCTestCase {
 
         var collectedStates: [String] = []
         for part in [nil, " world", nil, nil, "!"] {
-            try buffer.evaluate(in: buffer.range) { fullRange in
+            try buffer.evaluate { fullRange in
                 IfLet (part) { part in
                     Modifying(fullRange) { range in
                         Insert(range.endLocation) { part }

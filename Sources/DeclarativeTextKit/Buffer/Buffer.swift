@@ -114,6 +114,25 @@ public protocol Buffer: AnyObject {
         @ModificationBuilder _ expression: () throws -> ModificationSequence
     ) throws -> ChangeInLength
 
+    /// Entry point into the Domain-Specific Language to run ``Expression``s on the buffer, acting on the whole range.
+    ///
+    /// Conforming types can provide refinements to this process to bundle changes in e.g. undoable action groups.
+    ///
+    /// Builds `expression` and evaluates it on `self` so you can write a block to e.g. append a text to the buffer like this:
+    ///
+    /// ```swift
+    /// buffer.evaluate { fullRange in
+    ///     Modifying(fullRange) { wrappedRange in
+    ///         Insert(wrappedRange.endLocation) { "!" }
+    ///     }
+    /// }
+    /// ```
+    @discardableResult
+    @_disfavoredOverload
+    func evaluate(
+        @ModificationBuilder _ expression: (AffectedRange) throws -> ModificationSequence
+    ) throws -> ChangeInLength
+
     /// Entry point into the Domain-Specific Language to run ``Expression``s on the buffer.
     ///
     /// Conforming types can provide refinements to this process to bundle changes in e.g. undoable action groups.
@@ -184,19 +203,6 @@ extension Buffer {
         return try expression().evaluate(in: self)
     }
 
-    /// Entry point into the Domain-Specific Language to run ``Expression``s on the buffer.
-    ///
-    /// Conforming types can provide refinements to this process to bundle changes in e.g. undoable action groups.
-    ///
-    /// Builds `expression` and evaluates it on `self` so you can write a block directly like so:
-    ///
-    /// ```swift
-    /// buffer.evaluate(in: buffer.selectedRange) { selectedRange in
-    ///     Modifying(selectedRange) { wrappedRange in
-    ///         Insert(wrappedRange.location) { "> " }
-    ///     }
-    /// }
-    /// ```
     @inlinable @inline(__always)
     @discardableResult
     public func evaluate(
@@ -204,6 +210,15 @@ extension Buffer {
         @ModificationBuilder _ expression: (AffectedRange) throws -> ModificationSequence
     ) throws -> ChangeInLength {
         return try expression(AffectedRange(range)).evaluate(in: self)
+    }
+
+    @inlinable @inline(__always)
+    @discardableResult
+    @_disfavoredOverload
+    public func evaluate(
+        @ModificationBuilder _ expression: (AffectedRange) throws -> ModificationSequence
+    ) throws -> ChangeInLength {
+        return try expression(AffectedRange(self.range)).evaluate(in: self)
     }
 }
 
