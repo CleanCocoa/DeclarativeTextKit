@@ -1,7 +1,7 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
-import DeclarativeTextKit
 import XCTest
+@testable import DeclarativeTextKit
 
 #if os(macOS)
 import AppKit

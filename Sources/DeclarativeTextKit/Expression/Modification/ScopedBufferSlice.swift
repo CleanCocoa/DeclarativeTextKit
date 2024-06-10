@@ -3,6 +3,7 @@
 /// View into a ``Buffer`` that ensures all read and write operations work on the scoped subrange.
 ///
 /// > Note: Range finders like ``lineRange(for:)`` and ``wordRange(for:)`` are limiting the input to the scoped subrange as well, but the result may exceed the scoped range and extend to content from the base buffer. This ensures that ``Select`` as a terminal command with a scope of ``LineRange`` or ``WordRange`` work as expected.
+@usableFromInline
 final class ScopedBufferSlice<Base>: Buffer
 where Base: Buffer {
     /// Create a ``ScopedBufferSlice`` that is scoped to the end of the `base` buffer, allowing appending (insertion at the end location) only.
@@ -15,9 +16,9 @@ where Base: Buffer {
 
     private let base: Base
 
-    var content: Base.Content { base.content }
-    var range: Base.Range { scopedRange }
-    var selectedRange: Base.Range {
+    @usableFromInline var content: Base.Content { base.content }
+    @usableFromInline var range: Base.Range { scopedRange }
+    @usableFromInline var selectedRange: Base.Range {
         get { base.selectedRange }
         set { base.selectedRange = newValue }
     }
@@ -25,6 +26,7 @@ where Base: Buffer {
     private(set) var scopedRange: Base.Range
 
     /// - Throws: ``BufferAccessFailure`` if `scopedRange` is outside of `base.range`
+    @usableFromInline
     init(
         base: Base,
         scopedRange: Base.Range
@@ -40,6 +42,7 @@ where Base: Buffer {
     }
 
     /// > Note: The resulting range may exceed ``scopedRange``. This is necessary to ensure that you can select a word range at the end of a more narrowly scoped mutation.
+    @usableFromInline
     func wordRange(for searchRange: Base.Range) throws -> Base.Range {
         guard contains(range: searchRange) else {
             throw BufferAccessFailure.outOfRange(
@@ -51,6 +54,7 @@ where Base: Buffer {
     }
 
     /// > Note: The resulting range may exceed ``scopedRange``. This is necessary to ensure that you can select a line range at the end of a more narrowly scoped mutation.
+    @usableFromInline
     func lineRange(for searchRange: Base.Range) throws -> Base.Range {
         guard contains(range: searchRange) else {
             throw BufferAccessFailure.outOfRange(
@@ -61,6 +65,7 @@ where Base: Buffer {
         return try base.lineRange(for: searchRange)
     }
 
+    @usableFromInline
     func content(in subrange: UTF16Range) throws -> Base.Content {
         guard contains(range: subrange) else {
             throw BufferAccessFailure.outOfRange(
@@ -71,10 +76,12 @@ where Base: Buffer {
         return try base.content(in: subrange)
     }
 
+    @usableFromInline
     func unsafeCharacter(at location: Location) -> Base.Content {
         return base.unsafeCharacter(at: location)
     }
 
+    @usableFromInline
     func delete(in deletedRange: Base.Range) throws {
         guard contains(range: deletedRange) else {
             throw BufferAccessFailure.outOfRange(
@@ -92,6 +99,7 @@ where Base: Buffer {
         try base.delete(in: deletedRange)
     }
 
+    @usableFromInline
     func replace(range replacementRange: Base.Range, with content: Base.Content) throws {
         guard contains(range: replacementRange) else {
             throw BufferAccessFailure.outOfRange(
@@ -110,6 +118,7 @@ where Base: Buffer {
         try base.replace(range: replacementRange, with: content)
     }
 
+    @usableFromInline
     func insert(_ content: Base.Content, at location: Base.Location) throws {
         guard contains(range: .init(location: location, length: 0)) else {
             throw BufferAccessFailure.outOfRange(
@@ -126,6 +135,7 @@ where Base: Buffer {
         try base.insert(content, at: location)
     }
 
+    @usableFromInline
     func modifying<T>(affectedRange: Buffer.Range, _ block: () -> T) throws -> T {
         guard contains(range: affectedRange) else {
             throw BufferAccessFailure.outOfRange(
@@ -139,5 +149,15 @@ where Base: Buffer {
 
     func modifyingScope<T>(_ block: () -> T) throws -> T {
         return try base.modifying(affectedRange: scopedRange, block)
+    }
+
+    // Specialized overload required to avoid stack overflow from infinitely calling ``Buffer``'s implementation from its protocol extension.
+    @discardableResult
+    @usableFromInline
+    func evaluate(
+        in range: Buffer.Range,
+        @ModificationBuilder _ expression: (AffectedRange) throws -> ModificationSequence
+    ) throws -> ChangeInLength {
+        return try expression(AffectedRange(range)).evaluate(in: self)
     }
 }

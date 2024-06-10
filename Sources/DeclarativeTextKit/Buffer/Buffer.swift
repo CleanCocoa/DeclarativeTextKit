@@ -133,7 +133,7 @@ public protocol Buffer: AnyObject {
         @ModificationBuilder _ expression: (AffectedRange) throws -> ModificationSequence
     ) throws -> ChangeInLength
 
-    /// Entry point into the Domain-Specific Language to run ``Expression``s on the buffer.
+    /// Entry point into the Domain-Specific Language to run ``Expression``s on the buffer within `range`.
     ///
     /// Conforming types can provide refinements to this process to bundle changes in e.g. undoable action groups.
     ///
@@ -146,6 +146,8 @@ public protocol Buffer: AnyObject {
     ///     }
     /// }
     /// ```
+    ///
+    /// > Note: While _selecting_ a wider range than the input `range` is permitted, changes to the buffer contents outside of `range` are not allowed and will throw a ``BufferAccessFailure``.
     @inlinable @inline(__always)
     @discardableResult
     func evaluate(
@@ -209,7 +211,10 @@ extension Buffer {
         in range: Buffer.Range,
         @ModificationBuilder _ expression: (AffectedRange) throws -> ModificationSequence
     ) throws -> ChangeInLength {
-        return try expression(AffectedRange(range)).evaluate(in: self)
+        return try ScopedBufferSlice(
+            base: self,
+            scopedRange: range
+        ).evaluate(in: range, expression)
     }
 
     @inlinable @inline(__always)
@@ -218,7 +223,7 @@ extension Buffer {
     public func evaluate(
         @ModificationBuilder _ expression: (AffectedRange) throws -> ModificationSequence
     ) throws -> ChangeInLength {
-        return try expression(AffectedRange(self.range)).evaluate(in: self)
+        return try self.evaluate(in: self.range, expression)
     }
 }
 

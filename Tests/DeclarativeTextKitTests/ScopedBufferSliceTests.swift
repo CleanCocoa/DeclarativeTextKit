@@ -371,36 +371,78 @@ final class ScopedBufferSliceTests: XCTestCase {
 }
 
 extension ScopedBufferSliceTests {
+    func testExpandingSelectionRangeBeyondScope_() throws {
+        let buffer = try makeBuffer("0123ˇ456789")
+
+        try buffer.evaluate(location: 3, length: 2) { originalRange in
+            Select(buffer.range)
+        }
+
+        assertBufferState(buffer, "«0123456789»")
+    }
+
     func testExpandingSelectionRangeBeyondScope_ByWord() throws {
         let baseBuffer = try makeBuffer("foo ba«r fiz»z buzz")
 
-        try baseBuffer.evaluate(in: baseBuffer.selectedRange) { affectedRange in
-            Modifying(affectedRange) { scopedRange in
-                Select(WordRange(scopedRange))
-            }
+        try baseBuffer.evaluate(in: baseBuffer.selectedRange) { scopedRange in
+            Select(WordRange(scopedRange))
         }
 
         assertBufferState(baseBuffer, "foo «bar fizz» buzz")
     }
 
     func testExpandingSelectionRangeBeyondScope_ByLine() throws {
-        let baseBuffer = try makeBuffer("""
+        let buffer = try makeBuffer("""
             first
             se«co»nd
             third
             """)
 
-        try baseBuffer.evaluate(in: baseBuffer.selectedRange) { affectedRange in
-            Modifying(affectedRange) { scopedRange in
-                Select(LineRange(scopedRange))
-            }
+        try buffer.evaluate(in: buffer.selectedRange) { scopedRange in
+            Select(LineRange(scopedRange))
         }
 
-        assertBufferState(baseBuffer, """
+        assertBufferState(buffer, """
             first
             «second
             »third
             """)
+    }
+
+    func testExpandingSelectionRangeBeyondScope_PreventsModification() throws {
+        let buffer = try makeBuffer("0123ˇ456789")
+
+        // MARK: With evaluation context range
+
+        assertThrows(
+            try buffer.evaluate(location: 3, length: 2) { originalRange in
+                Select(buffer.range) { fullRange in
+                    // Attempting to expand the modifiable range with the enclosing selection is forbidden.
+                    Modifying(fullRange) { fullRange in
+                        Delete(location: fullRange.location, length: 2)
+                    }
+                }
+            },
+            error: BufferAccessFailure.outOfRange(
+                location: 0,
+                length: 10,
+                available: Buffer.Range(location: 3, length: 2)
+            )
+        )
+        assertBufferState(buffer, "«0123456789»",
+                          "Selection is permitted, modification fails")
+
+        // MARK: Without evaluation context range
+
+        try buffer.evaluate {
+            Select(buffer.range) { fullRange in
+                Modifying(fullRange) { fullRange in
+                    Delete(location: fullRange.location, length: 2)
+                }
+            }
+        }
+
+        assertBufferState(buffer, "«23456789»")
     }
 
     func testModifying_DelegatesToBaseAndProtectsScope() throws {
