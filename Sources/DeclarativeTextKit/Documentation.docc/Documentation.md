@@ -72,6 +72,8 @@ Text Kit's text views behave as buffers, but offer a much wider surface API to 
 ### Non-Mutating Side Effects in the Domain-Specific Language
 
 - ``Select-struct``
+- ``If``
+- ``IfLet``
 - ``Debug``
 
 ### Semantic Selections: Range Finders
