@@ -152,17 +152,15 @@ final class SelectTests: XCTestCase {
     func testSelect_WordRangeFromModification() throws {
         buffer = MutableStringBuffer("makewordshere")
 
-        try buffer.evaluate {
-            Select(
-                location: length(of: "make"),
-                length: length(of: "words")
-            ) { selectedRange in
-                Modifying(selectedRange) { wrappedRange in
-                    Insert(wrappedRange.location) { " " }
-                    Insert(wrappedRange.endLocation) { " " }
-                }
-                Select(WordRange(selectedRange))
+        try buffer.evaluate(
+            location: length(of: "make"),
+            length: length(of: "words")
+        ) { selectedRange in
+            Modifying(selectedRange) { wrappedRange in
+                Insert(wrappedRange.location) { " " }
+                Insert(wrappedRange.endLocation) { " " }
             }
+            Select(WordRange(selectedRange))
         }
 
         assertBufferState(buffer, "make «words» here")

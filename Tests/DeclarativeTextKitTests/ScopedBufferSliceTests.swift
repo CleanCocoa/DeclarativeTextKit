@@ -374,8 +374,8 @@ extension ScopedBufferSliceTests {
     func testExpandingSelectionRangeBeyondScope_ByWord() throws {
         let baseBuffer = try makeBuffer("foo ba«r fiz»z buzz")
 
-        try baseBuffer.evaluate {
-            Modifying(AffectedRange(baseBuffer.selectedRange)) { scopedRange in
+        try baseBuffer.evaluate(in: baseBuffer.selectedRange) { affectedRange in
+            Modifying(affectedRange) { scopedRange in
                 Select(WordRange(scopedRange))
             }
         }
@@ -390,8 +390,8 @@ extension ScopedBufferSliceTests {
             third
             """)
 
-        try baseBuffer.evaluate {
-            Modifying(AffectedRange(baseBuffer.selectedRange)) { scopedRange in
+        try baseBuffer.evaluate(in: baseBuffer.selectedRange) { affectedRange in
+            Modifying(affectedRange) { scopedRange in
                 Select(LineRange(scopedRange))
             }
         }

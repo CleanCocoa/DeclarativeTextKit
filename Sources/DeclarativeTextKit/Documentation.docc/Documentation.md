@@ -19,7 +19,7 @@ The following code snippet will
 3. then put the insertion point after the opening triple backticks:
 
 ```swift
-buffer.evaluate {
+buffer.evaluate(in: buffer.selectedRange) { selectedRange in
     // Expand selection to the whole block (full lines).
     Select(LineRange(selectedRange)) { lineRange in
         // In that range, attempt to wrap the selected text

@@ -98,3 +98,20 @@ func assertThrows<T>(
         file: file, line: line
     )
 }
+
+extension Buffer {
+    @discardableResult
+    func evaluate(
+        location: Buffer.Location,
+        length: Buffer.Length,
+        @ModificationBuilder _ expression: (AffectedRange) throws -> ModificationSequence
+    ) throws -> ChangeInLength {
+        return try self.evaluate(
+            in: Buffer.Range(
+                location: location,
+                length: length
+            ),
+            expression
+        )
+    }
+}

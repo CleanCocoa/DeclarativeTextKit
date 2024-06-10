@@ -34,7 +34,7 @@ If you want to modify a piece of a text in multiple places at once, the index re
 Expand the user's selection to full lines, then wrap the text in GitHub-flavored Markdown fenced code blocks and put the insertion point after the opening triple backticks:
 
 ```swift
-buffer.evaluate {
+buffer.evaluate(in: buffer.selectedRange) { selectedRange in
     // Expand selection to the whole block (full lines).
     Select(LineRange(selectedRange)) { lineRange in
         // In that range, attempt to wrap the selected text

@@ -94,8 +94,8 @@ public protocol Buffer: AnyObject {
     /// Builds `expression` and evaluates it on `self` so you can write a block directly like so:
     ///
     /// ```swift
-    /// buffer.evaluate {
-    ///     Modifying(buffer.selectedRange) { range in
+    /// buffer.evaluate(in: buffer.selectedRange) { selectedRange in
+    ///     Modifying(selectedRange) { range in
     ///         Insert(range.location) { "> " }
     ///     }
     /// }
@@ -112,6 +112,26 @@ public protocol Buffer: AnyObject {
     @discardableResult
     func evaluate(
         @ModificationBuilder _ expression: () throws -> ModificationSequence
+    ) throws -> ChangeInLength
+
+    /// Entry point into the Domain-Specific Language to run ``Expression``s on the buffer.
+    ///
+    /// Conforming types can provide refinements to this process to bundle changes in e.g. undoable action groups.
+    ///
+    /// Builds `expression` and evaluates it on `self` so you can write a block directly like so:
+    ///
+    /// ```swift
+    /// buffer.evaluate(in: buffer.selectedRange) { selectedRange in
+    ///     Modifying(selectedRange) { wrappedRange in
+    ///         Insert(wrappedRange.location) { "> " }
+    ///     }
+    /// }
+    /// ```
+    @inlinable @inline(__always)
+    @discardableResult
+    func evaluate(
+        in range: Buffer.Range,
+        @ModificationBuilder _ expression: (AffectedRange) throws -> ModificationSequence
     ) throws -> ChangeInLength
 }
 
@@ -151,13 +171,39 @@ extension Buffer {
         // Overwriting rules are the same as deletion rules.
         return self.range.contains(range)
     }
+}
 
+// MARK: - Evaluation helper / entry points
+
+extension Buffer {
     @inlinable @inline(__always)
     @discardableResult
     public func evaluate(
         @ModificationBuilder _ expression: () throws -> ModificationSequence
     ) throws -> ChangeInLength {
         return try expression().evaluate(in: self)
+    }
+
+    /// Entry point into the Domain-Specific Language to run ``Expression``s on the buffer.
+    ///
+    /// Conforming types can provide refinements to this process to bundle changes in e.g. undoable action groups.
+    ///
+    /// Builds `expression` and evaluates it on `self` so you can write a block directly like so:
+    ///
+    /// ```swift
+    /// buffer.evaluate(in: buffer.selectedRange) { selectedRange in
+    ///     Modifying(selectedRange) { wrappedRange in
+    ///         Insert(wrappedRange.location) { "> " }
+    ///     }
+    /// }
+    /// ```
+    @inlinable @inline(__always)
+    @discardableResult
+    public func evaluate(
+        in range: Buffer.Range,
+        @ModificationBuilder _ expression: (AffectedRange) throws -> ModificationSequence
+    ) throws -> ChangeInLength {
+        return try expression(AffectedRange(range)).evaluate(in: self)
     }
 }
 
