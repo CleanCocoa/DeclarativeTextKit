@@ -72,9 +72,9 @@ open class NSTextViewBuffer: Buffer {
         return textView.nsMutableString.unsafeContent(in: subrange)
     }
 
-    /// Raises an `NSExceptionName` of name `.rangeException` if `location` is out of bounds.
     @inlinable
     open func unsafeCharacter(at location: Buffer.Location) -> Buffer.Content {
+        // Raises an `NSExceptionName` of name `.rangeException` if `location` is out of bounds.
         return textView.nsMutableString.unsafeCharacter(at: location)
     }
 

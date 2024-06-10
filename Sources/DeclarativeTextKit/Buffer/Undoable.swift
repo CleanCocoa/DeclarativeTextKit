@@ -10,7 +10,7 @@ import Foundation
 ///
 /// To group multiple buffer mutations in a single undo group, e.g. to delete parts of text in multiple places as one action, you can either
 /// - use the ``Modifying-struct`` command from the DSL, which wraps its mutations in an undo group when applied to an ``Undoable`` buffer, or
-/// - use the ``undoGrouping(actionName:_:)`` function directly.
+/// - use the ``undoGrouping(actionName:undoingSelectionChanges:_:)`` function directly.
 ///
 /// ## Caveats and Pitfalls
 ///
@@ -200,7 +200,7 @@ public final class Undoable<Base>: Buffer where Base: Buffer {
 
     /// Wrapping changes inside `block` in a modification request to bundle updates.
     ///
-    /// Treats `block` as a single undoable action group. See ``undoGrouping(actionName:_:)``
+    /// Treats `block` as a single undoable action group. See ``undoGrouping(actionName:undoingSelectionChanges:_:)``
     ///
     /// - Throws: ``BufferAccessFailure`` if changes to `affectedRange` are not permitted.
     public func modifying<T>(affectedRange: Buffer.Range, _ block: () -> T) throws -> T {
@@ -211,7 +211,7 @@ public final class Undoable<Base>: Buffer where Base: Buffer {
 
     /// Wrapping evaluation of `expression` in an undo group to make its evaluation undoable.
     ///
-    /// Treats `block` as a single undoable action group. See ``undoGrouping(actionName:_:)``
+    /// Treats `expression` as a single undoable action group. See ``undoGrouping(actionName:undoingSelectionChanges:_:)``
     ///
     /// - Throws: ``BufferAccessFailure`` emitted during evaluation of `expression`.
     @inlinable @discardableResult
