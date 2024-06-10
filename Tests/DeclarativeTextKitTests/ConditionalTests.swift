@@ -3,7 +3,6 @@
 import XCTest
 import DeclarativeTextKit
 
-
 final class ConditionalTests: XCTestCase {
     func testConditionalSequences() throws {
         let buffer = try makeBuffer("Helloˇ")
@@ -30,6 +29,30 @@ final class ConditionalTests: XCTestCase {
             "Heˇl",
             "Hˇel",
             "ˇel",
+        ])
+    }
+
+    func testConditionalBindingSequences() throws {
+        let buffer = try makeBuffer("Helloˇ")
+
+        var collectedStates: [String] = []
+        for part in [nil, " world", nil, nil, "!"] {
+            try buffer.evaluate(in: buffer.range) { fullRange in
+                IfLet (part) { part in
+                    Modifying(fullRange) { range in
+                        Insert(range.endLocation) { part }
+                    }
+                }
+            }
+            collectedStates.append(buffer.description)
+        }
+
+        XCTAssertEqual(collectedStates, [
+            "Helloˇ",
+            "Hello worldˇ",
+            "Hello worldˇ",
+            "Hello worldˇ",
+            "Hello world!ˇ",
         ])
     }
 
