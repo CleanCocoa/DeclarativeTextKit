@@ -4,8 +4,8 @@ import Foundation
 
 extension NSRange {
     /// - Returns: Whether `other` is fully contained in the receiver.
-    @usableFromInline
-    func contains(_ other: NSRange) -> Bool {
+    @inlinable @inline(__always)
+    public func contains(_ other: NSRange) -> Bool {
         return self.intersection(other) == other
     }
 }
