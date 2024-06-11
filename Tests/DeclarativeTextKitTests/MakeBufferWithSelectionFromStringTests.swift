@@ -19,4 +19,14 @@ final class BufferWithSelectionFromStringTests: XCTestCase {
         expectedBuffer.selectedRange = .init(location: 4, length: 0)
         XCTAssertEqual(try makeBuffer("0123ˇ456"), expectedBuffer)
     }
+
+    func testChangeBuffer() throws {
+        let buffer = MutableStringBuffer("hello\nworld")
+        
+        try change(buffer: buffer, to: "go«od»bye")
+        assertBufferState(buffer, "go«od»bye")
+
+        try change(buffer: buffer, to: "")
+        assertBufferState(buffer, "ˇ")
+    }
 }
