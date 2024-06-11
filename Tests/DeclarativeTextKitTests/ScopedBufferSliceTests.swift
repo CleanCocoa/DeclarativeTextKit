@@ -2,6 +2,7 @@
 
 import XCTest
 @testable import DeclarativeTextKit
+import DeclarativeTextKitTesting
 
 final class ScopedBufferSliceTests: XCTestCase {
     let availableRange = Buffer.Range(location: 3, length: 3)

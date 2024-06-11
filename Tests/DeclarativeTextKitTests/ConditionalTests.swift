@@ -2,6 +2,7 @@
 
 import XCTest
 import DeclarativeTextKit
+import DeclarativeTextKitTesting
 
 final class ConditionalTests: XCTestCase {
     func testConditionalSequences() throws {

@@ -9,12 +9,18 @@ let package = Package(
         .library(
             name: "DeclarativeTextKit",
             targets: ["DeclarativeTextKit"]),
+        .library(
+            name: "DeclarativeTextKitTesting",
+            targets: ["DeclarativeTextKitTesting"]),
     ],
     targets: [
         .target(
             name: "DeclarativeTextKit"),
+        .target(
+            name: "DeclarativeTextKitTesting",
+            dependencies: ["DeclarativeTextKit"]),
         .testTarget(
             name: "DeclarativeTextKitTests",
-            dependencies: ["DeclarativeTextKit"]),
+            dependencies: ["DeclarativeTextKit", "DeclarativeTextKitTesting"]),
     ]
 )

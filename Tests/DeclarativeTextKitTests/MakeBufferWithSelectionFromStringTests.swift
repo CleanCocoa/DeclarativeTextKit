@@ -2,6 +2,7 @@
 
 import XCTest
 import DeclarativeTextKit
+import DeclarativeTextKitTesting
 
 final class BufferWithSelectionFromStringTests: XCTestCase {
     func testBufferFromPlainString() throws {

@@ -1,4 +1,7 @@
-#if DEBUG
+//  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
+
+import DeclarativeTextKit
+
 public struct InvalidBufferStringRepresentation: Error {
     public let stringRepresentation: String
     public let parts: [String]
@@ -57,4 +60,3 @@ public func change(
         buffer.insertionLocation = 0
     }
 }
-#endif
