@@ -34,13 +34,13 @@ extension ModificationBuilder {
 
     public static func buildPartialBlock(accumulated: Delete, next: Delete) -> Delete {
         return Delete(SortedArray(
-            unsorted: Array(accumulated.deletions) + Array(next.deletions)
+            unsorted: Array(accumulated.deletions()) + Array(next.deletions())
         ))
     }
 
     public static func buildArray(_ components: [Delete]) -> Delete {
         return Delete(SortedArray(
-            unsorted: components.map(\.deletions).joined()
+            unsorted: components.map { $0.deletions() }.joined()
         ))
     }
 }
