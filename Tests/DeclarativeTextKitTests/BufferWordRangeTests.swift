@@ -2,7 +2,6 @@
 
 import XCTest
 @testable import DeclarativeTextKit
-import DeclarativeTextKitTesting
 
 /// Shoveling-operator for dictionary concatenation or merging.
 fileprivate func << <Key, Value>(

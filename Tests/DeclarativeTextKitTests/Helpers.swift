@@ -2,6 +2,7 @@
 
 import XCTest
 @testable import DeclarativeTextKit
+@_exported import DeclarativeTextKitTesting  // So we don't have to import all the helpers everywhere.
 
 #if os(macOS)
 import AppKit
@@ -12,20 +13,6 @@ func textView(_ string: String) -> NSTextViewBuffer {
     return NSTextViewBuffer(textView: textView)
 }
 #endif
-
-func assertBufferState(
-    _ buffer: Buffer,
-    _ expectedDescription: String,
-    _ message: @autoclosure () -> String = "",
-    file: StaticString = #file, line: UInt = #line
-) {
-    XCTAssertEqual(
-        MutableStringBuffer(wrapping: buffer).description,
-        expectedDescription,
-        message(),
-        file: file, line: line
-    )
-}
 
 func assertThrows<T, E: Error & Equatable>(
     _ expression: @autoclosure () throws -> T,
