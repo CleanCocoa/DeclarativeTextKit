@@ -1,13 +1,13 @@
-import DeclarativeTextKit
-
-struct InvalidBufferStringRepresentation: Error {
-    let stringRepresentation: String
-    let parts: [String]
+#if DEBUG
+public struct InvalidBufferStringRepresentation: Error {
+    public let stringRepresentation: String
+    public let parts: [String]
 }
 
 /// Create ``MutableStringBuffer`` from a string that matches the `debugDescription` format of either `"text «with selection»"` or `"text ˇinsertion point"`.
 /// - Throws: `InvalidBufferStringRepresentation` if `stringRepresentation` is malformed.
-func makeBuffer(_ stringRepresentation: String) throws -> MutableStringBuffer {
+@available(macOS, introduced: 13.0, message: "macOS 13 required for Regex")
+public func makeBuffer(_ stringRepresentation: String) throws -> MutableStringBuffer {
     /// Indices:
     /// - `0`: text before
     /// - `1`: text inside
@@ -43,3 +43,4 @@ func makeBuffer(_ stringRepresentation: String) throws -> MutableStringBuffer {
     }
     return buffer
 }
+#endif
