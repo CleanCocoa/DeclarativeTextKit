@@ -98,7 +98,11 @@ final class UndoableBufferTests: XCTestCase {
                 Insert(fullRange.endLocation) { " you" }
             }
 
-            Select(location: fullRange.endLocation + 1, length: 3) { selectedRange in
+            Select(WordRange(location: fullRange.endLocation)) { selectedRange in
+                Debug {
+                    XCTAssertEqual(try! undoable.content(in: selectedRange.value), "you")
+                }
+
                 Modifying(selectedRange) { selectedRange in
                     Delete(selectedRange)
                 }

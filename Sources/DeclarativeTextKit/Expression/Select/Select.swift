@@ -31,7 +31,7 @@
 /// Opposed to manual offset calculations, you don't need to take the deletion into account to calculate the "after the end" location to let the user type there. This ensures that you can alter buffer mutations to best express the change you need, adding and removing characters, while keeping the ``Select`` command untouched.
 public struct Select<RangeExpr>
 where RangeExpr: BufferRangeExpression {
-    let range: RangeExpr
+    let range: () -> RangeExpr
     let body: (_ selectedRange: AffectedRange) -> ModificationSequence
 }
 
@@ -39,45 +39,51 @@ where RangeExpr: BufferRangeExpression {
 
 extension Select {
     public init(
-        _ range: RangeExpr,
+        _ range: @escaping @autoclosure () -> RangeExpr,
         @ModificationBuilder _ body: @escaping (_ selectedRange: AffectedRange) -> ModificationSequence
     ) {
         self.range = range
         self.body = body
     }
 
-    public init(_ range: RangeExpr) {
-        self.init(range) { _ in Identity() }
+    public init(
+        _ range: @escaping @autoclosure () -> RangeExpr
+    ) {
+        self.init(range()) { _ in Identity() }
     }
 }
 
 extension Select where RangeExpr == Buffer.Range {
-    public init(_ range: Buffer.Range) {
-        self.init(range) { _ in Identity() }
-    }
-
-    public init(_ location: Buffer.Location) {
-        self.init(Buffer.Range(location: location, length: 0)) { _ in Identity() }
+    public init(
+        _ range: @escaping @autoclosure () -> Buffer.Range
+    ) {
+        self.init(range()) { _ in Identity() }
     }
 
     public init(
-        location: Buffer.Location,
-        length: Buffer.Length,
+        _ location: @escaping @autoclosure () -> Buffer.Location
+    ) {
+        self.init(Buffer.Range(location: location(), length: 0)) { _ in Identity() }
+    }
+
+    public init(
+        location: @escaping @autoclosure () -> Buffer.Location,
+        length: @escaping @autoclosure () -> Buffer.Length,
         @ModificationBuilder _ body: @escaping (_ selectedRange: AffectedRange) -> ModificationSequence
     ) {
         self.init(
-            Buffer.Range(location: location, length: length),
+            Buffer.Range(location: location(), length: length()),
             body
         )
     }
 
     public init(
-        location: Buffer.Location,
-        length: Buffer.Length
+        location: @escaping @autoclosure () -> Buffer.Location,
+        length: @escaping @autoclosure () -> Buffer.Length
     ) {
         self.init(
-            location: location,
-            length: length
+            location: location(),
+            length: length()
         ) { _ in Identity() }
     }
 }
@@ -88,7 +94,7 @@ extension Select: Modification {
     @_disfavoredOverload  // Favor the throwing alternative of the protocol extension
     public func evaluate(in buffer: Buffer) -> Result<ChangeInLength, BufferAccessFailure> {
         do {
-            let selectedRange = AffectedRange(try range.evaluate(in: buffer).bufferRange())
+            let selectedRange = AffectedRange(try range().evaluate(in: buffer).bufferRange())
 
             try buffer.select(selectedRange)
 
