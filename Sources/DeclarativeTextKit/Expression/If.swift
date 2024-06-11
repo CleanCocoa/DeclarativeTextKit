@@ -2,11 +2,13 @@
 
 /// Branching paths where the condition is checked lazily during evaluation time.
 ///
-/// ## Motivation for an `If` type in spite of Swift Result Builder's capabilities
+/// ## Motivation for an ``If`` type in spite of Swift Result Builder's capabilities
 ///
 /// If you think of ``Buffer/evaluate(_:)-7jmtt`` as the "run time", Swift Result Builder's `buildOptional` and `buildEither` check their condition at "compile time". That means you cannot form conditions on ``AffectedRange``.
 ///
 /// This is a confusing limitation, and brings with it potentially dangerous (as in: crashing) situations.
+///
+/// > Further Reading: For a detailed explanation of the "runtime" and "build time" concepts, or to learn more about how to think about Swift Result Builders, see <doc:Runtime>.
 ///
 /// ## Example
 ///
@@ -15,9 +17,9 @@
 /// ```swift
 /// try buffer.evaluate {
 ///     Select(WordRange(buffer.selectedRange)) { selectedWordRange in
-///         Modifying(selectedWordRange) { wrappedRange in
-///             Insert(wrappedRange.location) { Word.Prepending("(") }
-///             Insert(wrappedRange.endLocation) { Word.Appending(")") }
+///         Modifying(selectedWordRange) {
+///             Insert($0.location) { Word.Prepending("(") }
+///             Insert($0.endLocation) { Word.Appending(")") }
 ///         }
 ///         If (selectedWordRange.length == 2) {
 ///             Select(selectedWordRange.location + 1)

@@ -4,11 +4,13 @@
 ///
 /// Since we don't have `if let` support from the Result Builder, ``IfLet`` is added for consistency to express unwrapping in the DSL.
 ///
-/// ## Motivation for an `If` type in spite of Swift Result Builder's capabilities
+/// ## Motivation for an ``IfLet`` type in spite of Swift Result Builder's capabilities
 ///
 /// If you think of ``Buffer/evaluate(_:)-7jmtt`` as the "run time", Swift Result Builder's `buildOptional` and `buildEither` check their condition at "compile time". That means you cannot form conditions on ``AffectedRange``.
 ///
 /// This is a confusing limitation, and brings with it potentially dangerous (as in: crashing) situations.
+///
+/// > Further Reading: For a detailed explanation of the "runtime" and "build time" concepts, or to learn more about how to think about Swift Result Builders, see <doc:Runtime>.
 ///
 /// ## Example
 ///
@@ -18,8 +20,8 @@
 /// var optionalValue: String? = ...
 /// try buffer.evaluate { fullRange in
 ///     IfLet (optionalValue) { value in
-///         Modifying(fullRange) { fullRange in
-///             Insert(range.endLocatio) { value }
+///         Modifying(fullRange) {
+///             Insert($0.endLocation) { value }
 ///         }
 ///     }
 /// }
