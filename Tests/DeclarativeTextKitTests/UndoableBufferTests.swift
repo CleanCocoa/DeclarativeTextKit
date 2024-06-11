@@ -99,9 +99,7 @@ final class UndoableBufferTests: XCTestCase {
             }
 
             Select(WordRange(location: fullRange.endLocation)) { selectedRange in
-                Debug {
-                    XCTAssertEqual(try! undoable.content(in: selectedRange.value), "you")
-                }
+                Assert(selectedRange, contains: "you")
 
                 Modifying(selectedRange) { selectedRange in
                     Delete(selectedRange)
