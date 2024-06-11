@@ -12,14 +12,14 @@ extension ModificationBuilder {
 
     public static func buildPartialBlock(accumulated: Insert, next: Insert) -> Insert {
         return Insert(SortedArray(
-            unsorted: Array(accumulated.insertions) + Array(next.insertions),
+            unsorted: Array(accumulated.insertions()) + Array(next.insertions()),
             areInIncreasingOrder: TextInsertion.arePositionedInIncreasingOrder
         ))
     }
 
     public static func buildArray(_ components: [Insert]) -> Insert {
         return Insert(SortedArray(
-            unsorted: components.map(\.insertions).joined(),
+            unsorted: components.map { $0.insertions() }.joined(),
             areInIncreasingOrder: TextInsertion.arePositionedInIncreasingOrder
         ))
     }

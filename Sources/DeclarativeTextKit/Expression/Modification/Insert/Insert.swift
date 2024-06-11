@@ -98,18 +98,20 @@
 ///
 /// The ``InsertableBuilder`` grammar  ensures that ``Line``'s guarantees are upheld when concatenating with regular strings left and/or right.
 public struct Insert {
-    let insertions: SortedArray<TextInsertion>
+    let insertions: () -> SortedArray<TextInsertion>
 
-    init(_ insertions: SortedArray<TextInsertion>) {
+    init(
+        _ insertions: @escaping @autoclosure () -> SortedArray<TextInsertion>
+    ) {
         self.insertions = insertions
     }
 
     public init(
-        _ location: UTF16Offset,
-        @InsertableBuilder _ body: () -> Insertable
+        _ location: @escaping @autoclosure () -> UTF16Offset,
+        @InsertableBuilder _ body: @escaping () -> Insertable
     ) {
         self.init(SortedArray(sorted: [
-            TextInsertion(at: location, insertable: body())
+            TextInsertion(at: location(), insertable: body())
         ], areInIncreasingOrder: TextInsertion.arePositionedInIncreasingOrder))
     }
 }
