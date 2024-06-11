@@ -90,4 +90,29 @@ final class ConditionalTests: XCTestCase {
             "Text: a2c4«e»",
         ])
     }
+
+    /// Test that during ``If`` conditions and ``Select`` usage, the value of `fullRange` at that time during evaluation of the block will be used.
+    ///
+    /// See <doc:DeclarativeTextKit/Runtime> for an explanation of 'runtime' vs 'build time' concepts.
+    func testConditionalsEvaluateAtRuntime() throws {
+        let buffer = MutableStringBuffer("")
+
+        try buffer.evaluate(in: buffer.range) { fullRange in
+            If (fullRange.length == 0) {
+                Modifying(fullRange) { fullRange in
+                    Insert(fullRange.location) { "Start here: " }
+                }
+            }
+
+            If (fullRange.length > 0) {
+                Modifying(fullRange) { fullRange in
+                    Insert(fullRange.endLocation) { "end here." }
+                }
+            }
+
+            Select(location: fullRange.value.endLocation, length: 0)
+        }
+
+        assertBufferState(buffer, "Start here: end here.ˇ")
+    }
 }
