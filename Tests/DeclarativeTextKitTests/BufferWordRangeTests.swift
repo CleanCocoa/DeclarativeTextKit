@@ -14,18 +14,6 @@ fileprivate func << <Key, Value>(
 }
 
 final class BufferWordRangeTests: XCTestCase {
-    func twoWords(separatedBy separator: Character) -> [String : String] {
-        return [
-            "start word\(separator)wordˇ end" : "start word\(separator)«word» end",
-            "start word\(separator)ˇword end" : "start word\(separator)«word» end",
-            "start word\(separator)«word» end"  : "start word\(separator)«word» end",
-            "start wordˇ\(separator)word end" : "start «word»\(separator)word end",
-            "start «word»\(separator)word end"  : "start «word»\(separator)word end",
-            "start wo«rd\(separator)wo»rd end"  : "start «word\(separator)word» end",
-            "start «word\(separator)word» end"  : "start «word\(separator)word» end",
-        ]
-    }
-
     func word(punctuatedBy char: Character) -> [String : String] {
         return word(punctuatedBy: char, char)
     }
@@ -104,14 +92,14 @@ extension BufferWordRangeTests {
             "ˇ,b"   : "«,b»",
             "«,»b"  : "«,b»",
         ]
-        samples << [
+        samples << [ // Punctuation
             "ˇ(foo bar)" : "«(foo» bar)",
             "ˇ(foo) bar" : "«(foo)» bar",
             "(foo)ˇ bar" : "«(foo)» bar",
             "(foo bar)ˇ" : "(foo «bar)»",
             "foo (bar)ˇ" : "foo «(bar)»",
         ]
-        samples << [
+        samples << [ // Emoji ranges
             "⭐️ˇ"        : "«⭐️»",
             "⭐️ ⭐️ˇ"     : "⭐️ «⭐️»",
             "⭐️ «⭐️»"    : "⭐️ «⭐️»",
@@ -119,12 +107,23 @@ extension BufferWordRangeTests {
             "👴🏻 👱🏾‍♀️ˇ"  : "👴🏻 «👱🏾‍♀️»",
             "👴🏻 «👱🏾‍♀️»" : "👴🏻 «👱🏾‍♀️»",
         ]
-        samples << twoWords(separatedBy: " ")
-        samples << twoWords(separatedBy: "　") // IDEOGRAPHIC SPACE
-        samples << twoWords(separatedBy: "\t")
-        samples << twoWords(separatedBy: "\n")
-        samples << twoWords(separatedBy: "\r")
-        samples << twoWords(separatedBy: "\r\n")
+        for separator in [
+            " ", "\t",
+            "　", // IDEOGRAPHIC SPACE
+            "\n", "\r", "\r\n"
+        ] {
+            samples << [
+                "start word\(separator)wordˇ end"        : "start word\(separator)«word» end",
+                "start word\(separator)ˇword end"        : "start word\(separator)«word» end",
+                "start word\(separator)«word» end"       : "start word\(separator)«word» end",
+                "start wordˇ\(separator)word end"        : "start «word»\(separator)word end",
+                "start wo«rd\(separator)wo»rd end"       : "start «word\(separator)word» end",
+                // Idempotency of word selection
+                "start «word»\(separator)word end"       : "start «word»\(separator)word end",
+                "start «word\(separator)word» end"       : "start «word\(separator)word» end",
+                "start «two words»\(separator)word end"  : "start «two words»\(separator)word end",
+            ]
+        }
         samples << word(punctuatedBy: #"("#, #")"#)
         samples << word(punctuatedBy: #"["#, #"]"#)
         samples << word(punctuatedBy: #"〔"#, #"〕"#)
