@@ -160,8 +160,22 @@ extension BufferWordRangeTests {
 
         for (input, expectedOutput) in samples {
             let buf = try makeBuffer(input)
+            let originalSelecton = buf.selectedRange
+
+            // Buffer.wordRange(for:) method
             XCTAssertNoThrow(
-                buf.select(try buf.wordRange(for: buf.selectedRange)),
+                buf.select(try buf.wordRange(for: originalSelecton)),
+                "Given \"\(sanitized(input))\""
+            )
+            XCTAssertEqual(
+                buf.description, expectedOutput,
+                "Given \"\(sanitized(input))\""
+            )
+
+            // Select(WordRange(...)) expression
+            buf.select(originalSelecton)
+            XCTAssertNoThrow(
+                try buf.evaluate { Select(WordRange(originalSelecton)) },
                 "Given \"\(sanitized(input))\""
             )
             XCTAssertEqual(
