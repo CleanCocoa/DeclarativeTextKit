@@ -348,20 +348,35 @@ extension Buffer {
 
         // Trim trailing whitespace first, favoring upstream selection affinity, e.g. if `baseRange` is all whitespace.
         if searchRange.length > 0 {
-            searchRange.endLocation = firstNonSkippable(
+            let newEndLocation = firstNonSkippable(
                 location: searchRange.endLocation,
                 wordBoundary: .whitespacesAndNewlines,
                 reverse: true
             ) ?? baseRange.endLocation
+            if newEndLocation < searchRange.location {
+                // Flipped locations indicate that the whole of searchRange is whitespace.
+                // TODO: Could also set searchRange.location to its (endLocation-1) when trimming the length for downstream affinity.
+                searchRange.length = 0
+            } else {
+                searchRange.endLocation = newEndLocation
+            }
         }
         // Trim leading whitespace
         if searchRange.length > 0 {
-            searchRange.location = firstNonSkippable(
+            let newStartLocation = firstNonSkippable(
                 location: searchRange.location,
                 wordBoundary: .whitespacesAndNewlines,
                 reverse: false
             ) ?? baseRange.location
-            searchRange.length -= (searchRange.location - baseRange.location)
+            if newStartLocation >= searchRange.endLocation {
+                // Flipped locations indicate that the whole of searchRange is whitespace.
+                // TODO: While symmetrical, this doesn't actually change the effect.
+                // searchRange.location = newStartLocation
+                // searchRange.length = 0
+            } else {
+                searchRange.location = newStartLocation
+                searchRange.length -= (newStartLocation - baseRange.location)
+            }
         }
 
         var (start, end) = matchedRange(in: searchRange, wordBoundary: wordBoundary)

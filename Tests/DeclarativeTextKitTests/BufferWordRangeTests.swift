@@ -107,6 +107,11 @@ extension BufferWordRangeTests {
             "👴🏻 👱🏾‍♀️ˇ"  : "👴🏻 «👱🏾‍♀️»",
             "👴🏻 «👱🏾‍♀️»" : "👴🏻 «👱🏾‍♀️»",
         ]
+        samples << [ // Select closest word or the one to the right
+            "foo « »bar"  : "foo  «bar»",
+            "foo« » bar"  : "«foo»  bar",
+            "foo « » bar" : "foo   «bar»",
+        ]
         for separator in [
             " ", "\t",
             "　", // IDEOGRAPHIC SPACE
@@ -167,10 +172,9 @@ extension BufferWordRangeTests {
                 buf.select(try buf.wordRange(for: originalSelecton)),
                 "Given \"\(sanitized(input))\""
             )
-            XCTAssertEqual(
-                buf.description, expectedOutput,
-                "Given \"\(sanitized(input))\""
-            )
+            assertBufferState(
+                buf, expectedOutput,
+                "Given \"\(sanitized(input))\"")
 
             // Select(WordRange(...)) expression
             buf.select(originalSelecton)
@@ -178,10 +182,9 @@ extension BufferWordRangeTests {
                 try buf.evaluate { Select(WordRange(originalSelecton)) },
                 "Given \"\(sanitized(input))\""
             )
-            XCTAssertEqual(
-                buf.description, expectedOutput,
-                "Given \"\(sanitized(input))\""
-            )
+            assertBufferState(
+                buf, expectedOutput,
+                "Given \"\(sanitized(input))\"")
         }
     }
 
