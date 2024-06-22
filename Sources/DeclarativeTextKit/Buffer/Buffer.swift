@@ -189,7 +189,7 @@ extension Buffer {
         if range.length == 0 {
             return self.range.isValidInsertionPointLocation(at: range.location)
         }
-        // Overwriting rules are the same as deletion rules.
+        // Selection rules for replacing or deleting text require regular full containment.
         return self.range.contains(range)
     }
 }
