@@ -2,7 +2,8 @@
 
 import Foundation
 
-public enum Direction {
+@usableFromInline
+enum Direction {
     /// Left-to-right or towards-the-end search in a string.
     case downstream
     /// Right-to-left or towards-the-beginning search in a string.
