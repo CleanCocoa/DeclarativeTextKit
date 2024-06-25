@@ -282,6 +282,13 @@ extension NSRange {
     }
 }
 
+extension CharacterSet {
+    @inlinable
+    func contains(characterSequence: NSString) -> Bool {
+        return characterSequence.rangeOfCharacter(from: self) == NSRange(location: 0, length: characterSequence.length)
+    }
+}
+
 extension Buffer {
     @inlinable
     public func wordRange(
@@ -293,13 +300,6 @@ extension Buffer {
 
         // This bridging overhead isn't ideal while we operate on `Swift.String` as the `Buffer.Content`. It makes NSRange-based string enumeration easier. As long as `wordRange(for:)` is used to apply commands on the user's behalf via DeclarativeTextKit, we should be okay in practice even for longer document. Repeated calls to this function, e.g. in loops, could be a disaster, though. See commit d434030e6d9366941c5cc3fa9c6de860afb74710 for an approach that uses two while loops instead.
         let nsContent = (self.content as NSString)
-
-        func isWordSeparator(
-            _ characterSequence: NSString,
-            wordBoundary: CharacterSet
-        ) -> Bool {
-            return characterSequence.rangeOfCharacter(from: wordBoundary) == NSRange(location: 0, length: characterSequence.length)
-        }
 
         func expanding(
             range searchRange: NSRange,
@@ -320,9 +320,8 @@ extension Buffer {
             case .upstream:
                 let matchedLocation = locationOfCharacter(
                     in: self.range.prefix(upTo: searchRange),
-                    direction: .upstream) {
-                        isWordSeparator($0, wordBoundary: characterSet)
-                    }
+                    direction: .upstream,
+                    includedIn: characterSet)
                 return Buffer.Range(
                     startLocation: matchedLocation ?? self.range.location, // If nothing was found, expand to start of the available range.
                     endLocation: searchRange.endLocation
@@ -330,9 +329,8 @@ extension Buffer {
             case .downstream:
                 let matchedLocation = locationOfCharacter(
                     in: self.range.suffix(after: searchRange),
-                    direction: .downstream) {
-                        isWordSeparator($0, wordBoundary: characterSet)
-                    }
+                    direction: .downstream,
+                    includedIn: characterSet)
                 return Buffer.Range(
                     startLocation: searchRange.location,
                     endLocation: matchedLocation ?? self.range.endLocation // If nothing was found, expand to end of the available range.
@@ -343,7 +341,7 @@ extension Buffer {
         func locationOfCharacter(
             in searchRange: Buffer.Range,
             direction: Direction = .downstream,
-            where predicate: (_ characterSequence: NSString) -> Bool
+            includedIn characterSet: CharacterSet
         ) -> Buffer.Location? {
             let availableRange = self.range
 
@@ -372,7 +370,7 @@ extension Buffer {
                 let characterSequenceRange = nsContent.rangeOfComposedCharacterSequence(at: location)
                 let characterSequence = nsContent.substring(with: characterSequenceRange) as NSString
 
-                if predicate(characterSequence) {
+                if characterSet.contains(characterSequence: characterSequence) {
                     return switch direction {
                     case .upstream: characterSequenceRange.endLocation
                     case .downstream: characterSequenceRange.location
@@ -415,8 +413,8 @@ extension Buffer {
 
         // If the result is an empty range, characters adjacent to the location were all `wordBoundary` characters. Then we need to try again with relaxed conditions, skipping over whitespace first. Try forward search, then backward.
         if resultRange.length == 0 {
-            let downstreamNonWhitespaceLocation = locationOfCharacter(in: resultRange, direction: .downstream) { !isWordSeparator($0, wordBoundary: .whitespacesAndNewlines) }
-            let upstreamNonWhitespaceLocation = locationOfCharacter(in: resultRange, direction: .upstream) { !isWordSeparator($0, wordBoundary: .whitespacesAndNewlines) }
+            let downstreamNonWhitespaceLocation = locationOfCharacter(in: resultRange, direction: .downstream, includedIn: .whitespacesAndNewlines.inverted)
+            let upstreamNonWhitespaceLocation = locationOfCharacter(in: resultRange, direction: .upstream, includedIn: .whitespacesAndNewlines.inverted)
             // Prioritize look-behind over look-ahead *only* of the point is left-adjacent to non-whitespace character and the look-ahead is further away.
             if let upstreamNonWhitespaceLocation,
                let downstreamNonWhitespaceLocation,
