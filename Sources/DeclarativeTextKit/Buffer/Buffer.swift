@@ -235,6 +235,31 @@ let wordBoundary: CharacterSet = .whitespacesAndNewlines
     .union(.symbols)
     .union(.illegalCharacters)  // Not tested
 
+extension NSRange {
+    @inlinable
+    func expanded(
+        to other: NSRange,
+        direction: Direction
+    ) -> NSRange {
+        precondition(other.location <= self.location && other.endLocation >= self.endLocation, "Expansion requires other range to be larger")
+
+        let startLocation = switch direction {
+        case .upstream: other.location
+        case .downstream: self.location
+        }
+
+        let endLocation = switch direction {
+        case .upstream: self.endLocation
+        case .downstream: other.endLocation
+        }
+
+        return NSRange(
+            startLocation: startLocation,
+            endLocation: endLocation
+        )
+    }
+}
+
 extension Buffer {
     @inlinable
     public func wordRange(
@@ -337,10 +362,7 @@ extension Buffer {
             let newEndLocation = nsContent.locationUpToCharacter(
                 from: .whitespacesAndNewlines.inverted,
                 direction: .upstream,
-                in: Buffer.Range(
-                    startLocation: self.range.location,
-                    endLocation: searchRange.endLocation
-                )
+                in: searchRange.expanded(to: self.range, direction: .upstream)
             ) ?? baseRange.endLocation
 
             searchRange = Buffer.Range(
@@ -353,10 +375,7 @@ extension Buffer {
             let newStartLocation = nsContent.locationUpToCharacter(
                 from: .whitespacesAndNewlines.inverted,
                 direction: .downstream,
-                in: Buffer.Range(
-                    startLocation: searchRange.location,
-                    endLocation: self.range.endLocation
-                )
+                in: searchRange.expanded(to: self.range, direction: .downstream)
             ) ?? baseRange.endLocation
 
             searchRange = Buffer.Range(
