@@ -406,7 +406,7 @@ extension Buffer {
                 from: .whitespacesAndNewlines.inverted,
                 direction: .downstream,
                 in: searchRange.expanded(to: self.range, direction: .downstream)
-            ) ?? baseRange.endLocation
+            ) ?? baseRange.location
 
             searchRange = Buffer.Range(
                 startLocation: min(newStartLocation, searchRange.endLocation),  // If newStartLocation > endLocation, the whole searchRange is whitespace.
