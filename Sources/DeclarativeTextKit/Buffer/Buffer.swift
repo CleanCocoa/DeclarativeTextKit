@@ -281,33 +281,49 @@ extension Buffer {
 
         func expanding(
             range searchRange: NSRange,
-            upToCharactersFrom wordBoundary: CharacterSet
+            upToCharactersFrom characterSet: CharacterSet
         ) -> Buffer.Range {
-            let start = locationOfCharacter(
-                in: Buffer.Range(
-                    location: self.range.location,
-                    // Account for start locations >0 (e.g. in ScopedBufferSlice) in length calculation
-                    length: searchRange.location - self.range.location
-                ),
-                direction: .upstream) {
-                    isWordSeparator($0, wordBoundary: wordBoundary)
-                } ?? self.range.location
+            var expandedRange = searchRange
+            expandedRange = expanding(range: expandedRange, upToCharactersFrom: characterSet, direction: .upstream)
+            expandedRange = expanding(range: expandedRange, upToCharactersFrom: characterSet, direction: .downstream)
+            return expandedRange
+        }
 
-            let end = locationOfCharacter(
-                in: Buffer.Range(
-                    location: searchRange.endLocation,
-                    // Account for start locations >0 (e.g. in ScopedBufferSlice) in length calculation
-                    length: self.range.endLocation - searchRange.endLocation
-                ),
-                direction: .downstream) {
-                    isWordSeparator($0, wordBoundary: wordBoundary)
-                } ?? self.range.endLocation
-
-            precondition(end >= start)
-            return NSRange(
-                location: start,
-                length: end - start
-            )
+        func expanding(
+            range searchRange: NSRange,
+            upToCharactersFrom characterSet: CharacterSet,
+            direction: Direction
+        ) -> Buffer.Range {
+            switch direction {
+            case .upstream:
+                let matchedLocation = locationOfCharacter(
+                    in: Buffer.Range(
+                        location: self.range.location,
+                        // Account for start locations >0 (e.g. in ScopedBufferSlice) in length calculation
+                        length: searchRange.location - self.range.location
+                    ),
+                    direction: .upstream) {
+                        isWordSeparator($0, wordBoundary: characterSet)
+                    }
+                return Buffer.Range(
+                    startLocation: matchedLocation ?? self.range.location, // If nothing was found, expand to start of the available range.
+                    endLocation: searchRange.endLocation
+                )
+            case .downstream:
+                let matchedLocation = locationOfCharacter(
+                    in: Buffer.Range(
+                        location: searchRange.endLocation,
+                        // Account for start locations >0 (e.g. in ScopedBufferSlice) in length calculation
+                        length: self.range.endLocation - searchRange.endLocation
+                    ),
+                    direction: .downstream) {
+                        isWordSeparator($0, wordBoundary: characterSet)
+                    }
+                return Buffer.Range(
+                    startLocation: searchRange.location,
+                    endLocation: matchedLocation ?? self.range.endLocation // If nothing was found, expand to end of the available range.
+                )
+            }
         }
 
         func locationOfCharacter(
