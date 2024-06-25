@@ -235,53 +235,6 @@ let wordBoundary: CharacterSet = .whitespacesAndNewlines
     .union(.symbols)
     .union(.illegalCharacters)  // Not tested
 
-extension NSRange {
-    @inlinable
-    func expanded(
-        to other: NSRange,
-        direction: Direction
-    ) -> NSRange {
-        precondition(other.location <= self.location && other.endLocation >= self.endLocation, "Expansion requires other range to be larger")
-
-        let startLocation = switch direction {
-        case .upstream: other.location
-        case .downstream: self.location
-        }
-
-        let endLocation = switch direction {
-        case .upstream: self.endLocation
-        case .downstream: other.endLocation
-        }
-
-        return NSRange(
-            startLocation: startLocation,
-            endLocation: endLocation
-        )
-    }
-
-    /// - Returns: Subrange that ends before `other`.
-    @inlinable
-    func prefix(upTo other: NSRange) -> NSRange {
-        precondition(self.location <= other.location && self.endLocation >= other.location, "Prefix requires range to reach up to or encompass other range")
-
-        return NSRange(
-            startLocation: self.location,
-            endLocation: other.location
-        )
-    }
-
-    /// - Returns: Subrange that starts after `other`.
-    @inlinable
-    func suffix(after other: NSRange) -> NSRange {
-        precondition(self.location <= other.endLocation && self.endLocation >= other.endLocation, "Suffix requires range to start right after or encompass other range")
-
-        return NSRange(
-            startLocation: other.endLocation,
-            endLocation: self.endLocation
-        )
-    }
-}
-
 extension CharacterSet {
     @usableFromInline
     static let nonWhitespaceOrNewlines: CharacterSet = .whitespacesAndNewlines.inverted
