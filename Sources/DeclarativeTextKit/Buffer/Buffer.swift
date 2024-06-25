@@ -245,7 +245,6 @@ extension Buffer {
     public func wordRange(
         for baseRange: Buffer.Range
     ) throws -> Buffer.Range {
-
         guard self.contains(range: baseRange)
         else { throw BufferAccessFailure.outOfRange(requested: baseRange, available: self.range) }
 
@@ -291,47 +290,60 @@ extension Buffer {
             }
         }
 
-        var searchRange = baseRange
+        func trimmingWhitespace(range: Buffer.Range) -> Buffer.Range {
+            var result = range
 
-        // Trim trailing whitespace first, favoring upstream selection affinity, e.g. if `baseRange` is all whitespace.
-        if let newEndLocation = nsContent.locationUpToCharacter(
-            from: .nonWhitespaceOrNewlines,
-            direction: .upstream,
-            in: searchRange.expanded(to: self.range, direction: .upstream))
-        {
-            searchRange = Buffer.Range(
-                startLocation: searchRange.location,
-                endLocation: max(newEndLocation, searchRange.location)  // If newEndLocation < location, the whole of searchRange is whitespace.
-            )
+            // Trim trailing whitespace first, favoring upstream selection affinity, e.g. if `baseRange` is all whitespace.
+            if let newEndLocation = nsContent.locationUpToCharacter(
+                from: .nonWhitespaceOrNewlines,
+                direction: .upstream,
+                in: result.expanded(to: self.range, direction: .upstream))
+            {
+                result = Buffer.Range(
+                    startLocation: result.location,
+                    endLocation: max(newEndLocation, result.location)  // If newEndLocation < location, the whole of searchRange is whitespace.
+                )
+            }
+
+            // Trim leading whitespace
+            if let newStartLocation = nsContent.locationUpToCharacter(
+                from: .nonWhitespaceOrNewlines,
+                direction: .downstream,
+                in: result.expanded(to: self.range, direction: .downstream))
+            {
+                result = Buffer.Range(
+                    startLocation: min(newStartLocation, result.endLocation),  // If newStartLocation > endLocation, the whole searchRange is whitespace.
+                    endLocation: result.endLocation
+                )
+            }
+
+            return result
         }
-        // Trim leading whitespace
-        if let newStartLocation = nsContent.locationUpToCharacter(
-            from: .nonWhitespaceOrNewlines,
-            direction: .downstream,
-            in: searchRange.expanded(to: self.range, direction: .downstream)
-           ) 
-        {
-            searchRange = Buffer.Range(
-                startLocation: min(newStartLocation, searchRange.endLocation),  // If newStartLocation > endLocation, the whole searchRange is whitespace.
-                endLocation: searchRange.endLocation
-            )
-        }
 
-        var resultRange = expanding(range: searchRange, upToCharactersFrom: wordBoundary)
+        func nonWhitespaceLocation(closestTo location: Buffer.Location) -> Buffer.Location? {
+            let downstreamNonWhitespaceLocation = nsContent.locationUpToCharacter(from: .nonWhitespaceOrNewlines, direction: .downstream, in: self.range.suffix(after: location))
+            let upstreamNonWhitespaceLocation = nsContent.locationUpToCharacter(from: .nonWhitespaceOrNewlines, direction: .upstream, in: self.range.prefix(upTo: location))
 
-        // If the result is an empty range, characters adjacent to the location were all `wordBoundary` characters. Then we need to try again with relaxed conditions, skipping over whitespace first. Try forward search, then backward.
-        if resultRange.length == 0 {
-            let downstreamNonWhitespaceLocation = nsContent.locationUpToCharacter(from: .nonWhitespaceOrNewlines, direction: .downstream, in: self.range.suffix(after: resultRange))
-            let upstreamNonWhitespaceLocation = nsContent.locationUpToCharacter(from: .nonWhitespaceOrNewlines, direction: .upstream, in: self.range.prefix(upTo: resultRange))
-            // Prioritize look-behind over look-ahead *only* of the point is left-adjacent to non-whitespace character and the look-ahead is further away.
+            // Prioritize look-behind over look-ahead iff the location is downstream of a non-whitespace character (non-whitespace to the left of it) and the look-ahead is further away.
             if let upstreamNonWhitespaceLocation,
                let downstreamNonWhitespaceLocation,
-               (upstreamNonWhitespaceLocation ..< resultRange.location).count == 0,
-               (resultRange.location ..< downstreamNonWhitespaceLocation).count > 0 {
-                resultRange = expanding(range: .init(location: upstreamNonWhitespaceLocation, length: 0), upToCharactersFrom: .whitespacesAndNewlines)
-            } else if let location = downstreamNonWhitespaceLocation ?? upstreamNonWhitespaceLocation {
-                resultRange = expanding(range: .init(location: location, length: 0), upToCharactersFrom: .whitespacesAndNewlines)
+               (upstreamNonWhitespaceLocation ..< location).count == 0,
+               downstreamNonWhitespaceLocation > location {
+                return upstreamNonWhitespaceLocation
             }
+
+            return downstreamNonWhitespaceLocation ?? upstreamNonWhitespaceLocation
+        }
+
+        var resultRange = expanding(
+            range: trimmingWhitespace(range: baseRange),
+            upToCharactersFrom: wordBoundary
+        )
+
+        // If the result is an empty range, characters adjacent to the location were all `wordBoundary` characters. Then we need to try again with relaxed conditions, skipping over whitespace first. Try forward search, then backward.
+        if resultRange.length == 0,
+           let closestNonWhitespaceLocation = nonWhitespaceLocation(closestTo: resultRange.location) {
+            resultRange = expanding(range: .init(location: closestNonWhitespaceLocation, length: 0), upToCharactersFrom: .whitespacesAndNewlines)
         }
 
         // When the input range covered only whitespace and nothing was found, discard the resulting empty range in favor of the original.

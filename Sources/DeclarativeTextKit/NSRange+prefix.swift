@@ -6,11 +6,17 @@ extension NSRange {
     /// - Returns: Subrange that ends before `other`.
     @inlinable
     func prefix(upTo other: NSRange) -> NSRange {
-        precondition(self.location <= other.location && self.endLocation >= other.location, "Prefix requires range to reach up to or encompass other range")
+        return prefix(upTo: other.location)
+    }
+
+    /// - Returns: Subrange that ends before `location`.
+    @inlinable
+    func prefix(upTo location: Int) -> NSRange {
+        precondition(self.location <= location && self.endLocation >= location, "Prefix requires range to reach up to or encompass location")
 
         return NSRange(
             startLocation: self.location,
-            endLocation: other.location
+            endLocation: location
         )
     }
 }
