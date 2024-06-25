@@ -14,6 +14,8 @@ extension NSString {
     ///
     /// Use this to find an insertion point _next to_ a match to insert text into.
     ///
+    /// Unlike `NSString.rangeOfCharacter(from:options:range:)`, handles Emoji as composed UTF-16 character sequences properly.
+    ///
     /// ## Example of 'adjacency'
     ///
     /// To finding location _up to_ a character from `CharacterSet.punctuationCharacters` in this piece of text:
@@ -32,16 +34,48 @@ extension NSString {
     ) -> Buffer.Location? {
         guard range.length > 0 else { return nil }
 
-        var options: NSString.CompareOptions = []
-        if direction == .upstream { options.insert(.backwards) }
+        var nextLocation: Buffer.Location? = {
+            let nextLocation = switch direction {
+            case .upstream: range.endLocation - 1 // It's fine to not subtract a composed character sequence's length here since we'll fetch that in the loop.
+            case .downstream: range.location
+            }
+            guard range.contains(nextLocation) else { return nil }
+            return nextLocation
+        }()
 
-        let result = rangeOfCharacter(from: characterSet, options: options, range: range)
-
-        if result == .notFound { return nil }
-
-        return switch direction {
-        case .upstream: result.endLocation
-        case .downstream: result.location
+        func advanced(location: Buffer.Location) -> Buffer.Location? {
+            switch direction {
+            case .upstream:
+                guard location > range.location else { return nil }
+                return self.rangeOfComposedCharacterSequence(at: location - 1).location
+            case .downstream:
+                guard location < range.endLocation - 1 else { return nil }
+                return self.rangeOfComposedCharacterSequence(at: location).endLocation
+            }
         }
+
+        while let location = nextLocation,
+              range.contains(location) {
+            let characterSequenceRange = self.rangeOfComposedCharacterSequence(at: location)
+            let characterSequence = self.substring(with: characterSequenceRange) as NSString
+
+            if characterSet.contains(characterSequence: characterSequence) {
+                return switch direction {
+                case .upstream: characterSequenceRange.endLocation
+                case .downstream: characterSequenceRange.location
+                }
+            }
+
+            nextLocation = advanced(location: location)
+        }
+
+        return nil
+    }
+}
+
+extension CharacterSet {
+    @inlinable
+    func contains(characterSequence: NSString) -> Bool {
+        return characterSequence.rangeOfCharacter(from: self) == NSRange(location: 0, length: characterSequence.length)
     }
 }
