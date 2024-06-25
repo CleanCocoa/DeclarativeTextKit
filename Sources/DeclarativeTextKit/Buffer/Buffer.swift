@@ -254,45 +254,29 @@ extension Buffer {
             return characterSequence.rangeOfCharacter(from: wordBoundary) == NSRange(location: 0, length: characterSequence.length)
         }
 
-        func matchedRange(
-            in searchRange: NSRange,
-            wordBoundary: CharacterSet
+        func expanding(
+            range searchRange: NSRange,
+            upToCharactersFrom wordBoundary: CharacterSet
         ) -> Buffer.Range {
-            var start = searchRange.location
-            nsContent.enumerateSubstrings(
+            let start = locationOfCharacter(
                 in: Buffer.Range(
                     location: self.range.location,
                     // Account for start locations >0 (e.g. in ScopedBufferSlice) in length calculation
                     length: searchRange.location - self.range.location
                 ),
-                options: [.byComposedCharacterSequences, .reverse]
-            ) { characterSequence, characterSequenceRange, enclosingRange, stop in
-                guard let characterSequence = characterSequence as? NSString
-                else { assertionFailure(); return }
-                if isWordSeparator(characterSequence, wordBoundary: wordBoundary) {
-                    stop.pointee = true
-                } else {
-                    start = characterSequenceRange.location
-                }
-            }
+                direction: .upstream) {
+                    isWordSeparator($0, wordBoundary: wordBoundary)
+                } ?? self.range.location
 
-            var end = searchRange.endLocation
-            nsContent.enumerateSubstrings(
+            let end = locationOfCharacter(
                 in: Buffer.Range(
                     location: searchRange.endLocation,
                     // Account for start locations >0 (e.g. in ScopedBufferSlice) in length calculation
                     length: self.range.endLocation - searchRange.endLocation
                 ),
-                options: [.byComposedCharacterSequences]
-            ) { characterSequence, characterSequenceRange, enclosingRange, stop in
-                guard let characterSequence = characterSequence as? NSString
-                else { assertionFailure(); return }
-                if isWordSeparator(characterSequence, wordBoundary: wordBoundary) {
-                    stop.pointee = true
-                } else {
-                    end = characterSequenceRange.endLocation
-                }
-            }
+                direction: .downstream) {
+                    isWordSeparator($0, wordBoundary: wordBoundary)
+                } ?? self.range.endLocation
 
             precondition(end >= start)
             return NSRange(
@@ -309,16 +293,12 @@ extension Buffer {
             let availableRange = self.range
 
             var nextLocation: Buffer.Location? = {
-                switch direction {
-                case .upstream:
-                    let nextLocation = searchRange.endLocation - 1 // It's fine to not subtract a composed character sequence's length here since we'll fetch that in the loop.
-                    guard nextLocation >= availableRange.location else { return nil }
-                    return nextLocation
-                case .downstream:
-                    let nextLocation = searchRange.location
-                    guard nextLocation < availableRange.endLocation else { return nil }
-                    return nextLocation
+                let nextLocation = switch direction {
+                case .upstream: searchRange.endLocation - 1 // It's fine to not subtract a composed character sequence's length here since we'll fetch that in the loop.
+                case .downstream: searchRange.location
                 }
+                guard availableRange.contains(nextLocation) else { return nil }
+                return nextLocation
             }()
 
             func advanced(location: Buffer.Location) -> Buffer.Location? {
@@ -381,7 +361,7 @@ extension Buffer {
             }
         }
 
-        var resultRange = matchedRange(in: searchRange, wordBoundary: wordBoundary)
+        var resultRange = expanding(range: searchRange, upToCharactersFrom: wordBoundary)
 
         // If the result is an empty range, characters adjacent to the location were all `wordBoundary` characters. Then we need to try again with relaxed conditions, skipping over whitespace first. Try forward search, then backward.
         if resultRange.length == 0 {
@@ -392,9 +372,9 @@ extension Buffer {
                let downstreamNonWhitespaceLocation,
                (upstreamNonWhitespaceLocation ..< resultRange.location).count == 0,
                (resultRange.location ..< downstreamNonWhitespaceLocation).count > 0 {
-                resultRange = matchedRange(in: .init(location: upstreamNonWhitespaceLocation, length: 0), wordBoundary: .whitespacesAndNewlines)
+                resultRange = expanding(range: .init(location: upstreamNonWhitespaceLocation, length: 0), upToCharactersFrom: .whitespacesAndNewlines)
             } else if let location = downstreamNonWhitespaceLocation ?? upstreamNonWhitespaceLocation {
-                resultRange = matchedRange(in: .init(location: location, length: 0), wordBoundary: .whitespacesAndNewlines)
+                resultRange = expanding(range: .init(location: location, length: 0), upToCharactersFrom: .whitespacesAndNewlines)
             }
         }
 
