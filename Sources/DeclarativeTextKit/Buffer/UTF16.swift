@@ -16,6 +16,15 @@ extension UTF16Range {
             length = newValue - location
         }
     }
+
+    @inlinable @inline(__always)
+    init(
+        startLocation: UTF16Offset,
+        endLocation: UTF16Offset
+    ) {
+        precondition(startLocation <= endLocation)
+        self.init(location: startLocation, length: endLocation - startLocation)
+    }
 }
 
 public func length(of string: NSString) -> UTF16Length {

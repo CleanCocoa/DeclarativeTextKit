@@ -235,177 +235,122 @@ let wordBoundary: CharacterSet = .whitespacesAndNewlines
     .union(.symbols)
     .union(.illegalCharacters)  // Not tested
 
+extension CharacterSet {
+    @usableFromInline
+    static let nonWhitespaceOrNewlines: CharacterSet = .whitespacesAndNewlines.inverted
+}
+
 extension Buffer {
     @inlinable
     public func wordRange(
         for baseRange: Buffer.Range
     ) throws -> Buffer.Range {
-
         guard self.contains(range: baseRange)
         else { throw BufferAccessFailure.outOfRange(requested: baseRange, available: self.range) }
 
         // This bridging overhead isn't ideal while we operate on `Swift.String` as the `Buffer.Content`. It makes NSRange-based string enumeration easier. As long as `wordRange(for:)` is used to apply commands on the user's behalf via DeclarativeTextKit, we should be okay in practice even for longer document. Repeated calls to this function, e.g. in loops, could be a disaster, though. See commit d434030e6d9366941c5cc3fa9c6de860afb74710 for an approach that uses two while loops instead.
         let nsContent = (self.content as NSString)
 
-        func isWordSeparator(
-            _ characterSequence: NSString,
-            wordBoundary: CharacterSet
-        ) -> Bool {
-            return characterSequence.rangeOfCharacter(from: wordBoundary) == NSRange(location: 0, length: characterSequence.length)
+        func expanding(
+            range searchRange: NSRange,
+            upToCharactersFrom characterSet: CharacterSet
+        ) -> Buffer.Range {
+            var expandedRange = searchRange
+            expandedRange = expanding(range: expandedRange, upToCharactersFrom: characterSet, direction: .upstream)
+            expandedRange = expanding(range: expandedRange, upToCharactersFrom: characterSet, direction: .downstream)
+            return expandedRange
         }
 
-        func matchedRange(
-            in searchRange: NSRange,
-            wordBoundary: CharacterSet
-        ) -> (start: Buffer.Location, end: Buffer.Location) {
-            var start = searchRange.location
-            nsContent.enumerateSubstrings(
-                in: Buffer.Range(
-                    location: self.range.location,
-                    // Account for start locations >0 (e.g. in ScopedBufferSlice) in length calculation
-                    length: searchRange.location - self.range.location
-                ),
-                options: [.byComposedCharacterSequences, .reverse]
-            ) { characterSequence, characterSequenceRange, enclosingRange, stop in
-                guard let characterSequence = characterSequence as? NSString
-                else { assertionFailure(); return }
-                if isWordSeparator(characterSequence, wordBoundary: wordBoundary) {
-                    stop.pointee = true
-                } else {
-                    start = characterSequenceRange.location
-                }
-            }
-
-            var end = searchRange.endLocation
-            nsContent.enumerateSubstrings(
-                in: Buffer.Range(
-                    location: searchRange.endLocation,
-                    // Account for start locations >0 (e.g. in ScopedBufferSlice) in length calculation
-                    length: self.range.endLocation - searchRange.endLocation
-                ),
-                options: [.byComposedCharacterSequences]
-            ) { characterSequence, characterSequenceRange, enclosingRange, stop in
-                guard let characterSequence = characterSequence as? NSString
-                else { assertionFailure(); return }
-                if isWordSeparator(characterSequence, wordBoundary: wordBoundary) {
-                    stop.pointee = true
-                } else {
-                    end = characterSequenceRange.endLocation
-                }
-            }
-
-            return (start, end)
-        }
-
-        func firstNonSkippable(
-            location: Buffer.Location,
-            wordBoundary: CharacterSet,
-            reverse: Bool
-        ) -> Buffer.Location? {
-            var options: NSString.EnumerationOptions = [.byComposedCharacterSequences]
-            let searchRange: Buffer.Range
-            if reverse {
-                options.insert(.reverse)
-                if location < self.range.location {
-                    return nil  // at beginning of buffer
-                }
-                searchRange = Buffer.Range(
-                    location: self.range.location,
-                    // TODO: In ScopedSliceBuffer, this may fail because `length: location` assumes `self.range` starts from 0. See range checks below. Haven't found a failing case for this yet, though.
-                    length: location
+        func expanding(
+            range searchRange: NSRange,
+            upToCharactersFrom characterSet: CharacterSet,
+            direction: Direction
+        ) -> Buffer.Range {
+            switch direction {
+            case .upstream:
+                let matchedLocation = nsContent.locationUpToCharacter(
+                    from: characterSet,
+                    direction: .upstream,
+                    in: self.range.prefix(upTo: searchRange)
                 )
-            } else {
-                if location >= self.range.endLocation {
-                    return nil // at end of buffer
-                }
-                searchRange = Buffer.Range(
-                    location: location,
-                    // TODO: In ScopedSliceBuffer, this may fail because `self.range.length - location` assumes `self.range` starts from the 0 location. See range checks below. Haven't found a failing case for this yet, though.
-                    length: self.range.length - location
+                return Buffer.Range(
+                    startLocation: matchedLocation ?? self.range.location, // If nothing was found, expand to start of the available range.
+                    endLocation: searchRange.endLocation
+                )
+            case .downstream:
+                let matchedLocation = nsContent.locationUpToCharacter(
+                    from: characterSet,
+                    direction: .downstream,
+                    in: self.range.suffix(after: searchRange)
+                )
+                return Buffer.Range(
+                    startLocation: searchRange.location,
+                    endLocation: matchedLocation ?? self.range.endLocation // If nothing was found, expand to end of the available range.
+                )
+            }
+        }
+
+        func trimmingWhitespace(range: Buffer.Range) -> Buffer.Range {
+            var result = range
+
+            // Trim trailing whitespace first, favoring upstream selection affinity, e.g. if `baseRange` is all whitespace.
+            if let newEndLocation = nsContent.locationUpToCharacter(
+                from: .nonWhitespaceOrNewlines,
+                direction: .upstream,
+                in: result.expanded(to: self.range, direction: .upstream))
+            {
+                result = Buffer.Range(
+                    startLocation: result.location,
+                    endLocation: max(newEndLocation, result.location)  // If newEndLocation < location, the whole of searchRange is whitespace.
                 )
             }
 
-            var result: Buffer.Location? = nil
-            nsContent.enumerateSubstrings(
-                in: searchRange,
-                options: options
-            ) { characterSequence, characterSequenceRange, enclosingRange, stop in
-                guard let characterSequence = characterSequence as? NSString
-                else { assertionFailure(); return }
-                if isWordSeparator(characterSequence, wordBoundary: wordBoundary) {
-                    // Skip whitespace
-                } else {
-                    result = reverse
-                    ? characterSequenceRange.endLocation  // skip up to *after* the match coming from right
-                    : characterSequenceRange.location
-                    stop.pointee = true
-                }
+            // Trim leading whitespace
+            if let newStartLocation = nsContent.locationUpToCharacter(
+                from: .nonWhitespaceOrNewlines,
+                direction: .downstream,
+                in: result.expanded(to: self.range, direction: .downstream))
+            {
+                result = Buffer.Range(
+                    startLocation: min(newStartLocation, result.endLocation),  // If newStartLocation > endLocation, the whole searchRange is whitespace.
+                    endLocation: result.endLocation
+                )
             }
+
             return result
         }
 
-        var searchRange = baseRange
+        func nonWhitespaceLocation(closestTo location: Buffer.Location) -> Buffer.Location? {
+            let downstreamNonWhitespaceLocation = nsContent.locationUpToCharacter(from: .nonWhitespaceOrNewlines, direction: .downstream, in: self.range.suffix(after: location))
+            let upstreamNonWhitespaceLocation = nsContent.locationUpToCharacter(from: .nonWhitespaceOrNewlines, direction: .upstream, in: self.range.prefix(upTo: location))
 
-        // Trim trailing whitespace first, favoring upstream selection affinity, e.g. if `baseRange` is all whitespace.
-        if searchRange.length > 0 {
-            let newEndLocation = firstNonSkippable(
-                location: searchRange.endLocation,
-                wordBoundary: .whitespacesAndNewlines,
-                reverse: true
-            ) ?? baseRange.endLocation
-            if newEndLocation < searchRange.location {
-                // Flipped locations indicate that the whole of searchRange is whitespace.
-                // TODO: Could also set searchRange.location to its (endLocation-1) when trimming the length for downstream affinity.
-                searchRange.length = 0
-            } else {
-                searchRange.endLocation = newEndLocation
-            }
-        }
-        // Trim leading whitespace
-        if searchRange.length > 0 {
-            let newStartLocation = firstNonSkippable(
-                location: searchRange.location,
-                wordBoundary: .whitespacesAndNewlines,
-                reverse: false
-            ) ?? baseRange.location
-            if newStartLocation >= searchRange.endLocation {
-                // Flipped locations indicate that the whole of searchRange is whitespace.
-                // TODO: While symmetrical, this doesn't actually change the effect.
-                // searchRange.location = newStartLocation
-                // searchRange.length = 0
-            } else {
-                searchRange.location = newStartLocation
-                searchRange.length -= (newStartLocation - baseRange.location)
-            }
-        }
-
-        var (start, end) = matchedRange(in: searchRange, wordBoundary: wordBoundary)
-
-        // If the result is an empty range, characters adjacent to the location were all `wordBoundary` characters. Then we need to try again with relaxed conditions, skipping over whitespace first. Try forward search, then backward.
-        if start == end {
-            let downstreamNonWhitespaceLocation = firstNonSkippable(location: start, wordBoundary: .whitespacesAndNewlines, reverse: false)
-            let upstreamNonWhitespaceLocation = firstNonSkippable(location: start, wordBoundary: .whitespacesAndNewlines, reverse: true)
-            // Prioritize look-behind over look-ahead *only* of the point is left-adjacent to non-whitespace character and the look-ahead is further away.
+            // Prioritize look-behind over look-ahead iff the location is downstream of a non-whitespace character (non-whitespace to the left of it) and the look-ahead is further away.
             if let upstreamNonWhitespaceLocation,
                let downstreamNonWhitespaceLocation,
-               (upstreamNonWhitespaceLocation ..< start).count == 0,
-               (start ..< downstreamNonWhitespaceLocation).count > 0 {
-                (start, end) = matchedRange(in: .init(location: upstreamNonWhitespaceLocation, length: 0), wordBoundary: .whitespacesAndNewlines)
-            } else if let location = downstreamNonWhitespaceLocation ?? upstreamNonWhitespaceLocation {
-                (start, end) = matchedRange(in: .init(location: location, length: 0), wordBoundary: .whitespacesAndNewlines)
+               (upstreamNonWhitespaceLocation ..< location).count == 0,
+               downstreamNonWhitespaceLocation > location {
+                return upstreamNonWhitespaceLocation
             }
+
+            return downstreamNonWhitespaceLocation ?? upstreamNonWhitespaceLocation
         }
 
-        let result = Buffer.Range(
-            location: start,
-            length: end - start
+        var resultRange = expanding(
+            range: trimmingWhitespace(range: baseRange),
+            upToCharactersFrom: wordBoundary
         )
 
+        // If the result is an empty range, characters adjacent to the location were all `wordBoundary` characters. Then we need to try again with relaxed conditions, skipping over whitespace first. Try forward search, then backward.
+        if resultRange.length == 0,
+           let closestNonWhitespaceLocation = nonWhitespaceLocation(closestTo: resultRange.location) {
+            resultRange = expanding(range: .init(location: closestNonWhitespaceLocation, length: 0), upToCharactersFrom: .whitespacesAndNewlines)
+        }
+
         // When the input range covered only whitespace and nothing was found, discard the resulting empty range in favor of the original.
-        if result.length == 0, result != baseRange {
+        if resultRange.length == 0, resultRange != baseRange {
             return baseRange
         }
 
-        return result
+        return resultRange
     }
 }

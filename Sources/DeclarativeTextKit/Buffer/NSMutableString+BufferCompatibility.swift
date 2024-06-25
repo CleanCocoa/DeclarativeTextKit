@@ -5,7 +5,7 @@ import Foundation
 extension NSMutableString {
     @usableFromInline
     func unsafeCharacter(at location: Buffer.Location) -> Buffer.Content {
-        return unsafeContent(in: self.rangeOfComposedCharacterSequences(for: .init(location: location, length: 1)))
+        return unsafeContent(in: self.rangeOfComposedCharacterSequence(at: location))
     }
 
     @usableFromInline
