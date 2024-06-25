@@ -30,7 +30,7 @@ extension NSString {
         direction: Direction,
         in range: NSRange
     ) -> Buffer.Location? {
-        var options: NSString.CompareOptions = [.anchored]
+        var options: NSString.CompareOptions = []
         if direction == .upstream { options.insert(.backwards) }
 
         let result = rangeOfCharacter(from: characterSet, options: options, range: range)

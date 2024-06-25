@@ -334,31 +334,35 @@ extension Buffer {
 
         // Trim trailing whitespace first, favoring upstream selection affinity, e.g. if `baseRange` is all whitespace.
         if searchRange.length > 0 {
-            let newEndLocation = locationOfCharacter(in: searchRange, direction: .upstream) {
-                !isWordSeparator($0, wordBoundary: .whitespacesAndNewlines)
-            } ?? baseRange.endLocation
-            if newEndLocation < searchRange.location {
-                // Flipped locations indicate that the whole of searchRange is whitespace.
-                // TODO: Could also set searchRange.location to its (endLocation-1) when trimming the length for downstream affinity.
-                searchRange.length = 0
-            } else {
-                searchRange.endLocation = newEndLocation
-            }
+            let newEndLocation = nsContent.locationUpToCharacter(
+                from: .whitespacesAndNewlines.inverted,
+                direction: .upstream,
+                in: Buffer.Range(
+                    startLocation: self.range.location,
+                    endLocation: searchRange.endLocation
+                )
+            ) ?? baseRange.endLocation
+
+            searchRange = Buffer.Range(
+                startLocation: searchRange.location,
+                endLocation: max(newEndLocation, searchRange.location)  // If newEndLocation < location, the whole of searchRange is whitespace.
+            )
         }
         // Trim leading whitespace
         if searchRange.length > 0 {
-            let newStartLocation = locationOfCharacter(in: searchRange, direction: .downstream) {
-                !isWordSeparator($0, wordBoundary: .whitespacesAndNewlines)
-            } ?? baseRange.location
-            if newStartLocation >= searchRange.endLocation {
-                // Flipped locations indicate that the whole of searchRange is whitespace.
-                // TODO: While symmetrical, this doesn't actually change the effect.
-                // searchRange.location = newStartLocation
-                // searchRange.length = 0
-            } else {
-                searchRange.location = newStartLocation
-                searchRange.length -= (newStartLocation - baseRange.location)
-            }
+            let newStartLocation = nsContent.locationUpToCharacter(
+                from: .whitespacesAndNewlines.inverted,
+                direction: .downstream,
+                in: Buffer.Range(
+                    startLocation: searchRange.location,
+                    endLocation: self.range.endLocation
+                )
+            ) ?? baseRange.endLocation
+
+            searchRange = Buffer.Range(
+                startLocation: min(newStartLocation, searchRange.endLocation),  // If newStartLocation > endLocation, the whole searchRange is whitespace.
+                endLocation: searchRange.endLocation
+            )
         }
 
         var resultRange = expanding(range: searchRange, upToCharactersFrom: wordBoundary)
