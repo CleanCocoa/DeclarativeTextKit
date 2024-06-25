@@ -388,26 +388,23 @@ extension Buffer {
         var searchRange = baseRange
 
         // Trim trailing whitespace first, favoring upstream selection affinity, e.g. if `baseRange` is all whitespace.
-        if searchRange.length > 0 {
-            let newEndLocation = nsContent.locationUpToCharacter(
-                from: .whitespacesAndNewlines.inverted,
-                direction: .upstream,
-                in: searchRange.expanded(to: self.range, direction: .upstream)
-            ) ?? baseRange.endLocation
-
+        if let newEndLocation = nsContent.locationUpToCharacter(
+            from: .whitespacesAndNewlines.inverted,
+            direction: .upstream,
+            in: searchRange.expanded(to: self.range, direction: .upstream))
+        {
             searchRange = Buffer.Range(
                 startLocation: searchRange.location,
                 endLocation: max(newEndLocation, searchRange.location)  // If newEndLocation < location, the whole of searchRange is whitespace.
             )
         }
         // Trim leading whitespace
-        if searchRange.length > 0 {
-            let newStartLocation = nsContent.locationUpToCharacter(
-                from: .whitespacesAndNewlines.inverted,
-                direction: .downstream,
-                in: searchRange.expanded(to: self.range, direction: .downstream)
-            ) ?? baseRange.location
-
+        if let newStartLocation = nsContent.locationUpToCharacter(
+            from: .whitespacesAndNewlines.inverted,
+            direction: .downstream,
+            in: searchRange.expanded(to: self.range, direction: .downstream)
+           ) 
+        {
             searchRange = Buffer.Range(
                 startLocation: min(newStartLocation, searchRange.endLocation),  // If newStartLocation > endLocation, the whole searchRange is whitespace.
                 endLocation: searchRange.endLocation

@@ -30,6 +30,8 @@ extension NSString {
         direction: Direction,
         in range: NSRange
     ) -> Buffer.Location? {
+        guard range.length > 0 else { return nil }
+
         var options: NSString.CompareOptions = []
         if direction == .upstream { options.insert(.backwards) }
 
