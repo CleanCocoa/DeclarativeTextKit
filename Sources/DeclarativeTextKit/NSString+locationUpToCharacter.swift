@@ -26,50 +26,31 @@ extension NSString {
     ///
     ///     "a ˇ(test) text"  // Downstream / from left to right
     ///     "a (test)ˇ text"  // Upstream / from right to left
-    @inlinable
-    public func locationUpToCharacter(
+    @usableFromInline
+    func locationUpToCharacter(
         from characterSet: CharacterSet,
         direction: Direction,
         in range: NSRange
     ) -> Buffer.Location? {
-        guard range.length > 0 else { return nil }
+        var result: Buffer.Location?
 
-        var nextLocation: Buffer.Location? = {
-            let nextLocation = switch direction {
-            case .upstream: range.endLocation - 1 // It's fine to not subtract a composed character sequence's length here since we'll fetch that in the loop.
-            case .downstream: range.location
-            }
-            guard range.contains(nextLocation) else { return nil }
-            return nextLocation
-        }()
-
-        func advanced(location: Buffer.Location) -> Buffer.Location? {
-            switch direction {
-            case .upstream:
-                guard location > range.location else { return nil }
-                return self.rangeOfComposedCharacterSequence(at: location - 1).location
-            case .downstream:
-                guard location < range.endLocation - 1 else { return nil }
-                return self.rangeOfComposedCharacterSequence(at: location).endLocation
-            }
+        var options: NSString.EnumerationOptions = [.byComposedCharacterSequences]
+        if direction == .upstream {
+            options.insert(.reverse)
         }
-
-        while let location = nextLocation,
-              range.contains(location) {
-            let characterSequenceRange = self.rangeOfComposedCharacterSequence(at: location)
-            let characterSequence = self.substring(with: characterSequenceRange) as NSString
-
+        self.enumerateSubstrings(in: range, options: options) { characterSequence, characterSequenceRange, enclosingRange, stop in
+            guard let characterSequence = characterSequence as? NSString
+            else { assertionFailure(); return }
             if characterSet.contains(characterSequence: characterSequence) {
-                return switch direction {
+                result = switch direction {
                 case .upstream: characterSequenceRange.endLocation
                 case .downstream: characterSequenceRange.location
                 }
+                stop.pointee = true
             }
-
-            nextLocation = advanced(location: location)
         }
 
-        return nil
+        return result
     }
 }
 
