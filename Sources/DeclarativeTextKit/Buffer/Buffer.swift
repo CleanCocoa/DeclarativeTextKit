@@ -283,6 +283,11 @@ extension NSRange {
 }
 
 extension CharacterSet {
+    @usableFromInline
+    static let nonWhitespaceOrNewlines: CharacterSet = .whitespacesAndNewlines.inverted
+}
+
+extension CharacterSet {
     @inlinable
     func contains(characterSequence: NSString) -> Bool {
         return characterSequence.rangeOfCharacter(from: self) == NSRange(location: 0, length: characterSequence.length)
@@ -387,7 +392,7 @@ extension Buffer {
 
         // Trim trailing whitespace first, favoring upstream selection affinity, e.g. if `baseRange` is all whitespace.
         if let newEndLocation = nsContent.locationUpToCharacter(
-            from: .whitespacesAndNewlines.inverted,
+            from: .nonWhitespaceOrNewlines,
             direction: .upstream,
             in: searchRange.expanded(to: self.range, direction: .upstream))
         {
@@ -398,7 +403,7 @@ extension Buffer {
         }
         // Trim leading whitespace
         if let newStartLocation = nsContent.locationUpToCharacter(
-            from: .whitespacesAndNewlines.inverted,
+            from: .nonWhitespaceOrNewlines,
             direction: .downstream,
             in: searchRange.expanded(to: self.range, direction: .downstream)
            ) 
@@ -413,8 +418,8 @@ extension Buffer {
 
         // If the result is an empty range, characters adjacent to the location were all `wordBoundary` characters. Then we need to try again with relaxed conditions, skipping over whitespace first. Try forward search, then backward.
         if resultRange.length == 0 {
-            let downstreamNonWhitespaceLocation = locationOfCharacter(in: resultRange, direction: .downstream, includedIn: .whitespacesAndNewlines.inverted)
-            let upstreamNonWhitespaceLocation = locationOfCharacter(in: resultRange, direction: .upstream, includedIn: .whitespacesAndNewlines.inverted)
+            let downstreamNonWhitespaceLocation = locationOfCharacter(in: resultRange, direction: .downstream, includedIn: .nonWhitespaceOrNewlines)
+            let upstreamNonWhitespaceLocation = locationOfCharacter(in: resultRange, direction: .upstream, includedIn: .nonWhitespaceOrNewlines)
             // Prioritize look-behind over look-ahead *only* of the point is left-adjacent to non-whitespace character and the look-ahead is further away.
             if let upstreamNonWhitespaceLocation,
                let downstreamNonWhitespaceLocation,
