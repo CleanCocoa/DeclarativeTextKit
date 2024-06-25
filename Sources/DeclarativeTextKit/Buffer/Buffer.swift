@@ -258,6 +258,28 @@ extension NSRange {
             endLocation: endLocation
         )
     }
+
+    /// - Returns: Subrange that ends before `other`.
+    @inlinable
+    func prefix(upTo other: NSRange) -> NSRange {
+        precondition(self.location <= other.location && self.endLocation >= other.location, "Prefix requires range to reach up to or encompass other range")
+
+        return NSRange(
+            startLocation: self.location,
+            endLocation: other.location
+        )
+    }
+
+    /// - Returns: Subrange that starts after `other`.
+    @inlinable
+    func suffix(after other: NSRange) -> NSRange {
+        precondition(self.location <= other.endLocation && self.endLocation >= other.endLocation, "Suffix requires range to start right after or encompass other range")
+
+        return NSRange(
+            startLocation: other.endLocation,
+            endLocation: self.endLocation
+        )
+    }
 }
 
 extension Buffer {
@@ -297,11 +319,7 @@ extension Buffer {
             switch direction {
             case .upstream:
                 let matchedLocation = locationOfCharacter(
-                    in: Buffer.Range(
-                        location: self.range.location,
-                        // Account for start locations >0 (e.g. in ScopedBufferSlice) in length calculation
-                        length: searchRange.location - self.range.location
-                    ),
+                    in: self.range.prefix(upTo: searchRange),
                     direction: .upstream) {
                         isWordSeparator($0, wordBoundary: characterSet)
                     }
@@ -311,11 +329,7 @@ extension Buffer {
                 )
             case .downstream:
                 let matchedLocation = locationOfCharacter(
-                    in: Buffer.Range(
-                        location: searchRange.endLocation,
-                        // Account for start locations >0 (e.g. in ScopedBufferSlice) in length calculation
-                        length: self.range.endLocation - searchRange.endLocation
-                    ),
+                    in: self.range.suffix(after: searchRange),
                     direction: .downstream) {
                         isWordSeparator($0, wordBoundary: characterSet)
                     }
