@@ -324,18 +324,18 @@ extension Buffer {
             switch direction {
             case .upstream:
                 let matchedLocation = locationOfCharacter(
-                    in: self.range.prefix(upTo: searchRange),
-                    direction: .upstream,
-                    includedIn: characterSet)
+                    in: characterSet,
+                    startingAt: searchRange.location,
+                    direction: .upstream)
                 return Buffer.Range(
                     startLocation: matchedLocation ?? self.range.location, // If nothing was found, expand to start of the available range.
                     endLocation: searchRange.endLocation
                 )
             case .downstream:
                 let matchedLocation = locationOfCharacter(
-                    in: self.range.suffix(after: searchRange),
-                    direction: .downstream,
-                    includedIn: characterSet)
+                    in: characterSet,
+                    startingAt: searchRange.endLocation,
+                    direction: .downstream)
                 return Buffer.Range(
                     startLocation: searchRange.location,
                     endLocation: matchedLocation ?? self.range.endLocation // If nothing was found, expand to end of the available range.
@@ -344,16 +344,16 @@ extension Buffer {
         }
 
         func locationOfCharacter(
-            in searchRange: Buffer.Range,
-            direction: Direction = .downstream,
-            includedIn characterSet: CharacterSet
+            in characterSet: CharacterSet,
+            startingAt startLocation: Buffer.Location,
+            direction: Direction
         ) -> Buffer.Location? {
             let availableRange = self.range
 
             var nextLocation: Buffer.Location? = {
                 let nextLocation = switch direction {
-                case .upstream: searchRange.endLocation - 1 // It's fine to not subtract a composed character sequence's length here since we'll fetch that in the loop.
-                case .downstream: searchRange.location
+                case .upstream: startLocation - 1 // It's fine to not subtract a composed character sequence's length here since we'll fetch that in the loop.
+                case .downstream: startLocation
                 }
                 guard availableRange.contains(nextLocation) else { return nil }
                 return nextLocation
@@ -418,8 +418,8 @@ extension Buffer {
 
         // If the result is an empty range, characters adjacent to the location were all `wordBoundary` characters. Then we need to try again with relaxed conditions, skipping over whitespace first. Try forward search, then backward.
         if resultRange.length == 0 {
-            let downstreamNonWhitespaceLocation = locationOfCharacter(in: resultRange, direction: .downstream, includedIn: .nonWhitespaceOrNewlines)
-            let upstreamNonWhitespaceLocation = locationOfCharacter(in: resultRange, direction: .upstream, includedIn: .nonWhitespaceOrNewlines)
+            let downstreamNonWhitespaceLocation = locationOfCharacter(in: .nonWhitespaceOrNewlines, startingAt: resultRange.location, direction: .downstream)
+            let upstreamNonWhitespaceLocation = locationOfCharacter(in: .nonWhitespaceOrNewlines, startingAt: resultRange.endLocation, direction: .upstream)
             // Prioritize look-behind over look-ahead *only* of the point is left-adjacent to non-whitespace character and the look-ahead is further away.
             if let upstreamNonWhitespaceLocation,
                let downstreamNonWhitespaceLocation,
