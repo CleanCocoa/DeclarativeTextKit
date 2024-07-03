@@ -17,8 +17,9 @@ extension UTF16Range {
         }
     }
 
+    /// > Warning: Produces a runtime exception if you try to set `endLocation` to a value lower than `startLocation`, which would produce a negative `length`.
     @inlinable @inline(__always)
-    init(
+    public init(
         startLocation: UTF16Offset,
         endLocation: UTF16Offset
     ) {
