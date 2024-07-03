@@ -28,10 +28,12 @@ extension UTF16Range {
     }
 }
 
+@inlinable @inline(__always)
 public func length(of string: NSString) -> UTF16Length {
     return string.length
 }
 
+@inlinable @inline(__always)
 @_disfavoredOverload
 public func length(of string: String) -> UTF16Length {
     return length(of: string as NSString)
