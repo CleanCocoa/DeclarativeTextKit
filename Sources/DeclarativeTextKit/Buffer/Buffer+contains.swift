@@ -7,7 +7,6 @@ extension Buffer {
     public func contains(
         range: Buffer.Range
     ) -> Bool {
-        // Selection rules for replacing or deleting text require regular full containment.
         return self.range.contains(range)
     }
 }
