@@ -8,4 +8,12 @@ extension NSRange {
     public func contains(_ other: NSRange) -> Bool {
         return self.intersection(other) == other
     }
+
+    /// - Returns: Whether `other` is fully contained in the receiver, false if `other` is nil.
+    @inlinable @inline(__always)
+    @_disfavoredOverload
+    public func contains(_ other: NSRange?) -> Bool {
+        guard let other else { return false }
+        return contains(other)
+    }
 }
