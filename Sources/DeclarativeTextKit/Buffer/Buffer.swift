@@ -182,14 +182,4 @@ extension Buffer {
     public func character(at location: Location) throws -> Content {
         return try content(in: .init(location: location, length: 1))
     }
-
-    @inlinable @inline(__always)
-    public func contains(range: Buffer.Range) -> Bool {
-        // Appending at the trailing end of the buffer is technically outside of its range, but permitted.
-        if range.length == 0 {
-            return self.range.contains(insertionPointAt: range.location)
-        }
-        // Selection rules for replacing or deleting text require regular full containment.
-        return self.range.contains(range)
-    }
 }

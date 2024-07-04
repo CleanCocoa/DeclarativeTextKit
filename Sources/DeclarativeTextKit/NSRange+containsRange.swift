@@ -3,12 +3,15 @@
 import Foundation
 
 extension NSRange {
+    @usableFromInline
+    var hasValidValues: Bool { location >= 0 && length >= 0 }
+
     /// - Returns: Whether `other` is fully contained in the receiver.
     @inlinable @inline(__always)
     public func contains(_ other: NSRange) -> Bool {
         if self == other { return true }
+        guard other.hasValidValues else { return false }
         return location <= other.location
-            && endLocation > other.location  // Exclude at-end location for empty ranges.
             && endLocation >= other.endLocation
     }
 

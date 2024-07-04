@@ -27,6 +27,8 @@ final class NSRange_ContainsTests: XCTestCase {
             NSRange(location: 100, length: 0),
             NSRange(location: 150, length: 0),
             NSRange(location: 199, length: 0),
+            // At-end location
+            NSRange(location: 200, length: 0),
         ]
 
         let rangesOutside = [
@@ -38,7 +40,6 @@ final class NSRange_ContainsTests: XCTestCase {
             // Wholly outside
             NSRange(startLocation: 10, endLocation: 20),
             NSRange(startLocation: 210, endLocation: 220),
-            NSRange(location: 200, length: 0),
             // Overlapping
             NSRange(startLocation: 90, endLocation: 110),
             NSRange(startLocation: 190, endLocation: 210),
