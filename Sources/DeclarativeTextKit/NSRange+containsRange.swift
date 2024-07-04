@@ -6,7 +6,10 @@ extension NSRange {
     /// - Returns: Whether `other` is fully contained in the receiver.
     @inlinable @inline(__always)
     public func contains(_ other: NSRange) -> Bool {
-        return self.intersection(other) == other
+        if self == other { return true }
+        return location <= other.location
+            && endLocation > other.location  // Exclude at-end location for empty ranges.
+            && endLocation >= other.endLocation
     }
 
     /// - Returns: Whether `other` is fully contained in the receiver, false if `other` is nil.
