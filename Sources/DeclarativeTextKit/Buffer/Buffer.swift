@@ -87,17 +87,16 @@ public protocol Buffer: AnyObject {
     /// - Throws: ``BufferAccessFailure`` if changes to `affectedRange` are not permitted.
     func modifying<T>(affectedRange: Range, _ block: () -> T) throws -> T
 
-    /// Entry point into the Domain-Specific Language to run ``Expression``s on the buffer.
+    /// Entry point into the Domain-Specific Language to run ``Expression``s on the buffer, acting on the whole range. This variant is suited to perform effects where you're not interested in the current selection.
     ///
     /// Conforming types can provide refinements to this process to bundle changes in e.g. undoable action groups.
     ///
     /// Builds `expression` and evaluates it on `self` so you can write a block directly like so:
     ///
     /// ```swift
-    /// buffer.evaluate(in: buffer.selectedRange) { selectedRange in
-    ///     Modifying(selectedRange) { range in
-    ///         Insert(range.location) { "> " }
-    ///     }
+    /// let range = ...
+    /// buffer.evaluate { in
+    ///     Select(WordRange(range))
     /// }
     /// ```
     ///
@@ -130,7 +129,7 @@ public protocol Buffer: AnyObject {
     @discardableResult
     @_disfavoredOverload
     func evaluate(
-        @ModificationBuilder _ expression: (AffectedRange) throws -> ModificationSequence
+        @ModificationBuilder _ expression: (_ fullRange: AffectedRange) throws -> ModificationSequence
     ) throws -> ChangeInLength
 
     /// Entry point into the Domain-Specific Language to run ``Expression``s on the buffer within `range`.
@@ -152,7 +151,7 @@ public protocol Buffer: AnyObject {
     @discardableResult
     func evaluate(
         in range: Buffer.Range,
-        @ModificationBuilder _ expression: (AffectedRange) throws -> ModificationSequence
+        @ModificationBuilder _ expression: (_ selectedRange: AffectedRange) throws -> ModificationSequence
     ) throws -> ChangeInLength
 }
 
