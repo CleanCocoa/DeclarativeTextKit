@@ -37,7 +37,7 @@ extension Buffer {
         func expanding(
             range searchRange: NSRange,
             upToCharactersFrom characterSet: CharacterSet,
-            direction: Direction
+            direction: StringTraversalDirection
         ) -> Buffer.Range {
             switch direction {
             case .upstream:

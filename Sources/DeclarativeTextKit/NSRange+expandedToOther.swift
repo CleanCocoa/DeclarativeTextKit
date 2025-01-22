@@ -6,7 +6,7 @@ extension NSRange {
     @inlinable
     func expanded(
         to other: NSRange,
-        direction: Direction
+        direction: StringTraversalDirection
     ) -> NSRange {
         precondition(other.location <= self.location && other.endLocation >= self.endLocation, "Expansion requires other range to be larger")
 

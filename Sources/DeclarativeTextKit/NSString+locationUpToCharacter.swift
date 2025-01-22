@@ -2,7 +2,7 @@
 
 import Foundation
 
-public enum Direction {
+public enum StringTraversalDirection {
     /// Left-to-right or towards-the-end search in a string.
     case downstream
     /// Right-to-left or towards-the-beginning search in a string.
@@ -29,7 +29,7 @@ extension NSString {
     @inlinable
     public func locationUpToCharacter(
         from characterSet: CharacterSet,
-        direction: Direction,
+        direction: StringTraversalDirection,
         in range: NSRange
     ) -> Buffer.Location? {
         var result: Buffer.Location?
