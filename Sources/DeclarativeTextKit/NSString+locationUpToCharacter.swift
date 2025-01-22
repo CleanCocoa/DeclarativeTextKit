@@ -2,8 +2,7 @@
 
 import Foundation
 
-@usableFromInline
-enum Direction {
+public enum Direction {
     /// Left-to-right or towards-the-end search in a string.
     case downstream
     /// Right-to-left or towards-the-beginning search in a string.
@@ -27,8 +26,8 @@ extension NSString {
     ///
     ///     "a ˇ(test) text"  // Downstream / from left to right
     ///     "a (test)ˇ text"  // Upstream / from right to left
-    @usableFromInline
-    func locationUpToCharacter(
+    @inlinable
+    public func locationUpToCharacter(
         from characterSet: CharacterSet,
         direction: Direction,
         in range: NSRange
@@ -57,7 +56,7 @@ extension NSString {
 
 extension CharacterSet {
     @inlinable
-    func contains(characterSequence: NSString) -> Bool {
+      func contains(characterSequence: NSString) -> Bool {
         return characterSequence.rangeOfCharacter(from: self) == NSRange(location: 0, length: characterSequence.length)
     }
 }
