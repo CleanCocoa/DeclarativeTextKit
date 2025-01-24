@@ -9,18 +9,22 @@ let package = Package(
         .library(
             name: "DeclarativeTextKit",
             targets: ["DeclarativeTextKit"]),
-        .library(
-            name: "DeclarativeTextKitTesting",
-            targets: ["DeclarativeTextKitTesting"]),
+    ],
+    dependencies: [
+        .package(url: "https://github.com/CleanCocoa/TextBuffer", from: "0.1.0"),
     ],
     targets: [
         .target(
-            name: "DeclarativeTextKit"),
-        .target(
-            name: "DeclarativeTextKitTesting",
-            dependencies: ["DeclarativeTextKit"]),
+            name: "DeclarativeTextKit",
+            dependencies: [
+                .product(name: "TextBuffer", package: "textbuffer"),
+            ]),
         .testTarget(
             name: "DeclarativeTextKitTests",
-            dependencies: ["DeclarativeTextKit", "DeclarativeTextKitTesting"]),
+            dependencies: [
+                "DeclarativeTextKit",
+                .product(name: "TextBuffer", package: "textbuffer"),
+                .product(name: "TextBufferTesting", package: "textbuffer"),
+            ]),
     ]
 )

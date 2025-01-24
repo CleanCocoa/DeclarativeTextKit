@@ -1,5 +1,7 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
+import TextBuffer
+
 extension Delete: Modification {
     @_disfavoredOverload  // Favor the throwing alternative of the protocol extension
     public func evaluate(in buffer: Buffer) -> Result<ChangeInLength, BufferAccessFailure> {

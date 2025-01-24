@@ -1,5 +1,7 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
+import TextBuffer
+
 /// A ``Buffer/Range`` finder that expands its input range to word boundaries.
 ///
 /// Word boundaries are detected according to the rules of ``Buffer/wordRange(for:)``.

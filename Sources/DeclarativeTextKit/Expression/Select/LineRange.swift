@@ -1,5 +1,7 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
+import TextBuffer
+
 /// A ``Buffer/Range`` finder that expands its input range to full lines.
 ///
 /// Word boundaries are detected according to the rules of ``Buffer/lineRange(for:)``.

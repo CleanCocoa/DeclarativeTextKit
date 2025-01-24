@@ -1,5 +1,7 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
+import TextBuffer
+
 /// View into a ``Buffer`` that ensures all read and write operations work on the scoped subrange.
 ///
 /// > Note: Range finders like ``lineRange(for:)`` and ``wordRange(for:)`` are limiting the input to the scoped subrange as well, but the result may exceed the scoped range and extend to content from the base buffer. This ensures that ``Select`` as a terminal command with a scope of ``LineRange`` or ``WordRange`` work as expected.

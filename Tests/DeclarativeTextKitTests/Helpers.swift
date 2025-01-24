@@ -2,7 +2,10 @@
 
 import XCTest
 @testable import DeclarativeTextKit
-@_exported import DeclarativeTextKitTesting  // So we don't have to import all the helpers everywhere.
+
+// Re-export so we don't have to import all the helpers everywhere.
+@_exported import TextBufferTesting
+@_exported import TextBuffer
 
 #if os(macOS)
 import AppKit
@@ -86,7 +89,7 @@ func assertThrows<T>(
     )
 }
 
-extension Buffer {
+extension ModifiableBuffer {
     @discardableResult
     func evaluate(
         location: Buffer.Location,

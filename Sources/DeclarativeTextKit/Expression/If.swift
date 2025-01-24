@@ -1,5 +1,7 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
+import TextBuffer
+
 /// Branching paths where the condition is checked lazily during evaluation time.
 ///
 /// ## Motivation for an ``If`` type in spite of Swift Result Builder's capabilities

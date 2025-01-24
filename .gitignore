@@ -6,3 +6,6 @@ DerivedData/
 .swiftpm/configuration/registries.json
 .swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
 .netrc
+
+# allow flexibility in resolving dependencies in apps
+Package.resolved

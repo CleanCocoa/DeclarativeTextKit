@@ -1,6 +1,8 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
-extension Buffer {
+import TextBuffer
+
+extension ModifiableBuffer {
     /// Entry point into the Domain-Specific Language to run ``Expression``s on the buffer, acting on the whole range. This variant is suited to perform effects where you're not interested in the current selection.
     ///
     /// Conforming types can provide refinements to this process to bundle changes in e.g. undoable action groups.

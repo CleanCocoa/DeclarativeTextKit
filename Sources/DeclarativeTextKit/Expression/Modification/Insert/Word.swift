@@ -1,5 +1,7 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
+import TextBuffer
+
 /// Ensures its ``content`` is enclosed by space characters left and right upon insertion, otherwise inserting a ``Word/space`` character as separator where needed.
 ///
 /// Does not insert a space at the ``Buffer``'s zero location (or start position), nor at its end.

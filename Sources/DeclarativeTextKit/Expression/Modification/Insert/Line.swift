@@ -1,6 +1,7 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
 import Foundation
+import TextBuffer
 
 /// Ensures its ``content`` is enclosed by newline characters left and right upon insertion.
 public struct Line: Insertable {

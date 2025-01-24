@@ -1,5 +1,7 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
+import TextBuffer
+
 /// Marks a ``Buffer/Range`` as to-be-modified in a range. Depending on the buffer a modification group is applied to, supports grouping of actions like undo, automatic text layout, and ensures that the underlying buffer is editable.
 ///
 /// - For undo support, see ``Undoable``.

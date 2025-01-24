@@ -1,5 +1,7 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
+import TextBuffer
+
 /// Inserts itself into a ``Buffer`` at time of evaluation.
 public protocol Insertable {
     func insert(

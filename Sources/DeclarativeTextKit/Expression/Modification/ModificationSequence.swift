@@ -1,5 +1,7 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
+import TextBuffer
+
 /// Marks conforming types as being compatible with each other in a Result Builder sequence.
 ///
 /// Since ``Insert`` and ``Delete`` are mutually exclusive in one block, this marker explicitly excludes these and allows compatible side-effects to be chained.

@@ -1,6 +1,7 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
 import Foundation
+import TextBuffer
 
 extension AffectedRange: BufferRangeExpression {
     public func evaluate(in buffer: Buffer) -> Result<NSRange.NSRangeInBuffer, Never> {

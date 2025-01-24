@@ -1,5 +1,7 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
+import TextBuffer
+
 /// Represents insertion of text into a ``Buffer``.
 ///
 /// ## Inserting in Multiple Locations at Once
