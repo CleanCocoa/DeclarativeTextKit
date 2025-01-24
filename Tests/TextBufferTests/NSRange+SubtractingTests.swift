@@ -1,7 +1,7 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
 import XCTest
-@testable import DeclarativeTextKit
+import TextBuffer
 
 final class NSRange_SubtractingTests: XCTestCase {
     var referenceRange = NSRange(location: 100, length: 100)

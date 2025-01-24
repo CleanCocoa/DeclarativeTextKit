@@ -3,11 +3,12 @@
 import Foundation
 
 extension NSRange {
-    enum Order {
+    public enum Order {
         case strictlyBefore, intersects, strictlyAfter
     }
 
-    func ordered(comparedTo other: NSRange) -> Order {
+    @inlinable
+    public func ordered(comparedTo other: NSRange) -> Order {
         // Remember: `upperBound` is the location right after the range, i.e. not included.
         // So `NSRange(location: 10, length: 5)` does not include `15`, and `15` would be .strictlyAfter
         if self.upperBound <= other.lowerBound { return .strictlyBefore }

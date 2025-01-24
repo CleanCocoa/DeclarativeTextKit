@@ -1,7 +1,7 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
 import XCTest
-@testable import DeclarativeTextKit
+import TextBuffer
 
 /// Shoveling-operator for dictionary concatenation or merging.
 fileprivate func << <Key, Value>(
@@ -167,19 +167,8 @@ extension BufferWordRangeTests {
             let buf = try makeBuffer(input)
             let originalSelecton = buf.selectedRange
 
-            // Buffer.wordRange(for:) method
             XCTAssertNoThrow(
                 buf.select(try buf.wordRange(for: originalSelecton)),
-                "Given \"\(sanitized(input))\""
-            )
-            assertBufferState(
-                buf, expectedOutput,
-                "Given \"\(sanitized(input))\"")
-
-            // Select(WordRange(...)) expression
-            buf.select(originalSelecton)
-            XCTAssertNoThrow(
-                try buf.evaluate { Select(WordRange(originalSelecton)) },
                 "Given \"\(sanitized(input))\""
             )
             assertBufferState(

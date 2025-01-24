@@ -1,7 +1,7 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
 import XCTest
-import DeclarativeTextKit
+import TextBuffer
 
 final class BufferWithSelectionFromStringTests: XCTestCase {
     func testBufferFromPlainString() throws {
@@ -22,7 +22,7 @@ final class BufferWithSelectionFromStringTests: XCTestCase {
 
     func testChangeBuffer() throws {
         let buffer = MutableStringBuffer("hello\nworld")
-        
+
         try change(buffer: buffer, to: "go«od»bye")
         assertBufferState(buffer, "go«od»bye")
 
