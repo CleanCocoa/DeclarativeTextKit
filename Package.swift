@@ -13,22 +13,22 @@ let package = Package(
             name: "DeclarativeTextKit",
             targets: ["DeclarativeTextKit"]),
         .library(
-            name: "DeclarativeTextKitTesting",
-            targets: ["DeclarativeTextKitTesting"]),
+            name: "TextBufferTesting",
+            targets: ["TextBufferTesting"]),
     ],
     targets: [
         .target(name: "TextBuffer"),
+        .target(
+            name: "TextBufferTesting",
+            dependencies: ["TextBuffer"]),
         .testTarget(
             name: "TextBufferTests",
             dependencies: ["TextBuffer"]),
         .target(
             name: "DeclarativeTextKit",
             dependencies: ["TextBuffer"]),
-        .target(
-            name: "DeclarativeTextKitTesting",
-            dependencies: ["TextBuffer", "DeclarativeTextKit"]),
         .testTarget(
             name: "DeclarativeTextKitTests",
-            dependencies: ["TextBuffer", "DeclarativeTextKit", "DeclarativeTextKitTesting"]),
+            dependencies: ["TextBuffer", "DeclarativeTextKit", "TextBufferTesting"]),
     ]
 )

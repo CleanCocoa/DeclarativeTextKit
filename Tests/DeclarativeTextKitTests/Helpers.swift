@@ -4,7 +4,7 @@ import XCTest
 @testable import DeclarativeTextKit
 
 // Re-export so we don't have to import all the helpers everywhere.
-@_exported import DeclarativeTextKitTesting
+@_exported import TextBufferTesting
 @_exported import TextBuffer
 
 #if os(macOS)
