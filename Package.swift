@@ -7,28 +7,24 @@ let package = Package(
     platforms: [.macOS(.v10_13)],
     products: [
         .library(
-            name: "TextBuffer",
-            targets: ["TextBuffer"]),
-        .library(
             name: "DeclarativeTextKit",
             targets: ["DeclarativeTextKit"]),
-        .library(
-            name: "TextBufferTesting",
-            targets: ["TextBufferTesting"]),
+    ],
+    dependencies: [
+        .package(url: "https://github.com/CleanCocoa/TextBuffer", from: "0.1.0"),
     ],
     targets: [
-        .target(name: "TextBuffer"),
-        .target(
-            name: "TextBufferTesting",
-            dependencies: ["TextBuffer"]),
-        .testTarget(
-            name: "TextBufferTests",
-            dependencies: ["TextBuffer"]),
         .target(
             name: "DeclarativeTextKit",
-            dependencies: ["TextBuffer"]),
+            dependencies: [
+                .product(name: "TextBuffer", package: "textbuffer"),
+            ]),
         .testTarget(
             name: "DeclarativeTextKitTests",
-            dependencies: ["TextBuffer", "DeclarativeTextKit", "TextBufferTesting"]),
+            dependencies: [
+                "DeclarativeTextKit",
+                .product(name: "TextBuffer", package: "textbuffer"),
+                .product(name: "TextBufferTesting", package: "textbuffer"),
+            ]),
     ]
 )
