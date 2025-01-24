@@ -3,7 +3,7 @@
 import Foundation
 import TextBuffer
 
-/// A ``Buffer/Range`` value that can be modified over the course of multiple ``Modification``s. Behaves like a reference type under the hood.
+/// A ``/TextBuffer/Buffer/Range`` value that can be modified over the course of multiple ``Modification``s. Behaves like a reference type under the hood.
 ///
 /// For example, the following will print to the console how a ``AffectedRange`` is being adjusted during the ``Modifying`` block to reflect that the length changed during deletion:
 ///

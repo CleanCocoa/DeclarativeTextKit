@@ -48,18 +48,9 @@ If the affected text buffer supports undo/redo (like the default text views do),
 
 ### Buffers
 
-A `Buffer` is an abstraction of textual content and a selection. Its ``Buffer/evaluate(_:)-7jmtt`` is the simplest entry point to the DSL.
+While a ``/TextBuffer/Buffer``  is an abstraction of textual content and a selection, a `ModifiableBuffer` offers declarative modifications. Its ``ModifiableBuffer/evaluate(_:)-44ndq`` is the simplest entry point to the DSL.
 
-- ``Buffer``
-- ``InMemoryBuffer``
-- ``MutableStringBuffer``
-- ``Undoable``
-
-### Platform-Specific Buffer Adapters
-
-Text Kit's text views behave as buffers, but offer a much wider surface API to perform layout and typesetting. Opposed to these, a `Buffer` is a lightweight API to perform changes like a user would in an interactive text view, which we expose as adapters.
-
-- ``NSTextViewBuffer``
+- ``ModifiableBuffer``
 
 ### Buffer Mutations in the Domain-Specific Language
 

@@ -2,7 +2,7 @@
 
 import TextBuffer
 
-/// View into a ``Buffer`` that ensures all read and write operations work on the scoped subrange.
+/// View into a ``/TextBuffer/Buffer`` that ensures all read and write operations work on the scoped subrange.
 ///
 /// > Note: Range finders like ``lineRange(for:)`` and ``wordRange(for:)`` are limiting the input to the scoped subrange as well, but the result may exceed the scoped range and extend to content from the base buffer. This ensures that ``Select`` as a terminal command with a scope of ``LineRange`` or ``WordRange`` work as expected.
 @usableFromInline
@@ -27,7 +27,7 @@ where Base: Buffer {
 
     private(set) var scopedRange: Base.Range
 
-    /// - Throws: ``BufferAccessFailure`` if `scopedRange` is outside of `base.range`
+    /// - Throws: ``/TextBuffer/BufferAccessFailure`` if `scopedRange` is outside of `base.range`
     @usableFromInline
     init(
         base: Base,
@@ -153,7 +153,7 @@ where Base: Buffer {
         return try base.modifying(affectedRange: scopedRange, block)
     }
 
-    // Specialized overload required to avoid stack overflow from infinitely calling ``Buffer``'s implementation from its protocol extension.
+    // Specialized overload required to avoid stack overflow from infinitely calling ``/TextBuffer/Buffer``'s implementation from its protocol extension.
     @discardableResult
     @usableFromInline
     func evaluate(

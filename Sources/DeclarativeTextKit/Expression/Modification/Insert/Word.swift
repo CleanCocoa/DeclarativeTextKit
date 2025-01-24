@@ -4,7 +4,7 @@ import TextBuffer
 
 /// Ensures its ``content`` is enclosed by space characters left and right upon insertion, otherwise inserting a ``Word/space`` character as separator where needed.
 ///
-/// Does not insert a space at the ``Buffer``'s zero location (or start position), nor at its end.
+/// Does not insert a space at the ``/TextBuffer/Buffer``'s zero location (or start position), nor at its end.
 public struct Word: Insertable {
     /// Space character inserted around ``content`` as needed.
     public static let space: Buffer.Content = " "
@@ -54,7 +54,7 @@ extension Word {
 
     /// Ensures its ``content`` is preceded by any whitespace characters (to the left), otherwise inserting a ``Word/space`` character.
     ///
-    /// At the ``Buffer``'s zero location or start position, does not prepend a space.
+    /// At the ``/TextBuffer/Buffer``'s zero location or start position, does not prepend a space.
     public struct StartsWithSpaceIfNeeded: Insertable {
         public let content: Buffer.Content
 
@@ -87,7 +87,7 @@ extension Word {
 
     /// Ensures its ``content`` is followed by any whitespace characters (to the right), otherwise inserting a ``Word/space`` character.    ///
     ///
-    /// At the ``Buffer``'s end position, does not append a space.
+    /// At the ``/TextBuffer/Buffer``'s end position, does not append a space.
     public struct EndsWithSpaceIfNeeded: Insertable {
         public let content: Buffer.Content
 

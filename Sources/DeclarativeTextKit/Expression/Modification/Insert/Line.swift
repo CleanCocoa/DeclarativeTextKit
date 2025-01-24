@@ -11,7 +11,7 @@ public struct Line: Insertable {
 
     public let content: Buffer.Content
 
-    /// Whether to insert a newline at the end of a ``Buffer``.
+    /// Whether to insert a newline at the end of a ``/TextBuffer/Buffer``.
     ///
     /// For whole text documents, this will ensure that the document's last character is a newline.
     public let insertFinalNewline: Bool = true
@@ -59,7 +59,7 @@ public struct Line: Insertable {
 extension Line {
     /// Ensures its ``content`` is prepended by newline characters (left).
     ///
-    /// At the ``Buffer``'s zero location or start position, does not prepend a newline.
+    /// At the ``/TextBuffer/Buffer``'s zero location or start position, does not prepend a newline.
     public struct StartsWithNewlineIfNeeded: Insertable {
         public let content: Buffer.Content
 
@@ -92,11 +92,11 @@ extension Line {
 
     /// Ensures its ``content`` is appended by a newline characters (right).
     ///
-    /// At the ``Buffer``'s end position, appends a newline if ``insertFinalNewline`` is `true` so that documents end with a line break.
+    /// At the ``/TextBuffer/Buffer``'s end position, appends a newline if ``insertFinalNewline`` is `true` so that documents end with a line break.
     public struct EndsWithNewlineIfNeeded: Insertable {
         public let content: Buffer.Content
 
-        /// Whether to insert a newline at the end of a ``Buffer``.
+        /// Whether to insert a newline at the end of a ``/TextBuffer/Buffer``.
         ///
         /// For whole text documents, this will ensure that the document's last character is a newline.
         public let insertFinalNewline: Bool = true

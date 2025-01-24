@@ -7,7 +7,7 @@ extension Undoable: ModifiableBuffer where Base: ModifiableBuffer {
     ///
     /// Treats `expression` as a single undoable action group. See ``undoGrouping(actionName:undoingSelectionChanges:_:)``
     ///
-    /// - Throws: ``BufferAccessFailure`` emitted during evaluation of `expression`.
+    /// - Throws: ``/TextBuffer/BufferAccessFailure`` emitted during evaluation of `expression`.
     @inlinable @discardableResult
     public func evaluate(
       @ModificationBuilder _ expression: () throws -> ModificationSequence
@@ -21,7 +21,7 @@ extension Undoable: ModifiableBuffer where Base: ModifiableBuffer {
     ///
     /// Treats `expression` as a single undoable action group. See ``undoGrouping(actionName:undoingSelectionChanges:_:)``
     ///
-    /// - Throws: ``BufferAccessFailure`` emitted during evaluation of `expression`.
+    /// - Throws: ``/TextBuffer/BufferAccessFailure`` emitted during evaluation of `expression`.
     @inlinable @discardableResult
     public func evaluate(
       in range: UTF16Range,
@@ -36,7 +36,7 @@ extension Undoable: ModifiableBuffer where Base: ModifiableBuffer {
     ///
     /// Treats `expression` as a single undoable action group. See ``undoGrouping(actionName:undoingSelectionChanges:_:)``
     ///
-    /// - Throws: ``BufferAccessFailure`` emitted during evaluation of `expression`.
+    /// - Throws: ``/TextBuffer/BufferAccessFailure`` emitted during evaluation of `expression`.
     @inlinable @discardableResult
     @_disfavoredOverload
     public func evaluate(

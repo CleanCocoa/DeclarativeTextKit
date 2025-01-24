@@ -2,7 +2,7 @@
 
 import TextBuffer
 
-/// Inserts itself into a ``Buffer`` at time of evaluation.
+/// Inserts itself into a ``/TextBuffer/Buffer`` at time of evaluation.
 public protocol Insertable {
     func insert(
         in buffer: Buffer,

@@ -8,7 +8,7 @@ import TextBuffer
 ///
 /// ## Motivation for an ``IfLet`` type in spite of Swift Result Builder's capabilities
 ///
-/// If you think of ``Buffer/evaluate(_:)-7jmtt`` as the "run time", Swift Result Builder's `buildOptional` and `buildEither` check their condition at "compile time". That means you cannot form conditions on ``AffectedRange``.
+/// If you think of ``/TextBuffer/Buffer/evaluate(_:)-7jmtt`` as the "run time", Swift Result Builder's `buildOptional` and `buildEither` check their condition at "compile time". That means you cannot form conditions on ``AffectedRange``.
 ///
 /// This is a confusing limitation, and brings with it potentially dangerous (as in: crashing) situations.
 ///

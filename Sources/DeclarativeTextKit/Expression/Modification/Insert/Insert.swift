@@ -2,7 +2,7 @@
 
 import TextBuffer
 
-/// Represents insertion of text into a ``Buffer``.
+/// Represents insertion of text into a ``/TextBuffer/Buffer``.
 ///
 /// ## Inserting in Multiple Locations at Once
 ///

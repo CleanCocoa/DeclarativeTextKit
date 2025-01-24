@@ -2,10 +2,10 @@
 
 import TextBuffer
 
-/// Marks a ``Buffer/Range`` as to-be-modified in a range. Depending on the buffer a modification group is applied to, supports grouping of actions like undo, automatic text layout, and ensures that the underlying buffer is editable.
+/// Marks a ``/TextBuffer/Buffer/Range`` as to-be-modified in a range. Depending on the buffer a modification group is applied to, supports grouping of actions like undo, automatic text layout, and ensures that the underlying buffer is editable.
 ///
-/// - For undo support, see ``Undoable``.
-/// - For AppKit-compatible `NSTextViewDelegate` calls (that can prevent changes within the range), see ``NSTextViewBuffer``.
+/// - For undo support, see ``/TextBuffer/Undoable``.
+/// - For AppKit-compatible `NSTextViewDelegate` calls (that can prevent changes within the range), see ``/TextBuffer/NSTextViewBuffer``.
 ///
 /// You use ``Modifying`` to combine and group either
 /// - multiple ``Modification``s  like ``Insert`` and ``Delete`` at multiple locations into one block,

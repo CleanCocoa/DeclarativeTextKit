@@ -16,7 +16,7 @@ try buffer.evaluate {
 }
 ```
 
-1. ``Buffer/evaluate(_:)-7jmtt`` is called
+1. ``/TextBuffer/Buffer/evaluate(_:)-7jmtt`` is called
 2. the ``ModificationBuilder``-annotated block is executed:
     1. ``Identity/init()`` is called to create the value,
     2. ``ModificationBuilder/buildPartialBlock(first:)-6xgr4`` is called with the ``Identity`` value as a parameter -- that's the overload that takes a `some ModificationSequence.Element`.

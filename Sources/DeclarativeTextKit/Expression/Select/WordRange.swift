@@ -2,9 +2,9 @@
 
 import TextBuffer
 
-/// A ``Buffer/Range`` finder that expands its input range to word boundaries.
+/// A ``/TextBuffer/Buffer/Range`` finder that expands its input range to word boundaries.
 ///
-/// Word boundaries are detected according to the rules of ``Buffer/wordRange(for:)``.
+/// Word boundaries are detected according to the rules of ``/TextBuffer/Buffer/wordRange(for:)``.
 public struct WordRange<Base: BufferRangeExpression> {
     let baseRange: Base
 

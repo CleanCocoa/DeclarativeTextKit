@@ -62,7 +62,7 @@ public protocol ModifiableBuffer: Buffer {
     /// }
     /// ```
     ///
-    /// > Note: While _selecting_ a wider range than the input `range` is permitted, changes to the buffer contents outside of `range` are not allowed and will throw a ``BufferAccessFailure``.
+    /// > Note: While _selecting_ a wider range than the input `range` is permitted, changes to the buffer contents outside of `range` are not allowed and will throw a ``/TextBuffer/BufferAccessFailure``.
     @inlinable @inline(__always)
     @discardableResult
     func evaluate(

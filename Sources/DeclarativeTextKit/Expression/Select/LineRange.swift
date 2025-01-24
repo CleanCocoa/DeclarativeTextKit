@@ -2,9 +2,9 @@
 
 import TextBuffer
 
-/// A ``Buffer/Range`` finder that expands its input range to full lines.
+/// A ``/TextBuffer/Buffer/Range`` finder that expands its input range to full lines.
 ///
-/// Word boundaries are detected according to the rules of ``Buffer/lineRange(for:)``.
+/// Word boundaries are detected according to the rules of ``/TextBuffer/Buffer/lineRange(for:)``.
 public struct LineRange<Base: BufferRangeExpression> {
     let baseRange: Base
 
