@@ -3,7 +3,7 @@
 import Foundation
 
 extension NSRange {
-    @inlinable
+    @inlinable @inline(__always)
     func expanded(
         to other: NSRange,
         direction: StringTraversalDirection

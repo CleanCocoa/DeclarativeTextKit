@@ -1,7 +1,7 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
 import XCTest
-import DeclarativeTextKit
+import TextBuffer
 
 public func assertBufferState(
     _ buffer: Buffer,

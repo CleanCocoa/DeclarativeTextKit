@@ -30,7 +30,7 @@ fileprivate func dump(_ diff: CollectionDifference<String>) -> String {
 }
 
 final class SelectTests: XCTestCase {
-    var buffer: Buffer!
+    var buffer: ModifiableBuffer!
 
     override func setUp() async throws {
         await MainActor.run {

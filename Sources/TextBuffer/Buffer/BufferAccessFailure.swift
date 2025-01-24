@@ -15,8 +15,7 @@ public struct BufferAccessFailure: Error {
         self.underlyingError = underlyingError
     }
 
-    @usableFromInline
-    static func outOfRange(
+    public static func outOfRange(
         requested: Buffer.Range,
         available: Buffer.Range
     ) -> BufferAccessFailure {
@@ -26,8 +25,7 @@ public struct BufferAccessFailure: Error {
         )
     }
 
-    @usableFromInline
-    static func outOfRange(
+    public static func outOfRange(
         location: Buffer.Location,
         length: Buffer.Length = 0,
         available: Buffer.Range
@@ -38,8 +36,7 @@ public struct BufferAccessFailure: Error {
         )
     }
 
-    @usableFromInline
-    static func modificationForbidden(
+    public static func modificationForbidden(
         in requestedRange: Buffer.Range
     ) -> BufferAccessFailure {
         BufferAccessFailure(
@@ -48,14 +45,13 @@ public struct BufferAccessFailure: Error {
         )
     }
 
-    @usableFromInline
-    static func wrap(_ error: any Error) -> BufferAccessFailure {
+    public static func wrap(_ error: any Error) -> BufferAccessFailure {
         return error as? BufferAccessFailure
-        ?? BufferAccessFailure(
+          ?? BufferAccessFailure(
             label: "",
             context: error.localizedDescription,
             underlyingError: error
-        )
+          )
     }
 }
 

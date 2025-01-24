@@ -7,6 +7,9 @@ let package = Package(
     platforms: [.macOS(.v10_13)],
     products: [
         .library(
+            name: "TextBuffer",
+            targets: ["TextBuffer"]),
+        .library(
             name: "DeclarativeTextKit",
             targets: ["DeclarativeTextKit"]),
         .library(
@@ -14,13 +17,18 @@ let package = Package(
             targets: ["DeclarativeTextKitTesting"]),
     ],
     targets: [
+        .target(name: "TextBuffer"),
+        .testTarget(
+            name: "TextBufferTests",
+            dependencies: ["TextBuffer"]),
         .target(
-            name: "DeclarativeTextKit"),
+            name: "DeclarativeTextKit",
+            dependencies: ["TextBuffer"]),
         .target(
             name: "DeclarativeTextKitTesting",
-            dependencies: ["DeclarativeTextKit"]),
+            dependencies: ["TextBuffer", "DeclarativeTextKit"]),
         .testTarget(
             name: "DeclarativeTextKitTests",
-            dependencies: ["DeclarativeTextKit", "DeclarativeTextKitTesting"]),
+            dependencies: ["TextBuffer", "DeclarativeTextKit", "DeclarativeTextKitTesting"]),
     ]
 )

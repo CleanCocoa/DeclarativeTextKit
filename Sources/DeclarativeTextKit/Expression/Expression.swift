@@ -1,5 +1,7 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
+import TextBuffer
+
 public protocol Expression {
     associatedtype Evaluation
     associatedtype Failure: Error

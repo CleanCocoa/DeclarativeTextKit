@@ -1,6 +1,7 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
 import Foundation
+import TextBuffer
 
 public struct ChangeInLength: Equatable {
     public static var empty: ChangeInLength { .init(elements: []) }

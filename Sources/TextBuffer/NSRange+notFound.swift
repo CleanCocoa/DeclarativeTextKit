@@ -4,5 +4,5 @@ import Foundation
 
 extension NSRange {
     @inlinable
-    static var notFound: NSRange { NSRange(location: NSNotFound, length: 0) }
+    public static var notFound: NSRange { NSRange(location: NSNotFound, length: 0) }
 }

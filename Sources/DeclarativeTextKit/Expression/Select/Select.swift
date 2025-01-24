@@ -1,5 +1,7 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
+import TextBuffer
+
 /// Changes the ``Buffer/selectedRange`` on the user's behalf when evaluated. Takes into account changes to buffer length and selection offsets from mutations in the same block, if any.
 ///
 /// When performed after mutations like ``Insert`` and ``Delete``, the range represented by ``AffectedRange`` will reflect any changes appropiately by the time ``Select`` is evaluated.

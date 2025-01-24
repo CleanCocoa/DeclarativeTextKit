@@ -208,50 +208,6 @@ public final class Undoable<Base>: Buffer where Base: Buffer {
             return try base.modifying(affectedRange: affectedRange, block)
         }
     }
-
-    /// Wrapping evaluation of `expression` in an undo group to make its evaluation undoable.
-    ///
-    /// Treats `expression` as a single undoable action group. See ``undoGrouping(actionName:undoingSelectionChanges:_:)``
-    ///
-    /// - Throws: ``BufferAccessFailure`` emitted during evaluation of `expression`.
-    @inlinable @discardableResult
-    public func evaluate(
-        @ModificationBuilder _ expression: () throws -> ModificationSequence
-    ) throws -> ChangeInLength {
-        return try undoGrouping(undoingSelectionChanges: true) {
-            return try expression().evaluate(in: self)
-        }
-    }
-
-    /// Wrapping evaluation of `expression` in an undo group to make its evaluation undoable.
-    ///
-    /// Treats `expression` as a single undoable action group. See ``undoGrouping(actionName:undoingSelectionChanges:_:)``
-    ///
-    /// - Throws: ``BufferAccessFailure`` emitted during evaluation of `expression`.
-    @inlinable @discardableResult
-    public func evaluate(
-        in range: UTF16Range,
-        @ModificationBuilder _ expression: (AffectedRange) throws -> ModificationSequence
-    ) throws -> ChangeInLength {
-        return try undoGrouping(undoingSelectionChanges: true) {
-            return try expression(AffectedRange(range)).evaluate(in: self)
-        }
-    }
-
-    /// Wrapping evaluation of `expression` in an undo group to make its evaluation undoable.
-    ///
-    /// Treats `expression` as a single undoable action group. See ``undoGrouping(actionName:undoingSelectionChanges:_:)``
-    ///
-    /// - Throws: ``BufferAccessFailure`` emitted during evaluation of `expression`.
-    @inlinable @discardableResult
-    @_disfavoredOverload
-    public func evaluate(
-        @ModificationBuilder _ expression: (AffectedRange) throws -> ModificationSequence
-    ) throws -> ChangeInLength {
-        return try undoGrouping(undoingSelectionChanges: true) {
-            return try expression(AffectedRange(self.range)).evaluate(in: self)
-        }
-    }
 }
 
 // MARK: - Undo/Redo
@@ -288,8 +244,7 @@ extension Undoable {
     }
 
     /// Run` block` with `isRestoringSelection` enabled or disabled, depending on `isEnabled`.
-    @usableFromInline
-    func withSelectionRestoration<T>(
+    public func withSelectionRestoration<T>(
         _ isEnabled: Bool,
         _ block: () throws -> T
     ) rethrows -> T {

@@ -8,8 +8,7 @@ extension NSRange {
     /// > Invariant: `length` never goes below `0`.
     ///
     /// > Warning: Does not protect against integer overlow.
-    @usableFromInline
-    func resized(by delta: Int) -> NSRange {
+    public func resized(by delta: Int) -> NSRange {
         assert(length / 2 + delta / 2 < Int.max / 2,
                "Adding `delta` (\(delta)) to `length` (\(length)) would overflow `Int.max` (\(Int.max))")
         return NSRange(

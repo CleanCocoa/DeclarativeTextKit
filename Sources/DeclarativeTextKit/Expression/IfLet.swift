@@ -1,5 +1,7 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
+import TextBuffer
+
 /// Branching paths where optional unwrapping happens lazily during evaluation time.
 ///
 /// Since we don't have `if let` support from the Result Builder, ``IfLet`` is added for consistency to express unwrapping in the DSL.

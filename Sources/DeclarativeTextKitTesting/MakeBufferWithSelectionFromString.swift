@@ -1,6 +1,7 @@
 //  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
 import DeclarativeTextKit
+import TextBuffer
 
 public struct InvalidBufferStringRepresentation: Error {
     public let stringRepresentation: String
