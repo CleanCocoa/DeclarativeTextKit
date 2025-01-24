@@ -58,7 +58,7 @@ buffer.evaluate(in: buffer.selectedRange) { selectedRange in
 
 ## Approach
 
-We operate on the abstraction of a `Buffer` to perform changes.
+We operate on the abstraction of a [text buffer](https://github.com/CleanCocoa/TextBuffer) to perform changes.
 
 This enables usage of the declarative API on multiple buffers at once without having to put the text into a UI component to render.
 
