@@ -1,10 +1,9 @@
-//  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
-
+import Foundation
 import TextBuffer
 
 extension Delete: Modification {
-    @_disfavoredOverload  // Favor the throwing alternative of the protocol extension
-    public func evaluate(in buffer: Buffer) -> Result<ChangeInLength, BufferAccessFailure> {
+    @_disfavoredOverload
+    public func evaluate(in buffer: any NSStringBuffer) -> Result<ChangeInLength, BufferAccessFailure> {
         return Result {
             try self.deletions()
                 .reversed()
@@ -16,7 +15,7 @@ extension Delete: Modification {
 }
 
 extension TextDeletion {
-    fileprivate func delete(from buffer: Buffer) throws -> ChangeInLength {
+    fileprivate func delete(from buffer: any NSStringBuffer) throws -> ChangeInLength {
         try buffer.delete(in: self.range)
         return ChangeInLength(-range.length)
     }

@@ -1,25 +1,22 @@
-//  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
-
 import TextBuffer
 
 public protocol Expression {
     associatedtype Evaluation
     associatedtype Failure: Error
 
-    // We can't use `@_disfavoredOverload` here because then convincing the compiler to use this Result<V,E> overload becomes very tricky. Instead, annotate concrete implementations in conforming types as `@_disfavoredOverload`.
-    func evaluate(in buffer: Buffer) -> Result<Evaluation, Failure>
+    func evaluate(in buffer: any NSStringBuffer) -> Result<Evaluation, Failure>
 }
 
 extension Expression {
     @inlinable @inline(__always)
-    public func evaluate(in buffer: Buffer) throws -> Evaluation {
+    public func evaluate(in buffer: any NSStringBuffer) throws -> Evaluation {
         try self.evaluate(in: buffer).get()
     }
 }
 
 extension Expression where Failure == Never {
     @inlinable @inline(__always)
-    public func evaluate(in buffer: Buffer) -> Evaluation {
+    public func evaluate(in buffer: any NSStringBuffer) -> Evaluation {
         return self.evaluate(in: buffer).get()
     }
 }

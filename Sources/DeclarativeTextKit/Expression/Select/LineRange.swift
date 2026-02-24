@@ -1,10 +1,6 @@
-//  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
-
+import Foundation
 import TextBuffer
 
-/// A ``/TextBuffer/Buffer/Range`` finder that expands its input range to full lines.
-///
-/// Word boundaries are detected according to the rules of ``/TextBuffer/Buffer/lineRange(for:)``.
 public struct LineRange<Base: BufferRangeExpression> {
     let baseRange: Base
 
@@ -13,12 +9,12 @@ public struct LineRange<Base: BufferRangeExpression> {
     }
 }
 
-extension LineRange where Base == Buffer.Range {
+extension LineRange where Base == NSRange {
     public init(
-        location: Buffer.Location,
-        length: Buffer.Length = 0
+        location: Int,
+        length: Int = 0
     ) {
-        self.init(Buffer.Range(location: location, length: length))
+        self.init(NSRange(location: location, length: length))
     }
 }
 
@@ -27,18 +23,17 @@ extension LineRange: BufferRangeExpression {
     public typealias Failure = Never
 
     public struct LineRangeInBuffer: BufferRangeEvaluation {
-        let buffer: Buffer
+        let buffer: any NSStringBuffer
         let inputRange: BufferRangeEvaluation
 
-        public func bufferRange() throws -> Buffer.Range {
+        public func bufferRange() throws -> NSRange {
             return try buffer.lineRange(for: inputRange.bufferRange())
         }
     }
 
-    public func evaluate(in buffer: Buffer) -> LineRangeInBuffer {
+    public func evaluate(in buffer: any NSStringBuffer) -> LineRangeInBuffer {
         return LineRangeInBuffer(
             buffer: buffer,
-            // Obtain the `baseRange`'s evaluation lazily to be compatible with `AffectedRange` changing during the block's evaluation instead of during its declaration.
             inputRange: baseRange.evaluate(in: buffer)
         )
     }

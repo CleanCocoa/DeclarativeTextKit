@@ -1,17 +1,16 @@
-// swift-tools-version: 5.9
+// swift-tools-version: 6.2
 
 import PackageDescription
 
 let package = Package(
     name: "DeclarativeTextKit",
-    platforms: [.macOS(.v10_13)],
     products: [
         .library(
             name: "DeclarativeTextKit",
             targets: ["DeclarativeTextKit"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/CleanCocoa/TextBuffer", from: "0.1.0"),
+        .package(url: "https://github.com/CleanCocoa/TextBuffer", from: "0.2.0"),
     ],
     targets: [
         .target(

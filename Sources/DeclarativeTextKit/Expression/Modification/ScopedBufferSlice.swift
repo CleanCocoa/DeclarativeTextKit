@@ -1,18 +1,13 @@
-//  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
-
+import Foundation
 import TextBuffer
 
-/// View into a ``/TextBuffer/Buffer`` that ensures all read and write operations work on the scoped subrange.
-///
-/// > Note: Range finders like ``lineRange(for:)`` and ``wordRange(for:)`` are limiting the input to the scoped subrange as well, but the result may exceed the scoped range and extend to content from the base buffer. This ensures that ``Select`` as a terminal command with a scope of ``LineRange`` or ``WordRange`` work as expected.
 @usableFromInline
 final class ScopedBufferSlice<Base>: Buffer
 where Base: Buffer {
-    /// Create a ``ScopedBufferSlice`` that is scoped to the end of the `base` buffer, allowing appending (insertion at the end location) only.
     static func appending(to base: Base) throws -> ScopedBufferSlice<Base> {
         return try self.init(
             base: base,
-            scopedRange: .init(location: base.range.endLocation, length: 0)
+            scopedRange: .init(location: base.range.location + base.range.length, length: 0)
         )
     }
 
@@ -27,7 +22,6 @@ where Base: Buffer {
 
     private(set) var scopedRange: Base.Range
 
-    /// - Throws: ``/TextBuffer/BufferAccessFailure`` if `scopedRange` is outside of `base.range`
     @usableFromInline
     init(
         base: Base,
@@ -43,32 +37,8 @@ where Base: Buffer {
         self.scopedRange = scopedRange
     }
 
-    /// > Note: The resulting range may exceed ``scopedRange``. This is necessary to ensure that you can select a word range at the end of a more narrowly scoped mutation.
     @usableFromInline
-    func wordRange(for searchRange: Base.Range) throws -> Base.Range {
-        guard contains(range: searchRange) else {
-            throw BufferAccessFailure.outOfRange(
-                requested: searchRange,
-                available: scopedRange
-            )
-        }
-        return try base.wordRange(for: searchRange)
-    }
-
-    /// > Note: The resulting range may exceed ``scopedRange``. This is necessary to ensure that you can select a line range at the end of a more narrowly scoped mutation.
-    @usableFromInline
-    func lineRange(for searchRange: Base.Range) throws -> Base.Range {
-        guard contains(range: searchRange) else {
-            throw BufferAccessFailure.outOfRange(
-                requested: searchRange,
-                available: scopedRange
-            )
-        }
-        return try base.lineRange(for: searchRange)
-    }
-
-    @usableFromInline
-    func content(in subrange: UTF16Range) throws -> Base.Content {
+    func content(in subrange: Base.Range) throws(BufferAccessFailure) -> Base.Content {
         guard contains(range: subrange) else {
             throw BufferAccessFailure.outOfRange(
                 requested: subrange,
@@ -79,12 +49,12 @@ where Base: Buffer {
     }
 
     @usableFromInline
-    func unsafeCharacter(at location: Location) -> Base.Content {
+    func unsafeCharacter(at location: Base.Location) -> Base.Content {
         return base.unsafeCharacter(at: location)
     }
 
     @usableFromInline
-    func delete(in deletedRange: Base.Range) throws {
+    func delete(in deletedRange: Base.Range) throws(BufferAccessFailure) {
         guard contains(range: deletedRange) else {
             throw BufferAccessFailure.outOfRange(
                 requested: deletedRange,
@@ -94,15 +64,17 @@ where Base: Buffer {
         guard deletedRange.length > 0 else { return }
 
         defer {
-            self.scopedRange = self.scopedRange
-                .resized(by: -deletedRange.length)
+            self.scopedRange = Base.Range(
+                location: self.scopedRange.location,
+                length: max(0, self.scopedRange.length - deletedRange.length)
+            )
         }
 
         try base.delete(in: deletedRange)
     }
 
     @usableFromInline
-    func replace(range replacementRange: Base.Range, with content: Base.Content) throws {
+    func replace(range replacementRange: Base.Range, with content: Base.Content) throws(BufferAccessFailure) {
         guard contains(range: replacementRange) else {
             throw BufferAccessFailure.outOfRange(
                 requested: replacementRange,
@@ -111,17 +83,21 @@ where Base: Buffer {
         }
 
         defer {
-            // Unlike regular Buffer replacements, we don't need to ever `.shift(by:)` the scoped range because all changes are confined to it.
-            self.scopedRange = self.scopedRange
-                .resized(by: -replacementRange.length)
-                .resized(by: length(of: content))
+            let afterDelete = Base.Range(
+                location: self.scopedRange.location,
+                length: max(0, self.scopedRange.length - replacementRange.length)
+            )
+            self.scopedRange = Base.Range(
+                location: afterDelete.location,
+                length: max(0, afterDelete.length + content.length)
+            )
         }
 
         try base.replace(range: replacementRange, with: content)
     }
 
     @usableFromInline
-    func insert(_ content: Base.Content, at location: Base.Location) throws {
+    func insert(_ content: Base.Content, at location: Base.Location) throws(BufferAccessFailure) {
         guard contains(range: .init(location: location, length: 0)) else {
             throw BufferAccessFailure.outOfRange(
                 location: location,
@@ -130,15 +106,17 @@ where Base: Buffer {
         }
 
         defer {
-            self.scopedRange = self.scopedRange
-                .resized(by: length(of: content))
+            self.scopedRange = Base.Range(
+                location: self.scopedRange.location,
+                length: max(0, self.scopedRange.length + content.length)
+            )
         }
 
         try base.insert(content, at: location)
     }
 
     @usableFromInline
-    func modifying<T>(affectedRange: Buffer.Range, _ block: () -> T) throws -> T {
+    func modifying<T>(affectedRange: Base.Range, _ block: () -> T) throws(BufferAccessFailure) -> T {
         guard contains(range: affectedRange) else {
             throw BufferAccessFailure.outOfRange(
                 requested: affectedRange,
@@ -149,15 +127,40 @@ where Base: Buffer {
         return try base.modifying(affectedRange: affectedRange, block)
     }
 
-    func modifyingScope<T>(_ block: () -> T) throws -> T {
+    func modifyingScope<T>(_ block: () -> T) throws(BufferAccessFailure) -> T {
         return try base.modifying(affectedRange: scopedRange, block)
     }
+}
 
-    // Specialized overload required to avoid stack overflow from infinitely calling ``/TextBuffer/Buffer``'s implementation from its protocol extension.
+extension ScopedBufferSlice: TextAnalysisCapable where Base: TextAnalysisCapable {
+    @usableFromInline
+    func wordRange(for searchRange: Base.Range) throws(BufferAccessFailure) -> Base.Range {
+        guard contains(range: searchRange) else {
+            throw BufferAccessFailure.outOfRange(
+                requested: searchRange,
+                available: scopedRange
+            )
+        }
+        return try base.wordRange(for: searchRange)
+    }
+
+    @usableFromInline
+    func lineRange(for searchRange: Base.Range) throws(BufferAccessFailure) -> Base.Range {
+        guard contains(range: searchRange) else {
+            throw BufferAccessFailure.outOfRange(
+                requested: searchRange,
+                available: scopedRange
+            )
+        }
+        return try base.lineRange(for: searchRange)
+    }
+}
+
+extension ScopedBufferSlice where Base: NSStringBuffer {
     @discardableResult
     @usableFromInline
     func evaluate(
-        in range: Buffer.Range,
+        in range: NSRange,
         @ModificationBuilder _ expression: (AffectedRange) throws -> ModificationSequence
     ) throws -> ChangeInLength {
         return try expression(AffectedRange(range)).evaluate(in: self)

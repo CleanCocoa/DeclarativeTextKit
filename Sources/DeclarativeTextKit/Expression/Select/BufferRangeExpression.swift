@@ -1,19 +1,17 @@
-//  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
-
+import Foundation
 import TextBuffer
 
 public protocol BufferRangeEvaluation {
-    func bufferRange() throws -> Buffer.Range
+    func bufferRange() throws -> NSRange
 }
 
-/// "Range Finder" that is used by ``Select``.
 public protocol BufferRangeExpression: Expression
 where Evaluation: BufferRangeEvaluation, Failure == Never {
-    func evaluate(in buffer: Buffer) -> Evaluation
+    func evaluate(in buffer: any NSStringBuffer) -> Evaluation
 }
 
 extension BufferRangeExpression {
-    public func evaluate(in buffer: Buffer) -> Result<Evaluation, Never> {
+    public func evaluate(in buffer: any NSStringBuffer) -> Result<Evaluation, Never> {
         return .success(evaluate(in: buffer) as Evaluation)
     }
 }

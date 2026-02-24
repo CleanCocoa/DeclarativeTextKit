@@ -1,5 +1,3 @@
-//  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
-
 import Foundation
 import TextBuffer
 
@@ -8,14 +6,14 @@ extension NSRange: BufferRangeExpression {
     public typealias Failure = Never
 
     public struct NSRangeInBuffer: BufferRangeEvaluation {
-        let range: Buffer.Range
+        let range: NSRange
 
-        public func bufferRange() -> Buffer.Range {
+        public func bufferRange() -> NSRange {
             return range
         }
     }
 
-    public func evaluate(in buffer: Buffer) -> NSRangeInBuffer {
+    public func evaluate(in buffer: any NSStringBuffer) -> NSRangeInBuffer {
         return NSRangeInBuffer(range: self)
     }
 }

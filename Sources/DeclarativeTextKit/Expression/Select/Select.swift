@@ -1,36 +1,6 @@
-//  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
-
+import Foundation
 import TextBuffer
 
-/// Changes the ``/TextBuffer/Buffer/selectedRange`` on the user's behalf when evaluated. Takes into account changes to buffer length and selection offsets from mutations in the same block, if any.
-///
-/// When performed after mutations like ``Insert`` and ``Delete``, the range represented by ``AffectedRange`` will reflect any changes appropiately by the time ``Select`` is evaluated.
-///
-/// This means you can work with ranges to express your intent, instead of having to do offset calculations yourself:
-///
-/// ```swift
-/// // Given a rather large range inside a buffer:
-/// let someRange = Buffer.Range(
-///     location: 100,
-///     length: 200
-/// )
-/// Modifying(someRange) { affectedRange in
-///     // Deletion a large chunk that will reduce the length
-///     // by -190 characters.
-///     Modifying(affectedRange) {
-///         Delete(
-///             location: affectedRange.location + 10,
-///             length: affectedRange.length - 10
-///         )
-///     }
-///
-///     // At this time, `endLocation` correctly reflects
-///     // the new length (=100+10=110).
-///     Select(affectedRange.endLocation)
-/// }
-/// ```
-///
-/// Opposed to manual offset calculations, you don't need to take the deletion into account to calculate the "after the end" location to let the user type there. This ensures that you can alter buffer mutations to best express the change you need, adding and removing characters, while keeping the ``Select`` command untouched.
 public struct Select<RangeExpr>
 where RangeExpr: BufferRangeExpression {
     let range: () -> RangeExpr
@@ -55,33 +25,33 @@ extension Select {
     }
 }
 
-extension Select where RangeExpr == Buffer.Range {
+extension Select where RangeExpr == NSRange {
     public init(
-        _ range: @escaping @autoclosure () -> Buffer.Range
+        _ range: @escaping @autoclosure () -> NSRange
     ) {
         self.init(range()) { _ in Identity() }
     }
 
     public init(
-        _ location: @escaping @autoclosure () -> Buffer.Location
+        _ location: @escaping @autoclosure () -> Int
     ) {
-        self.init(Buffer.Range(location: location(), length: 0)) { _ in Identity() }
+        self.init(NSRange(location: location(), length: 0)) { _ in Identity() }
     }
 
     public init(
-        location: @escaping @autoclosure () -> Buffer.Location,
-        length: @escaping @autoclosure () -> Buffer.Length,
+        location: @escaping @autoclosure () -> Int,
+        length: @escaping @autoclosure () -> Int,
         @ModificationBuilder _ body: @escaping (_ selectedRange: AffectedRange) -> ModificationSequence
     ) {
         self.init(
-            Buffer.Range(location: location(), length: length()),
+            NSRange(location: location(), length: length()),
             body
         )
     }
 
     public init(
-        location: @escaping @autoclosure () -> Buffer.Location,
-        length: @escaping @autoclosure () -> Buffer.Length
+        location: @escaping @autoclosure () -> Int,
+        length: @escaping @autoclosure () -> Int
     ) {
         self.init(
             location: location(),
@@ -93,8 +63,8 @@ extension Select where RangeExpr == Buffer.Range {
 // MARK: - Acting as executable Command
 
 extension Select: Modification {
-    @_disfavoredOverload  // Favor the throwing alternative of the protocol extension
-    public func evaluate(in buffer: Buffer) -> Result<ChangeInLength, BufferAccessFailure> {
+    @_disfavoredOverload
+    public func evaluate(in buffer: any NSStringBuffer) -> Result<ChangeInLength, BufferAccessFailure> {
         do {
             let selectedRange = AffectedRange(try range().evaluate(in: buffer).bufferRange())
 

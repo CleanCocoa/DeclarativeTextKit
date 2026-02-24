@@ -1,10 +1,8 @@
-//  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
-
 import Foundation
 import TextBuffer
 
 extension AffectedRange: BufferRangeExpression {
-    public func evaluate(in buffer: Buffer) -> Result<NSRange.NSRangeInBuffer, Never> {
+    public func evaluate(in buffer: any NSStringBuffer) -> Result<NSRange.NSRangeInBuffer, Never> {
         return .success(NSRange.NSRangeInBuffer(range: value))
     }
 }

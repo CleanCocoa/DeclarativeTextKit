@@ -1,5 +1,4 @@
-//  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
-
+import Foundation
 import TextBuffer
 
 public struct Delete {
@@ -20,12 +19,12 @@ extension Delete {
     }
 
     public init(
-        location: @escaping @autoclosure () -> Buffer.Location,
-        length: @escaping @autoclosure () -> Buffer.Length
+        location: @escaping @autoclosure () -> Int,
+        length: @escaping @autoclosure () -> Int
     ) {
         self.init(
             TextDeletion(
-                range: Buffer.Range(
+                range: NSRange(
                     location: location(),
                     length: length()
                 )
@@ -34,20 +33,19 @@ extension Delete {
     }
 
     public init(
-        _ range: @escaping @autoclosure () -> Buffer.Range
+        _ range: @escaping @autoclosure () -> NSRange
     ) {
         self.init(TextDeletion(range: range()))
     }
 
     public init(
-        // 2024-06-11: I believe that it's not necessary to make access to this reference type-like value 'lazy' with an autoclosure -- access to `value` will be wrapped in an autoclosure already, but I can't yet prove that this is the case.
         _ selectedRange: @escaping @autoclosure () -> AffectedRange
     ) {
         self.init(selectedRange().value)
     }
 
     public init(
-        _ rangeExpression: @escaping @autoclosure () -> Range<Buffer.Location>
+        _ rangeExpression: @escaping @autoclosure () -> Range<Int>
     ) {
         self.init(TextDeletion(rangeExpression()))
     }
@@ -59,16 +57,16 @@ struct TextDeletion: Comparable {
         return lhs.range.location < rhs.range.location
     }
 
-    let range: Buffer.Range
+    let range: NSRange
 
-    init(range: Buffer.Range) {
+    init(range: NSRange) {
         self.range = range
     }
 }
 
 extension TextDeletion {
-    init(_ rangeExpression: Range<Buffer.Location>) {
-        self.init(range: Buffer.Range(
+    init(_ rangeExpression: Range<Int>) {
+        self.init(range: NSRange(
             location: rangeExpression.lowerBound,
             length: rangeExpression.count
         ))

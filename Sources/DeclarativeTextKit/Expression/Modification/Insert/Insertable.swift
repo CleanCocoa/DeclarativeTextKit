@@ -1,16 +1,12 @@
-//  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
-
 import TextBuffer
 
-/// Inserts itself into a ``/TextBuffer/Buffer`` at time of evaluation.
 public protocol Insertable {
     func insert(
-        in buffer: Buffer,
-        at location: Buffer.Location
+        in buffer: any NSStringBuffer,
+        at location: Int
     ) throws -> ChangeInLength
 }
 
-/// Result Builder used in ``Insert/init(_:_:)`` to allow insertion of complex strings that can guarantee invariants, like ``Line`` ensures the inserted text is wrapped in newline characters (`"\n"`) in the resulting buffer, depending on existing content in that place.
 @resultBuilder
 public struct InsertableBuilder {
     @inlinable
