@@ -1,15 +1,13 @@
-//  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
-
 import XCTest
 @testable import DeclarativeTextKit
 
-// Re-export so we don't have to import all the helpers everywhere.
 @_exported import TextBufferTesting
 @_exported import TextBuffer
 
 #if os(macOS)
 import AppKit
 
+@MainActor
 func textView(_ string: String) -> NSTextViewBuffer {
     let textView = NSTextView(usingTextLayoutManager: false)
     textView.string = string
@@ -92,12 +90,12 @@ func assertThrows<T>(
 extension ModifiableBuffer {
     @discardableResult
     func evaluate(
-        location: Buffer.Location,
-        length: Buffer.Length,
+        location: Int,
+        length: Int,
         @ModificationBuilder _ expression: (AffectedRange) throws -> ModificationSequence
     ) throws -> ChangeInLength {
         return try self.evaluate(
-            in: Buffer.Range(
+            in: NSRange(
                 location: location,
                 length: length
             ),

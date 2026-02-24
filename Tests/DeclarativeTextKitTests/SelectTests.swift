@@ -1,9 +1,6 @@
-//  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
-
 import XCTest
 import DeclarativeTextKit
 
-/// Operator to declare multiple occurrences of `string` as an array.
 fileprivate func * (
     amount: Int,
     string: String
@@ -29,18 +26,17 @@ fileprivate func dump(_ diff: CollectionDifference<String>) -> String {
     return expecteds.joined(separator: "\n") + "\n" + unexpecteds.joined(separator: "\n")
 }
 
+@MainActor
 final class SelectTests: XCTestCase {
-    var buffer: ModifiableBuffer!
+    var buffer: (any ModifiableBuffer)!
 
     override func setUp() async throws {
-        await MainActor.run {
-            self.buffer = textView("""
-                Hello!
+        self.buffer = textView("""
+            Hello!
 
-                This is a test.
+            This is a test.
 
-                """)
-        }
+            """)
     }
 
     override func tearDown() async throws {
@@ -48,7 +44,6 @@ final class SelectTests: XCTestCase {
     }
 
     func testEvaluateBlockCompatibility() throws {
-        // The actual success criterion is that this compiles without error as a base-level DSL block.
         let changeInLength = try MutableStringBuffer("").evaluate {
             Select(0)
         }
@@ -92,13 +87,13 @@ final class SelectTests: XCTestCase {
     }
 
     func testSelect_BufferRanges() throws {
-        _ = try Select(Buffer.Range(location: 0, length: 0)).evaluate(in: buffer)
+        _ = try Select(NSRange(location: 0, length: 0)).evaluate(in: buffer)
         XCTAssertEqual(buffer.selectedRange, .init(location: 0, length: 0))
 
-        _ = try Select(Buffer.Range(location: 10, length: 2)).evaluate(in: buffer)
+        _ = try Select(NSRange(location: 10, length: 2)).evaluate(in: buffer)
         XCTAssertEqual(buffer.selectedRange, .init(location: 10, length: 2))
 
-        _ = try Select(Buffer.Range(location: -10, length: 1)).evaluate(in: buffer)
+        _ = try Select(NSRange(location: -10, length: 1)).evaluate(in: buffer)
         XCTAssertEqual(buffer.selectedRange, .init(location: buffer.range.upperBound, length: 0),
                        "Negative ranges wrap around (in text views)")
     }
@@ -108,16 +103,11 @@ final class SelectTests: XCTestCase {
 
         let collectedWords: [String] = try (buffer.range.lowerBound ... buffer.range.upperBound)
             .reduce([]) { partialResult, location in
-                let range = Buffer.Range(location: location, length: 0)
+                let range = NSRange(location: location, length: 0)
                 XCTAssertNoThrow(try Select(WordRange(range)).evaluate(in: buffer))
                 return partialResult + [try buffer.content(in: buffer.selectedRange)]
             }
 
-        // For each word, there are WORD_LENGTH + 1 locations where it will be matched. The string " foo " with spaces around has these matching locations:
-        // 1. " ˇfoo "
-        // 2. " fˇoo "
-        // 3. " foˇo "
-        // 4. " fooˇ "
         let expectedSelections: [String] = [
             6 * "Lorem",
             6 * "ipsum",
@@ -135,24 +125,24 @@ final class SelectTests: XCTestCase {
     }
 
     func testSelect_RepeatedWordRange() throws {
-        buffer = MutableStringBuffer("Lorem ipsum dolor.")
-        buffer.insertionLocation = length(of: "Lorem ")
+        let buf = MutableStringBuffer("Lorem ipsum dolor.")
+        buf.insertionLocation = length(of: "Lorem ")
 
-        assertBufferState(buffer, "Lorem ˇipsum dolor.")
+        assertBufferState(buf, "Lorem ˇipsum dolor.")
 
-        try buffer.select(WordRange(buffer.selectedRange))
-        assertBufferState(buffer, "Lorem «ipsum» dolor.")
+        try buf.select(WordRange(buf.selectedRange))
+        assertBufferState(buf, "Lorem «ipsum» dolor.")
 
-        try buffer.select(WordRange(buffer.selectedRange))
-        assertBufferState(buffer, "Lorem «ipsum» dolor.",
+        try buf.select(WordRange(buf.selectedRange))
+        assertBufferState(buf, "Lorem «ipsum» dolor.",
                           "Selecting the same word again does not expand selection.")
     }
 
 
     func testSelect_WordRangeFromModification() throws {
-        buffer = MutableStringBuffer("makewordshere")
+        let buf = MutableStringBuffer("makewordshere")
 
-        try buffer.evaluate(
+        try buf.evaluate(
             location: length(of: "make"),
             length: length(of: "words")
         ) { selectedRange in
@@ -163,15 +153,15 @@ final class SelectTests: XCTestCase {
             Select(WordRange(selectedRange))
         }
 
-        assertBufferState(buffer, "make «words» here")
+        assertBufferState(buf, "make «words» here")
     }
 
     func testSelect_LineRanges() throws {
         func assertLineRanges(
-            location: Buffer.Location,
+            location: Int,
             file: StaticString = #file, line: UInt = #line
         ) throws {
-            let range = Buffer.Range(location: location, length: 0)
+            let range = NSRange(location: location, length: 0)
 
             _ = try Select(LineRange(range)).evaluate(in: buffer)
 
@@ -225,7 +215,7 @@ final class SelectTests: XCTestCase {
             But it is nice.
 
             """)
-        let selectedRange = Buffer.Range(location: 20, length: 11)
+        let selectedRange = NSRange(location: 20, length: 11)
         buffer.select(selectedRange)
         assertBufferState(buffer, """
             # Heading

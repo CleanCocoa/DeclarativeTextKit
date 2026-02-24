@@ -1,13 +1,13 @@
-//  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
-
 import XCTest
 @testable import DeclarativeTextKit
 
+@MainActor
 final class UndoableBufferTests: XCTestCase {
     func testInsertOverSelection_WithoutSelectionRestoration() throws {
         let buffer = MutableStringBuffer("hello")
         buffer.insertionLocation = length(of: "hello")
         let undoable = Undoable(buffer)
+        addTeardownBlock { [undoable] in _ = undoable }
 
         assertBufferState(undoable, "helloˇ")
 
@@ -47,6 +47,7 @@ final class UndoableBufferTests: XCTestCase {
         let buffer = MutableStringBuffer("hello")
         buffer.insertionLocation = length(of: "hello")
         let undoable = Undoable(buffer)
+        addTeardownBlock { [undoable] in _ = undoable }
 
         assertBufferState(undoable, "helloˇ")
 
@@ -90,6 +91,7 @@ final class UndoableBufferTests: XCTestCase {
         let buffer = MutableStringBuffer("hello")
         buffer.insertionLocation = length(of: "hello")
         let undoable = Undoable(buffer)
+        addTeardownBlock { [undoable] in _ = undoable }
 
         assertBufferState(undoable, "helloˇ")
 
@@ -125,6 +127,7 @@ final class UndoableBufferTests: XCTestCase {
         let buffer = MutableStringBuffer("0123456789")
         buffer.insertionLocation = 0
         let undoable = Undoable(buffer)
+        addTeardownBlock { [undoable] in _ = undoable }
 
         assertBufferState(undoable, "ˇ0123456789")
 

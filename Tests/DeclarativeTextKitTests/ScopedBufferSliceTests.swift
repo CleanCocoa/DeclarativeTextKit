@@ -1,10 +1,8 @@
-//  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
-
 import XCTest
 @testable import DeclarativeTextKit
 
 final class ScopedBufferSliceTests: XCTestCase {
-    let availableRange = Buffer.Range(location: 3, length: 3)
+    let availableRange = NSRange(location: 3, length: 3)
 
     func createScopedBufferSlice() -> ScopedBufferSlice<MutableStringBuffer> {
         let base = try! makeBuffer("01234567ˇ89")
@@ -16,7 +14,7 @@ final class ScopedBufferSliceTests: XCTestCase {
         let buffer = MutableStringBuffer("abc")
         buffer.insertionLocation = 1
 
-        let allRangesInBounds: [Buffer.Range] = [
+        let allRangesInBounds: [NSRange] = [
             .init(location: 0, length: 0),
             .init(location: 0, length: 1),
             .init(location: 0, length: 2),
@@ -53,7 +51,7 @@ final class ScopedBufferSliceTests: XCTestCase {
             try ScopedBufferSlice(base: buffer, scopedRange: .init(location: 3, length: 2)),
             error: BufferAccessFailure.outOfRange(
                 location: 3, length: 2,
-                available: .init(location: 0, length: 3)
+                available: NSRange(location: 0, length: 3)
             )
         )
     }
@@ -61,7 +59,7 @@ final class ScopedBufferSliceTests: XCTestCase {
     func testWordRange_OutsideBounds() throws {
         let scopedSlice = createScopedBufferSlice()
 
-        let rangesOutOfBounds: [Buffer.Range] = [
+        let rangesOutOfBounds: [NSRange] = [
             .init(location: 1, length: 8),
             .init(location: 2, length: 4),
             .init(location: 4, length: 4),
@@ -81,12 +79,12 @@ final class ScopedBufferSliceTests: XCTestCase {
         let baseBuffer = try makeBuffer("foo b«ar»f baz")
         let scopedSlice = try ScopedBufferSlice(base: baseBuffer, scopedRange: baseBuffer.selectedRange)
 
-        let expectedWordRange = Buffer.Range(
+        let expectedWordRange = NSRange(
             location: length(of: "foo "),
             length: length(of: "barf")
         )
         for locationInBounds in (scopedSlice.scopedRange.location ..< scopedSlice.scopedRange.endLocation) {
-            let searchRange = Buffer.Range(location: locationInBounds, length: 0)
+            let searchRange = NSRange(location: locationInBounds, length: 0)
             XCTAssertEqual(try scopedSlice.wordRange(for: searchRange), expectedWordRange,
                            "Range finding may extend beyond scope for action chaining")
         }
@@ -95,7 +93,7 @@ final class ScopedBufferSliceTests: XCTestCase {
     func testLineRange_OutsideBounds() throws {
         let scopedSlice = createScopedBufferSlice()
 
-        let rangesOutOfBounds: [Buffer.Range] = [
+        let rangesOutOfBounds: [NSRange] = [
             .init(location: 1, length: 8),
             .init(location: 2, length: 4),
             .init(location: 4, length: 4),
@@ -114,9 +112,9 @@ final class ScopedBufferSliceTests: XCTestCase {
     func testLineRange_InsideBounds() throws {
         let scopedSlice = createScopedBufferSlice()
 
-        let expectedLineRange = Buffer.Range(location: 0, length: 10)
+        let expectedLineRange = NSRange(location: 0, length: 10)
         for locationInBounds in (availableRange.location ... availableRange.endLocation) {
-            let searchRange = Buffer.Range(location: locationInBounds, length: 0)
+            let searchRange = NSRange(location: locationInBounds, length: 0)
             let lineRange = try scopedSlice.lineRange(for: searchRange)
             XCTAssertEqual(lineRange, expectedLineRange,
                            "Range finding may extend beyond scope for action chaining")
@@ -155,7 +153,7 @@ final class ScopedBufferSliceTests: XCTestCase {
 
         for locationOutOfBounds in Array(-1..<3) + Array(7..<12) {
             for length in (0...2) {
-                let range = Buffer.Range(location: locationOutOfBounds, length: length)
+                let range = NSRange(location: locationOutOfBounds, length: length)
                 assertThrows(
                     try scopedSlice.content(in: range),
                     error: BufferAccessFailure.outOfRange(
@@ -175,7 +173,7 @@ final class ScopedBufferSliceTests: XCTestCase {
                        "Reading 0 length substring at endLocation should ")
 
         for length in (1...2) {
-            let range = Buffer.Range(location: 6, length: length)
+            let range = NSRange(location: 6, length: length)
             assertThrows(
                 try scopedSlice.content(in: range),
                 error: BufferAccessFailure.outOfRange(
@@ -203,15 +201,12 @@ final class ScopedBufferSliceTests: XCTestCase {
 
     func testInsert_InsideBounds() throws {
         for locationInBounds in 3...6 {
-            // Reset content for each test because the buffer is modified
             let scopedSlice = createScopedBufferSlice()
 
-            // Precondition
             XCTAssertEqual(scopedSlice.scopedRange, .init(location: 3, length: 3))
 
             XCTAssertNoThrow(try scopedSlice.insert("xxx", at: locationInBounds))
 
-            // Postcondition
             XCTAssertEqual(scopedSlice.scopedRange, .init(location: 3, length: 6), "Insertion should expand range")
         }
     }
@@ -225,7 +220,6 @@ final class ScopedBufferSliceTests: XCTestCase {
 
         XCTAssertNoThrow(try scopedSlice.insert("xxx"))
 
-        // Postcondition
         assertBufferState(scopedSlice, "0123456789xxxˇ")
         XCTAssertEqual(scopedSlice.scopedRange, .init(location: 7, length: 6), "Insertion should expand range")
     }
@@ -236,7 +230,7 @@ final class ScopedBufferSliceTests: XCTestCase {
         XCTAssertEqual(try scopedSlice.content(in: .init(location: 6, length: 0)), "",
                        "Reading 0 length substring at endLocation should ")
         for length in (1...2) {
-            let range = Buffer.Range(location: 6, length: length)
+            let range = NSRange(location: 6, length: length)
             assertThrows(
                 try scopedSlice.content(in: range),
                 error: BufferAccessFailure.outOfRange(
@@ -249,7 +243,7 @@ final class ScopedBufferSliceTests: XCTestCase {
 
         for locationOutOfBounds in Array(-1..<3) + Array(7..<12) {
             for length in (0...2) {
-                let range = Buffer.Range(location: locationOutOfBounds, length: length)
+                let range = NSRange(location: locationOutOfBounds, length: length)
                 assertThrows(
                     try scopedSlice.delete(in: range),
                     error: BufferAccessFailure.outOfRange(
@@ -261,7 +255,7 @@ final class ScopedBufferSliceTests: XCTestCase {
             }
         }
 
-        let rangesOutOfBounds: [Buffer.Range] = [
+        let rangesOutOfBounds: [NSRange] = [
             .init(location: 1, length: 8),
             .init(location: 2, length: 4),
             .init(location: 4, length: 4),
@@ -279,16 +273,13 @@ final class ScopedBufferSliceTests: XCTestCase {
 
     func testDelete_InsideBounds() throws {
         for locationInBounds in 3..<6 {
-            // Reset content for each test because the buffer is modified
             let scopedSlice = createScopedBufferSlice()
 
             for length in (0...1) {
-                // Precondition
                 XCTAssertEqual(scopedSlice.scopedRange, .init(location: 3, length: 3))
 
                 XCTAssertNoThrow(try scopedSlice.delete(in: .init(location: locationInBounds, length: length)))
 
-                // Postcondition
                 XCTAssertEqual(scopedSlice.scopedRange, .init(location: 3, length: 3 - length), "Deletion should shrink range")
             }
         }
@@ -299,7 +290,7 @@ final class ScopedBufferSliceTests: XCTestCase {
 
         for locationOutOfBounds in Array(-1..<3) + Array(7..<12) {
             for length in (0...2) {
-                let range = Buffer.Range(location: locationOutOfBounds, length: length)
+                let range = NSRange(location: locationOutOfBounds, length: length)
                 assertThrows(
                     try scopedSlice.replace(range: range, with: "something"),
                     error: BufferAccessFailure.outOfRange(
@@ -314,7 +305,6 @@ final class ScopedBufferSliceTests: XCTestCase {
     func testReplace_InsideBounds() throws {
         for locationInBounds in 3..<6 {
             for length in 0...1 {
-                // Reset content for each test because the buffer is modified
                 let scopedSlice = createScopedBufferSlice()
 
                 XCTAssertNoThrow(try scopedSlice.replace(range: .init(location: locationInBounds, length: length), with: "x"))
@@ -323,7 +313,6 @@ final class ScopedBufferSliceTests: XCTestCase {
     }
 
     func testReplace_AtEdgeOfBoundsBounds() throws {
-        // Replacing at the endLocation with 0 length is like typing/inserting/appending.
         XCTAssertNoThrow(
             try createScopedBufferSlice().replace(range: .init(location: 6, length: 0), with: "x"),
             "Typing at endLocation is permitted")
@@ -331,28 +320,25 @@ final class ScopedBufferSliceTests: XCTestCase {
             try createScopedBufferSlice().replace(range: .init(location: 6, length: 0), with: "xyz"),
             "Length of inserted text doesn't matter")
 
-        // Replacing a character beyond the bounds should throw
         assertThrows(
             try createScopedBufferSlice().replace(range: .init(location: 6, length: 1), with: "x"),
             error: BufferAccessFailure.outOfRange(
-                requested: .init(location: 6, length: 1),
+                requested: NSRange(location: 6, length: 1),
                 available: availableRange))
-        // Deleting a character beyond the bounds should throw
         assertThrows(
             try createScopedBufferSlice().replace(range: .init(location: 6, length: 1), with: ""),
             error: BufferAccessFailure.outOfRange(
-                requested: .init(location: 6, length: 1),
+                requested: NSRange(location: 6, length: 1),
                 available: availableRange))
     }
 
     func testReplace_InsideBounds_ExpandsAvailableRange() throws {
         let scopedSlice = createScopedBufferSlice()
 
-        // Precondition: {6,1} is out of range at first
         assertThrows(
             try scopedSlice.replace(range: .init(location: 6, length: 1), with: "x"),
             error: BufferAccessFailure.outOfRange(
-                requested: .init(location: 6, length: 1),
+                requested: NSRange(location: 6, length: 1),
                 available: availableRange
             )
         )
@@ -417,7 +403,6 @@ extension ScopedBufferSliceTests {
         assertThrows(
             try buffer.evaluate(location: 3, length: 2) { originalRange in
                 Select(buffer.range) { fullRange in
-                    // Attempting to expand the modifiable range with the enclosing selection is forbidden.
                     Modifying(fullRange) { fullRange in
                         Delete(location: fullRange.location, length: 2)
                     }
@@ -426,7 +411,7 @@ extension ScopedBufferSliceTests {
             error: BufferAccessFailure.outOfRange(
                 location: 0,
                 length: 10,
-                available: Buffer.Range(location: 3, length: 2)
+                available: NSRange(location: 3, length: 2)
             )
         )
         assertBufferState(buffer, "«0123456789»",
@@ -445,6 +430,7 @@ extension ScopedBufferSliceTests {
         assertBufferState(buffer, "«23456789»")
     }
 
+    @MainActor
     func testModifying_DelegatesToBaseAndProtectsScope() throws {
         class Delegate: NSObject, NSTextViewDelegate {
             var shouldChangeText = false
@@ -457,7 +443,7 @@ extension ScopedBufferSliceTests {
         let buffer = textView("Text")
         let delegate = Delegate()
         buffer.textView.delegate = delegate
-        let availableRange = Buffer.Range(location: 1, length: 2)
+        let availableRange = NSRange(location: 1, length: 2)
         let scopedSlice = try! ScopedBufferSlice(base: buffer, scopedRange: availableRange)
 
         let length = 1
@@ -466,9 +452,8 @@ extension ScopedBufferSliceTests {
 
         // MARK: Forbidden
         delegate.shouldChangeText = false
-        // Error outside of scope
         for location in locationsOutOfScope {
-            let range = Buffer.Range(location: location, length: length)
+            let range = NSRange(location: location, length: length)
             assertThrows(
                 try scopedSlice.modifying(affectedRange: range) {
                     XCTFail("Modification in \(range) should not execute")
@@ -479,9 +464,8 @@ extension ScopedBufferSliceTests {
                 )
             )
         }
-        // Forbidden in scope
         for location in locationsInScopeForEditing {
-            let range = Buffer.Range(location: location, length: length)
+            let range = NSRange(location: location, length: length)
             assertThrows(
                 try scopedSlice.modifying(affectedRange: range) {
                     XCTFail("Modification should not execute")
@@ -499,9 +483,8 @@ extension ScopedBufferSliceTests {
 
         // MARK: Allowed
         delegate.shouldChangeText = true
-        // Error outside of scope
         for location in locationsOutOfScope {
-            let range = Buffer.Range(location: location, length: length)
+            let range = NSRange(location: location, length: length)
             assertThrows(
                 try scopedSlice.modifying(affectedRange: range) {
                     XCTFail("Modification in \(range) should not execute")
@@ -512,7 +495,6 @@ extension ScopedBufferSliceTests {
                 )
             )
         }
-        // Allowed in scope
         for location in locationsInScopeForEditing {
             var didModify = false
             let result = try scopedSlice.modifying(affectedRange: .init(location: location, length: length)) {

@@ -1,11 +1,8 @@
-//  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
-
 import XCTest
 @testable import DeclarativeTextKit
 
 final class ModifyingTests: XCTestCase {
     func testEvaluateBlockCompatibility() throws {
-        // The actual success criterion is that this compiles without error as a base-level DSL block.
         let changeInLength = try MutableStringBuffer("").evaluate {
             Modifying(range: .init(location: 0, length: 0)) { range in
                 Identity()
@@ -15,11 +12,10 @@ final class ModifyingTests: XCTestCase {
     }
 
     func testModifying_InsertionOutsideSelectedBounds_Throws() throws {
-        func insertCharacter(at location: UTF16Offset) throws -> ChangeInLength {
+        func insertCharacter(at location: Int) throws -> ChangeInLength {
             let modification = Modifying(AffectedRange(location: 3, length: 3)) { _ in
                 Insert(location) { "x" }
             }
-            // Create new buffer for each iteration to discard mutations from previous runs.
             return try modification.evaluate(in: MutableStringBuffer("0123456789"))
         }
 
@@ -28,7 +24,7 @@ final class ModifyingTests: XCTestCase {
                 try insertCharacter(at: locationOutOfBounds),
                 error: BufferAccessFailure.outOfRange(
                     location: locationOutOfBounds,
-                    available: .init(location: 3, length: 3)
+                    available: NSRange(location: 3, length: 3)
                 )
             )
         }
@@ -39,7 +35,7 @@ final class ModifyingTests: XCTestCase {
     }
 
     func testModifying_InsertionAtBothEnds() throws {
-        let buffer: Buffer = MutableStringBuffer("Lorem ipsum.")
+        let buffer: any NSStringBuffer = MutableStringBuffer("Lorem ipsum.")
         buffer.insertionLocation = 8
         let selectedRange: AffectedRange = .init(location: 6, length: 5)
 
@@ -61,12 +57,11 @@ final class ModifyingTests: XCTestCase {
     }
 
     func testModifying_InsertingInLoop() throws {
-        let buffer: Buffer = MutableStringBuffer("0123456789")
+        let buffer: any NSStringBuffer = MutableStringBuffer("0123456789")
         buffer.insertionLocation = 6
         let fullRange = AffectedRange(buffer.range)
 
         let modify = Modifying(fullRange) { range in
-            // Inserting at multiple locations verifies that we can treat locations as absolute without one insertion invalidating the next.
             for location in stride(from: 0, to: 10, by: 2) {
                 Insert(location) { "x" }
             }
@@ -86,7 +81,7 @@ final class ModifyingTests: XCTestCase {
 
 
     func testModifying_DeletingMultiplePlaces() throws {
-        let buffer: Buffer = MutableStringBuffer("Lorem ipsum dolor sit.")
+        let buffer: any NSStringBuffer = MutableStringBuffer("Lorem ipsum dolor sit.")
         let fullRange = AffectedRange(buffer.range)
 
         let modify = Modifying(fullRange) { range in
@@ -107,12 +102,11 @@ final class ModifyingTests: XCTestCase {
     }
 
     func testModifying_DeletingInLoop() throws {
-        let buffer: Buffer = MutableStringBuffer("0123456789")
+        let buffer: any NSStringBuffer = MutableStringBuffer("0123456789")
         buffer.insertionLocation = 6
         let fullRange = AffectedRange(buffer.range)
 
         let modify = Modifying(fullRange) { range in
-            // Deleting at locations [0,1,2,3,4] tests that we can treat locations as absolute without one deletion invalidating the next.
             for location in 0..<5 {
                 Delete(location: location, length: 1)
             }
@@ -130,6 +124,7 @@ final class ModifyingTests: XCTestCase {
         assertBufferState(buffer, "5ˇ6789")
     }
 
+    @MainActor
     func testModifying_ModificationForbidden() throws {
         class Delegate: NSObject, NSTextViewDelegate {
             var shouldChangeText = false
@@ -151,14 +146,12 @@ final class ModifyingTests: XCTestCase {
             Insert(affectedRange.endLocation) { "esque" }
         }
 
-        // Forbidden
         delegate.shouldChangeText = false
-        assertThrows(        
+        assertThrows(
             try modify.evaluate(in: buffer),
-            error: BufferAccessFailure.modificationForbidden(in: .init(location: 6, length: 5))
+            error: BufferAccessFailure.modificationForbidden(in: NSRange(location: 6, length: 5))
         )
 
-        // Allowed
         delegate.shouldChangeText = true
         let changeInLength = try modify.evaluate(in: buffer)
         XCTAssertEqual(changeInLength.delta, 7)
@@ -167,7 +160,7 @@ final class ModifyingTests: XCTestCase {
     }
 
     func testNested_ForwardsChangeInLength() throws {
-        let buffer: Buffer = MutableStringBuffer("Hello")
+        let buffer: any NSStringBuffer = MutableStringBuffer("Hello")
 
         let modify = Modifying(AffectedRange(buffer.range)) { affectedRange in
             Modifying(affectedRange) { affectedRange in
@@ -183,7 +176,7 @@ final class ModifyingTests: XCTestCase {
     }
 
     func testNested_AdjustsSelectedRange() throws {
-        let buffer: Buffer = MutableStringBuffer("Hello")
+        let buffer: any NSStringBuffer = MutableStringBuffer("Hello")
         let selectedRange = AffectedRange(buffer.range)
 
         let modify = Modifying(selectedRange) { affectedRange in
@@ -201,7 +194,7 @@ final class ModifyingTests: XCTestCase {
     }
 
     func testModifying_Nested_UpdatesOuterRange() throws {
-        let buffer: Buffer = MutableStringBuffer("Lorem ipsum.")
+        let buffer: any NSStringBuffer = MutableStringBuffer("Lorem ipsum.")
         buffer.insertionLocation = 8
         let scopedRange: AffectedRange = .init(location: 6, length: 5)
 
@@ -219,6 +212,6 @@ final class ModifyingTests: XCTestCase {
         assertBufferState(buffer, "Lorem «deipsumesque».")
         XCTAssertEqual(changeInLength.delta, 7)
         XCTAssertEqual(scopedRange, .init(location: 6, length: 12))
-        XCTAssertEqual(buffer.selectedRange, .init(location: 6, length: 12))
+        XCTAssertEqual(buffer.selectedRange, NSRange(location: 6, length: 12))
     }
 }

@@ -1,5 +1,3 @@
-//  Copyright © 2024 Christian Tietze. All rights reserved. Distributed under the MIT License.
-
 import XCTest
 import DeclarativeTextKit
 
@@ -20,7 +18,7 @@ final class AffectedRangeTests: XCTestCase {
     }
 
     func testEquatable() {
-        let value = Buffer.Range(location: 10, length: 5)
+        let value = NSRange(location: 10, length: 5)
         XCTAssertEqual(AffectedRange(value), AffectedRange(value))
         XCTAssertNotEqual(AffectedRange(value), AffectedRange(location: 9, length: 5))
         XCTAssertNotEqual(AffectedRange(value), AffectedRange(location: 10, length: 4))
