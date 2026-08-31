@@ -108,7 +108,7 @@ final class SelectTests: XCTestCase {
                 return partialResult + [try buffer.content(in: buffer.selectedRange)]
             }
 
-        let expectedSelections: [String] = [
+        let expectedSelections: [String] = ([
             6 * "Lorem",
             6 * "ipsum",
             6 * "dolor",
@@ -118,7 +118,7 @@ final class SelectTests: XCTestCase {
             1 * "amet)",
             5 * "mkay",
             1 * "mkay?",
-        ].flatMap { $0 }
+        ] as [[String]]).flatMap { $0 }
 
         let diff = expectedSelections.difference(from: collectedWords).inferringMoves()
         XCTAssertEqual(collectedWords, expectedSelections, "\(dump(diff))")

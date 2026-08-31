@@ -1,7 +1,7 @@
 import Foundation
 import TextBuffer
 
-public protocol NSStringBuffer: TextAnalysisCapable where Range == NSRange, Content == String {}
+public protocol NSStringBuffer: Buffer, TextAnalysisCapable where Range == NSRange, Content == String {}
 
 extension MutableStringBuffer: NSStringBuffer {}
 

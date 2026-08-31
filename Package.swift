@@ -4,13 +4,14 @@ import PackageDescription
 
 let package = Package(
     name: "DeclarativeTextKit",
+    platforms: [.macOS(.v13)],
     products: [
         .library(
             name: "DeclarativeTextKit",
             targets: ["DeclarativeTextKit"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/CleanCocoa/TextBuffer", from: "0.2.0"),
+        .package(url: "https://github.com/CleanCocoa/TextBuffer", from: "0.12.0"),
     ],
     targets: [
         .target(
