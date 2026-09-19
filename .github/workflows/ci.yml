@@ -15,12 +15,10 @@ on:
 jobs:
   test:
     name: Test
-    runs-on: macOS-14
+    runs-on: macOS-15
     steps:
       - uses: actions/checkout@v4
-      - name: Xcode Select Version
-        uses: mobiledevops/xcode-select-version-action@v1
-        with:
-          xcode-select-version: 15.4
+      - name: Select Xcode 26.2
+        run: sudo xcode-select -s /Applications/Xcode_26.2.app/Contents/Developer
       - name: Test
         run: set -o pipefail && swift test | xcbeautify --renderer github-actions
